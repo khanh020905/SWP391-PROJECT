@@ -21,10 +21,10 @@ export default function Home() {
       </header>
 
       <section
-        className="relative min-h-screen bg-no-repeat bg-top bg-[length:100%_auto] md:bg-[length:100%_auto]"
+        className="relative h-[55.8vw] min-h-[640px] max-h-[720px] bg-no-repeat bg-top bg-[length:100%_auto] md:bg-[length:100%_auto]"
         style={{ backgroundImage: "url('/assets/background-hero-finall.jpeg')", backgroundPosition: "center 10px" }}
       >
-        <div className="relative mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-[1160px] flex-col px-4 py-0 md:px-8 md:py-2">
+        <div className="relative mx-auto flex h-full w-full max-w-[1160px] flex-col px-4 py-0 md:px-8 md:py-2">
           <div className="grid flex-1 items-start gap-8 p-4 pt-[9px] md:grid-cols-2 md:p-6 md:pt-[11px]">
             <div className="flex flex-col justify-center">
               <span className="mt-20 mb-5 inline-flex w-fit rounded-full border border-[#e8eaf2] bg-[#fbfcff] px-4 py-2 text-xs font-bold tracking-[0.02em] text-[#5e6792]">
@@ -74,7 +74,7 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="mx-auto w-full max-w-[1160px] px-4 py-6 md:px-8 md:py-8">
+      <main className="mx-auto w-full max-w-[1160px] px-4 pb-6 pt-3 md:px-8 md:pb-8 md:pt-4">
         <section className="mb-6 rounded-3xl bg-white p-8 md:p-12 shadow-[0_4px_32px_rgba(20,28,60,0.07)]">
           <h2 className="text-center text-3xl md:text-4xl font-extrabold text-[#141c41]">
             Complete Cambridge Cams <span className="text-[#ff7a00]">9 → 20</span>
@@ -100,7 +100,7 @@ export default function Home() {
               >
                 {/* Spine effect */}
                 <div className="absolute left-0 top-0 h-full w-[6px]" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%)" }} />
-                
+
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-start justify-start h-full pl-3 pr-2 py-3 w-full">
                   {/* Top: Logo and Shield */}
@@ -112,24 +112,24 @@ export default function Home() {
                     {/* Gold Shield Placeholder */}
                     <div className="w-2.5 h-3 bg-gradient-to-br from-[#f2d06b] to-[#b8860b] rounded-b-sm shadow-sm" />
                   </div>
-                  
+
                   <div className="text-[6.5px] md:text-[7.5px] font-medium tracking-[0.1em] text-white/90 mt-1">CAMBRIDGE</div>
                   <div className="text-[22px] md:text-[26px] font-extrabold text-white leading-none mt-0.5 tracking-tight font-sans">IELTS</div>
-                  
+
                   {/* Number */}
                   <div className="text-[36px] md:text-[44px] font-normal mt-0.5 leading-none" style={{ color: book.color }}>
                     {book.num}
                   </div>
-                  
+
                   {/* Academic */}
                   <div className="text-[5px] md:text-[6px] font-semibold tracking-[0.1em] text-white/80 mt-auto mb-1">ACADEMIC</div>
-                  
+
                   {/* Bottom right graphic */}
                   <div className="absolute bottom-2 right-2 w-8 h-8 opacity-50 flex items-end justify-end">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="w-full h-full" style={{ color: book.color }}>
-                       <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
-                       <circle cx="12" cy="12" r="4" />
-                       <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+                      <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
                     </svg>
                   </div>
                 </div>
@@ -158,21 +158,21 @@ export default function Home() {
                   </div>
                   <div className="w-2.5 h-3 bg-gradient-to-br from-[#f2d06b] to-[#b8860b] rounded-b-sm shadow-sm" />
                 </div>
-                
+
                 <div className="text-[6.5px] md:text-[7.5px] font-medium tracking-[0.1em] text-white/90 mt-1">CAMBRIDGE</div>
                 <div className="text-[22px] md:text-[26px] font-extrabold text-white leading-none mt-0.5 tracking-tight font-sans">IELTS</div>
-                
+
                 <div className="text-[36px] md:text-[44px] font-normal mt-0.5 leading-none text-white">
                   20
                 </div>
-                
+
                 <div className="text-[5px] md:text-[6px] font-semibold tracking-[0.1em] text-white/90 mt-auto mb-1">ACADEMIC</div>
-                
+
                 <div className="absolute bottom-2 right-2 w-8 h-8 opacity-40 flex items-end justify-end">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" className="w-full h-full">
-                     <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
-                     <circle cx="12" cy="12" r="4" />
-                     <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+                    <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
                   </svg>
                 </div>
               </div>
@@ -185,19 +185,19 @@ export default function Home() {
             <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#7c3aed] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(124,58,237,0.4)]">
               9
             </div>
-            
+
             {/* Progress line with dots */}
-            <div 
-              className="flex-1 h-[6px] mx-2 md:mx-4" 
+            <div
+              className="flex-1 h-[6px] mx-2 md:mx-4"
               style={{
                 background: "linear-gradient(90deg, #7c3aed 0%, #ffab66 100%)",
                 WebkitMaskImage: "radial-gradient(circle, black 2.5px, transparent 2.5px), linear-gradient(black, black)",
                 WebkitMaskSize: "28px 6px, 100% 2px",
                 WebkitMaskPosition: "center, center",
                 WebkitMaskRepeat: "repeat-x, no-repeat",
-              }} 
+              }}
             />
-            
+
             {/* Number 20 circle */}
             <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ff7a00] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(255,122,0,0.4)]">
               20
@@ -292,7 +292,7 @@ export default function Home() {
           </div>
 
           {/* Right side - Dashboard card */}
-          <div className="relative overflow-visible">
+          <div className="relative">
             <div className="rounded-2xl bg-white border border-[#e8ebf3] shadow-[0_8px_40px_rgba(20,28,60,0.08)] overflow-visible relative">
               <div className="flex">
                 {/* Sidebar navigation */}
@@ -307,11 +307,10 @@ export default function Home() {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-medium cursor-pointer transition-colors ${
-                        item.active
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-medium cursor-pointer transition-colors ${item.active
                           ? "bg-white text-[#ff7a00] shadow-sm font-semibold"
                           : "text-[#7b83a6] hover:bg-white/60"
-                      }`}
+                        }`}
                     >
                       <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                         <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -319,19 +318,17 @@ export default function Home() {
                       {item.label}
                     </div>
                   ))}
+                  <div className="mt-4 flex justify-center pointer-events-none">
+                    <img
+                      src="/assets/perfectshit.png"
+                      alt="AI Robot Assistant"
+                      className="h-[118px] w-[118px] object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.12)]"
+                    />
+                  </div>
                 </div>
 
                 {/* Main dashboard content */}
-                <div className="flex-1 p-5 relative overflow-visible">
-                  {/* Robot mascot inside dashboard - overflows outside card */}
-                  <div className="hidden md:block absolute -right-16 -top-10 w-[160px] h-[160px] z-30 pointer-events-none">
-                    <img
-                      src="/assets/robot-mascot.png"
-                      alt="AI Robot Assistant"
-                      className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
-                    />
-                  </div>
-
+                <div className="flex-1 p-5 relative">
                   {/* Your Progress header + Overall Band */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -592,18 +589,16 @@ export default function Home() {
         </section>
 
         {/* CTA - Ready to Achieve */}
-        <section className="relative rounded-3xl overflow-visible mt-8" style={{ background: "linear-gradient(105deg, #ff6b00 0%, #e85500 30%, #b25cff 60%, #4f84ff 100%)" }}>
-          {/* Inner section with overflow hidden for gradient only */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
-          </div>
+        <section className="relative mt-12 rounded-3xl overflow-visible" style={{ background: "linear-gradient(105deg, #ff6b00 0%, #e85500 30%, #b25cff 60%, #4f84ff 100%)" }}>
+          {/* Decorative overlay */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
           <div className="relative z-10 flex flex-col items-center gap-6 p-8 md:p-0 md:flex-row md:items-end">
-            {/* Robot mascot - sticks out above CTA section */}
-            <div className="hidden md:block flex-shrink-0 w-[280px] h-[280px] relative -mt-20 -mb-1 ml-6 z-20">
+            {/* Robot mascot */}
+            <div className="hidden md:block flex-shrink-0 w-[300px] h-[300px] relative -ml-8 -mt-12 -mb-8">
               <img
-                src="/assets/robot-mascot.png"
+                src="/assets/perfectshit.png"
                 alt="AI Robot Mascot"
-                className="w-full h-full object-contain drop-shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
+                className="w-full h-full object-contain drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
               />
             </div>
 
