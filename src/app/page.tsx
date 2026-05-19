@@ -292,7 +292,7 @@ export default function Home() {
           </div>
 
           {/* Right side - Dashboard card */}
-          <div className="relative">
+          <div className="relative overflow-visible">
             <div className="rounded-2xl bg-white border border-[#e8ebf3] shadow-[0_8px_40px_rgba(20,28,60,0.08)] overflow-visible relative">
               <div className="flex">
                 {/* Sidebar navigation */}
@@ -322,13 +322,13 @@ export default function Home() {
                 </div>
 
                 {/* Main dashboard content */}
-                <div className="flex-1 p-5 relative">
-                  {/* Robot mascot inside dashboard */}
-                  <div className="hidden md:block absolute -right-10 top-1/2 -translate-y-[40%] w-[110px] h-[110px] z-20 pointer-events-none">
+                <div className="flex-1 p-5 relative overflow-visible">
+                  {/* Robot mascot inside dashboard - overflows outside card */}
+                  <div className="hidden md:block absolute -right-16 -top-10 w-[160px] h-[160px] z-30 pointer-events-none">
                     <img
                       src="/assets/robot-mascot.png"
                       alt="AI Robot Assistant"
-                      className="w-full h-full object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.12)]"
+                      className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
                     />
                   </div>
 
@@ -592,16 +592,18 @@ export default function Home() {
         </section>
 
         {/* CTA - Ready to Achieve */}
-        <section className="relative rounded-3xl overflow-hidden" style={{ background: "linear-gradient(105deg, #ff6b00 0%, #e85500 30%, #b25cff 60%, #4f84ff 100%)" }}>
-          {/* Decorative overlay */}
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
+        <section className="relative rounded-3xl overflow-visible mt-8" style={{ background: "linear-gradient(105deg, #ff6b00 0%, #e85500 30%, #b25cff 60%, #4f84ff 100%)" }}>
+          {/* Inner section with overflow hidden for gradient only */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
+          </div>
           <div className="relative z-10 flex flex-col items-center gap-6 p-8 md:p-0 md:flex-row md:items-end">
-            {/* Robot mascot */}
-            <div className="hidden md:block flex-shrink-0 w-[220px] h-[220px] relative -mb-1 ml-4">
+            {/* Robot mascot - sticks out above CTA section */}
+            <div className="hidden md:block flex-shrink-0 w-[280px] h-[280px] relative -mt-20 -mb-1 ml-6 z-20">
               <img
                 src="/assets/robot-mascot.png"
                 alt="AI Robot Mascot"
-                className="w-full h-full object-contain drop-shadow-[0_12px_32px_rgba(0,0,0,0.25)]"
+                className="w-full h-full object-contain drop-shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
               />
             </div>
 
