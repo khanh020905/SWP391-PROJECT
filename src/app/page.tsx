@@ -15,8 +15,8 @@ export default function Home() {
           <a href="#">Blog</a>
         </nav>
         <div className="hidden items-center gap-3 md:flex">
-          <button className="rounded-xl border border-[#e7e9f1] px-5 py-2 text-sm font-semibold">Log in</button>
-          <button className="rounded-xl bg-[#ff7a00] px-5 py-2 text-sm font-semibold text-white">Get Started</button>
+          <a href="/auth" className="rounded-xl border border-[#e7e9f1] px-5 py-2 text-sm font-semibold text-[#0f1738]">Log in</a>
+          <a href="/auth" className="rounded-xl bg-[#ff7a00] px-5 py-2 text-sm font-semibold text-white">Get Started</a>
         </div>
       </header>
 
