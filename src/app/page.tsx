@@ -69,7 +69,6 @@ export default function Home() {
           <a href="#">About Us</a>
           <a href="#">Blog</a>
         </nav>
-        
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           {loading ? (
@@ -137,13 +136,13 @@ export default function Home() {
           ) : (
             <div className="flex items-center gap-3">
               <Link
-                href="/login"
-                className="rounded-xl border border-[#e7e9f1] px-5 py-2 text-sm font-semibold hover:bg-slate-100 transition-colors cursor-pointer select-none"
+                href="/auth"
+                className="rounded-xl border border-[#e7e9f1] px-5 py-2 text-sm font-semibold hover:bg-slate-100 transition-colors cursor-pointer select-none text-[#0f1738]"
               >
                 Log in
               </Link>
               <Link
-                href="/register"
+                href="/auth"
                 className="rounded-xl bg-[#ff7a00] px-5 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors shadow-sm cursor-pointer select-none"
               >
                 Get Started
