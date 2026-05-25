@@ -10,7 +10,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"STUDENT" | "GUEST">("STUDENT");
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -19,13 +18,12 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
  
   // Check existing session
   useEffect(() => {
     async function checkUser() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user?.email_confirmed_at) {
+      if (session) {
         const userRole = session.user.user_metadata?.role || "GUEST";
         if (userRole === "ADMIN") {
           window.location.href = "/admin/users";
@@ -43,7 +41,7 @@ export default function RegisterPage() {
  
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // When the user clicks the verification link in their Gmail tab, it logs them in
-      if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
+      if (event === "SIGNED_IN" && session?.user) {
         // Immediately sign out to clear auto-sign-in and redirect this tab to the login screen
         await supabase.auth.signOut();
         window.location.href = "/login?verified=true";
@@ -68,15 +66,13 @@ export default function RegisterPage() {
       return;
     }
 
-    // Show information confirmation modal
-    setShowConfirmModal(true);
+    confirmRegister();
   };
 
   const confirmRegister = async () => {
     setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
-    setShowConfirmModal(false);
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -86,7 +82,7 @@ export default function RegisterPage() {
           emailRedirectTo: typeof window !== "undefined" ? window.location.origin + "/login?verified=true" : undefined,
           data: {
             name,
-            role,
+            role: "STUDENT",
             isLocked: false,
           },
         },
@@ -104,7 +100,13 @@ export default function RegisterPage() {
         setIsLoading(false);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Đã xảy ra lỗi trong quá trình đăng ký.");
+      let msg = err.message || "Đã xảy ra lỗi trong quá trình đăng ký.";
+      if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
+        msg = "Tần suất gửi email xác thực quá nhanh. Vui lòng đợi 1-2 phút trước khi thử lại.";
+      } else if (msg.includes("already registered") || msg.includes("already exists")) {
+        msg = "Địa chỉ email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập ngay.";
+      }
+      setErrorMsg(msg);
       setIsLoading(false);
     }
   };
@@ -117,7 +119,7 @@ export default function RegisterPage() {
       <div className="absolute bottom-[-15%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-[#f5e1ff] via-[#e8e2ff] to-[#ffece0] opacity-75 blur-3xl pointer-events-none" />
       
       {/* Container card */}
-      <div className="w-full max-w-[1100px] min-h-[660px] grid md:grid-cols-2 rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.08)] relative z-10 animate-fade-in">
+      <div className="w-full max-w-[1100px] min-h-[660px] grid md:grid-cols-2 rounded-[32px] overflow-hidden bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.08)] relative z-10 animate-fade-in">
         
         {/* Left Side: Premium Custom Abstract Art Panel using exact color system and orbits from image */}
         <div className="hidden md:flex flex-col justify-between p-12 bg-gradient-to-br from-[#fafaff] via-[#f7ebff] to-[#fff5ec] relative overflow-hidden select-none">
@@ -279,13 +281,10 @@ export default function RegisterPage() {
         <div className="flex flex-col justify-between p-8 md:p-12 relative border-l border-white/50 min-h-[500px]">
           
           {/* Logo brand */}
-          <div className="flex items-center gap-2 text-xl font-extrabold text-[#11193f] mb-6 md:mb-0">
-            <span className="text-[#ff7a00] font-black animate-pulse">*</span>
-            <span className="bg-gradient-to-r from-[#0d153a] to-[#ff7a00] bg-clip-text text-transparent">QualiCode</span>
+          <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-6 md:mb-0 select-none">
+            <span className="text-[#ff7a00] font-black">*</span>
+            <span>QualiCode</span>
           </div>
-
-          {!isRegistered ? (
-            <>
               <div className="my-auto max-w-[420px] w-full">
                 <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-1">
                   Đăng ký tài khoản mới
@@ -327,7 +326,7 @@ export default function RegisterPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Nguyễn Văn A"
-                        className="w-full pl-11 pr-4 py-3 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-xs placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                       />
                     </div>
                   </div>
@@ -346,42 +345,9 @@ export default function RegisterPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@example.com"
-                        className="w-full pl-11 pr-4 py-3 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-xs placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        placeholder="nguyentrantkhietdan@gmail.com"
+                        className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                       />
-                    </div>
-                  </div>
-
-                  {/* Role Selection */}
-                  <div>
-                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">
-                      Bạn là? (Chọn vai trò)
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setRole("STUDENT")}
-                        className={`py-3 px-4 rounded-2xl border text-center font-bold text-xs transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-                          role === "STUDENT"
-                            ? "bg-[#ff7a00]/10 border-[#ff7a00] text-[#ff7a00] shadow-[0_4px_12px_rgba(255,122,0,0.08)]"
-                            : "bg-white/50 border-[#e1e4ed] text-[#5e6792] hover:bg-white hover:border-[#ccd1df]"
-                        }`}
-                      >
-                        <div className={`w-2.5 h-2.5 rounded-full ${role === "STUDENT" ? "bg-[#ff7a00]" : "bg-[#97a0c3]"} transition-colors`} />
-                        <span>Học sinh (Student)</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole("GUEST")}
-                        className={`py-3 px-4 rounded-2xl border text-center font-bold text-xs transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
-                          role === "GUEST"
-                            ? "bg-[#ff7a00]/10 border-[#ff7a00] text-[#ff7a00] shadow-[0_4px_12px_rgba(255,122,0,0.08)]"
-                            : "bg-white/50 border-[#e1e4ed] text-[#5e6792] hover:bg-white hover:border-[#ccd1df]"
-                        }`}
-                      >
-                        <div className={`w-2.5 h-2.5 rounded-full ${role === "GUEST" ? "bg-[#ff7a00]" : "bg-[#97a0c3]"} transition-colors`} />
-                        <span>Khách (Guest)</span>
-                      </button>
                     </div>
                   </div>
 
@@ -399,13 +365,13 @@ export default function RegisterPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-11 pr-11 py-3 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-xs placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        placeholder="••••••"
+                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#97a0c3] hover:text-[#5e6792] transition-colors"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#97a0c3] hover:text-[#5e6792] transition-colors bg-transparent border-none outline-none cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                       </button>
@@ -426,13 +392,13 @@ export default function RegisterPage() {
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-11 pr-11 py-3 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-xs placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        placeholder="••••••"
+                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#97a0c3] hover:text-[#5e6792] transition-colors"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#97a0c3] hover:text-[#5e6792] transition-colors bg-transparent border-none outline-none cursor-pointer"
                       >
                         {showConfirmPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                       </button>
@@ -443,7 +409,7 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.2)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-4 cursor-pointer"
+                    className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
                   >
                     {isLoading ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -464,120 +430,64 @@ export default function RegisterPage() {
                   Đăng nhập ngay
                 </Link>
               </div>
-            </>
-          ) : (
-            <>
-              {/* Premium Verification Notice Screen */}
-              <div className="my-auto max-w-[420px] w-full text-center md:text-left animate-fade-in">
-                <div className="w-16 h-16 rounded-3xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center mx-auto md:mx-0 mb-6 shadow-[0_12px_24px_rgba(255,122,0,0.15)] relative group animate-bounce">
-                  <div className="absolute inset-0 rounded-3xl bg-[#ff7a00]/25 scale-110 blur-md opacity-50 group-hover:scale-125 transition-all duration-300" />
-                  <Mail className="w-7 h-7 relative z-10 text-[#ff7a00]" />
-                </div>
-
-                <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-3">
-                  Xác nhận Email của bạn
-                </h2>
-                <p className="text-sm font-semibold text-[#ff7a00] mb-5 animate-pulse">
-                  Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...
-                </p>
-                
-                <div className="space-y-4 text-slate-600 text-xs font-medium leading-relaxed bg-[#fbfbfe] border border-slate-100 p-5 rounded-2xl mb-6 shadow-inner">
-                  <p>
-                    Chúng tôi đã gửi một liên kết xác nhận tài khoản đến địa chỉ:
-                  </p>
-                  <p className="font-bold text-[#0d153a] text-sm bg-white border border-[#e1e4ed] py-2 px-3.5 rounded-xl break-all">
-                    {email}
-                  </p>
-                  <p>
-                    Vui lòng mở hòm thư của bạn và bấm vào liên kết xác nhận để kích hoạt tài khoản của bạn. <strong>Sau khi bạn xác thực thành công trong Gmail, trang này sẽ tự động chuyển hướng về trang Đăng nhập.</strong>
-                  </p>
-                  <div className="pt-2 border-t border-slate-100 flex gap-2 text-[10px] text-slate-400">
-                    <span className="font-bold text-[#ff7a00] shrink-0">* Lưu ý:</span>
-                    <span>Hãy kiểm tra cả hòm thư **Spam (Thư rác)** hoặc **Quảng cáo** nếu không nhận được sau 1-2 phút.</span>
-                  </div>
-                </div>
- 
-                <Link
-                  href="/login"
-                  className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.2)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Quay lại trang Đăng nhập</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <div className="text-xs font-medium text-slate-400 mt-6 md:mt-0 text-center md:text-left">
-                Bạn chưa nhận được email? <a href="#" onClick={(e) => { e.preventDefault(); confirmRegister(); }} className="text-[#ff7a00] font-bold hover:underline">Gửi lại liên kết</a>
-              </div>
-            </>
-          )}
 
         </div>
 
       </div>
 
-      {/* Premium Glassmorphic Information Confirmation Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-[460px] rounded-3xl bg-white/90 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in">
+      {/* Centered Gmail Verification Modal */}
+      {isRegistered && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-[460px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-center relative z-50">
             
             {/* Modal Header */}
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-[#ff7a00]" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-[#0d153a]">Xác nhận thông tin đăng ký</h3>
-                <p className="text-[10px] font-bold text-slate-400">Vui lòng kiểm tra kỹ trước khi kích hoạt</p>
-              </div>
+            <div className="w-16 h-16 rounded-3xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center mx-auto mb-6 shadow-[0_12px_24px_rgba(255,122,0,0.15)] relative group animate-bounce">
+              <div className="absolute inset-0 rounded-3xl bg-[#ff7a00]/25 scale-110 blur-md opacity-50" />
+              <Mail className="w-7 h-7 relative z-10 text-[#ff7a00]" />
             </div>
+
+            <h3 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-2">
+              Xác nhận Email của bạn
+            </h3>
+            <p className="text-sm font-semibold text-[#ff7a00] mb-5 animate-pulse">
+              Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...
+            </p>
 
             {/* Modal Content */}
-            <div className="space-y-4 mb-6">
-              <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-3">
-                <div>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Họ và Tên</span>
-                  <span className="text-xs font-bold text-[#0d153a]">{name}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Địa chỉ Email</span>
-                  <span className="text-xs font-bold text-[#0d153a] break-all">{email}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Vai trò tuyển chọn</span>
-                  <span className="text-xs font-bold text-[#ff7a00]">
-                    {role === "STUDENT" ? "Học sinh (Student)" : "Khách tham quan (Guest)"}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-2.5 text-[10px] text-slate-500 bg-amber-50/70 border border-amber-100/60 p-3.5 rounded-xl leading-relaxed">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
-                <span>
-                  Nếu thông tin đăng ký trên đã chính xác, hãy bấm nút <strong>Xác nhận &amp; Đăng ký</strong> để tiếp tục gửi email kích hoạt tài khoản.
-                </span>
+            <div className="space-y-4 text-slate-600 text-xs font-medium leading-relaxed bg-[#fbfbfe] border border-slate-100 p-5 rounded-2xl mb-6 text-left shadow-inner">
+              <p>
+                Chúng tôi đã gửi một liên kết xác nhận tài khoản đến địa chỉ:
+              </p>
+              <p className="font-bold text-[#0d153a] text-sm bg-white border border-[#e1e4ed] py-2 px-3.5 rounded-xl break-all">
+                {email}
+              </p>
+              <p>
+                Vui lòng mở hòm thư của bạn và bấm vào liên kết xác nhận để kích hoạt tài khoản.
+              </p>
+              <p className="font-semibold text-emerald-600">
+                Sau khi bấm nút xác thực trong email, hệ thống sẽ tự động chuyển hướng bạn đến trang Đăng nhập để tiếp tục.
+              </p>
+              <div className="pt-2 border-t border-slate-100 flex gap-2 text-[10px] text-slate-400">
+                <span className="font-bold text-[#ff7a00] shrink-0">* Lưu ý:</span>
+                <span>Hãy kiểm tra cả hòm thư **Spam (Thư rác)** hoặc **Quảng cáo** nếu không nhận được sau 1-2 phút.</span>
               </div>
             </div>
 
-            {/* Modal Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="py-3 px-4 border border-[#e1e4ed] rounded-2xl text-center text-xs font-bold text-[#5e6792] hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer"
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Link
+                href="/login"
+                className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.2)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
               >
-                Quay lại sửa
-              </button>
-              <button
-                type="button"
+                <span>Quay lại trang Đăng nhập</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <button 
+                type="button" 
                 onClick={confirmRegister}
-                className="py-3 px-4 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_4px_12px_rgba(255,122,0,0.15)] hover:shadow-[0_6px_18px_rgba(255,122,0,0.2)] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full text-xs font-semibold text-[#ff7a00] hover:underline cursor-pointer bg-transparent border-none py-1"
               >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <span>Xác nhận &amp; Đăng ký</span>
-                )}
+                Gửi lại email xác nhận
               </button>
             </div>
 

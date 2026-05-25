@@ -114,37 +114,37 @@ export default function LoginPage() {
       <div className="absolute bottom-[-15%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-[#f5e1ff] via-[#e8e2ff] to-[#ffece0] opacity-75 blur-3xl pointer-events-none" />
       
       {/* Container card */}
-      <div className="w-full max-w-[1100px] min-h-[640px] grid md:grid-cols-2 rounded-3xl overflow-hidden bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.08)] relative z-10 animate-fade-in">
+      <div className="w-full max-w-[1100px] min-h-[640px] grid md:grid-cols-2 rounded-[32px] overflow-hidden bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.08)] relative z-10 animate-fade-in">
         
         {/* Left Side: Premium Login Form */}
         <div className="flex flex-col justify-between p-8 md:p-14 relative">
           
           {/* Logo brand */}
-          <div className="flex items-center gap-2 text-xl font-extrabold text-[#11193f] mb-8 md:mb-0">
-            <span className="text-[#ff7a00] font-black animate-pulse">*</span>
-            <span className="bg-gradient-to-r from-[#0d153a] to-[#ff7a00] bg-clip-text text-transparent">QualiCode</span>
+          <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-8 md:mb-0 select-none">
+            <span className="text-[#ff7a00] font-black">*</span>
+            <span>QualiCode</span>
           </div>
 
           <div className="my-auto max-w-[400px] w-full">
-            <h2 className="text-3xl font-extrabold text-[#0d153a] tracking-tight mb-2">
+            <h2 className="text-3xl font-extrabold text-[#0f1738] tracking-tight mb-2">
               Chào mừng quay lại!
             </h2>
-            <p className="text-sm font-medium text-[#5e6792] mb-8">
+            <p className="text-xs font-semibold text-[#5e6792] mb-8 leading-relaxed">
               Đăng nhập để tiếp tục hành trình học IELTS đột phá bằng công nghệ AI.
             </p>
 
             {/* Error Message */}
             {errorMsg && (
-              <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3 text-red-700 text-sm animate-shake">
-                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3 text-red-700 text-xs animate-shake">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Success Message */}
             {successMsg && (
-              <div className="mb-6 p-4 rounded-2xl bg-green-50 border border-green-100 flex items-start gap-3 text-green-700 text-sm animate-fade-in">
-                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 rounded-2xl bg-green-50 border border-green-100 flex items-start gap-3 text-green-700 text-xs animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{successMsg}</span>
               </div>
             )}
@@ -152,20 +152,20 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Email field */}
               <div className="group relative">
-                <label className="block text-xs font-bold text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
                   Địa chỉ Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
-                    <Mail className="w-5 h-5" />
+                    <Mail className="w-4.5 h-4.5" />
                   </div>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full pl-12 pr-4 py-3.5 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-sm placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                    placeholder="nguyentrantkhietdan@gmail.com"
+                    className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                   />
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function LoginPage() {
               {/* Password field */}
               <div className="group relative">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-[#5e6792] uppercase tracking-wider group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                  <label className="text-[10px] font-black text-[#5e6792] uppercase tracking-wider group-focus-within:text-[#ff7a00] transition-colors duration-200">
                     Mật khẩu
                   </label>
                   <a href="#" className="text-xs font-bold text-[#ff7a00] hover:text-[#e06b00] transition-colors">
@@ -182,22 +182,22 @@ export default function LoginPage() {
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
-                    <Lock className="w-5 h-5" />
+                    <Lock className="w-4.5 h-4.5" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3.5 bg-white/50 border border-[#e1e4ed] rounded-2xl text-[#0d153a] font-medium text-sm placeholder-[#97a0c3] focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                    placeholder="••••••"
+                    className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#97a0c3] hover:text-[#5e6792] transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                   </button>
                 </div>
               </div>
@@ -206,14 +206,14 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 px-6 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-sm rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-4 cursor-pointer"
+                className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>Đăng nhập ngay</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -221,7 +221,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer of card */}
-          <div className="text-sm font-medium text-[#5e6792] mt-8 md:mt-0 text-center md:text-left">
+          <div className="text-xs font-semibold text-[#5e6792] mt-8 md:mt-0 text-center md:text-left">
             Chưa có tài khoản?{" "}
             <Link href="/register" className="text-[#ff7a00] font-bold hover:underline">
               Đăng ký miễn phí
@@ -281,54 +281,54 @@ export default function LoginPage() {
 
           {/* Top text */}
           <div className="relative z-10 max-w-[320px]">
-            <span className="text-[10px] font-black tracking-[0.15em] text-[#ff7a00] uppercase bg-[#ff7a00]/10 px-3.5 py-1.5 rounded-full inline-block">
+            <span className="text-[10px] font-black tracking-wider text-[#ff7a00] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
               HỌC IELTS BẰNG AI
             </span>
-            <h3 className="text-3xl font-black text-[#0d153a] mt-5 leading-tight tracking-tight">
+            <h3 className="text-3xl font-black text-[#0f1738] mt-5 leading-tight tracking-tight">
               Cá nhân hóa mọi lộ trình của bạn
             </h3>
           </div>
 
-          {/* Interactive Floating AI Dashboard widget instead of cartoon girl image */}
+          {/* Interactive Floating AI Dashboard widget */}
           <div className="relative z-10 my-auto flex justify-center py-6">
-            <div className="w-[310px] rounded-3xl bg-white/70 border border-white/80 shadow-[0_20px_50px_rgba(25,12,6,0.06)] backdrop-blur-md p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] hover:shadow-[0_24px_60px_rgba(25,12,6,0.1)] group">
+            <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
               <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-xl" />
               
               {/* Header inside widget */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] text-white flex items-center justify-center">
-                    <Brain className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-xl bg-[#ff7a00] flex items-center justify-center text-white font-bold">
+                    <Brain className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-[#0d153a] leading-none">QualiCode AI</h4>
+                    <h4 className="text-xs font-black text-[#0f1738] leading-none">QualiCode AI</h4>
                     <span className="text-[9px] text-slate-400 font-semibold leading-none">Band Predictor v2</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-[#ff7a00]/10 text-[#ff7a00] px-2 py-0.5 rounded-full text-[9px] font-bold">
+                <div className="flex items-center gap-1 bg-[#fff4e6] text-[#ff7a00] px-2.5 py-0.5 rounded-full text-[9px] font-bold">
                   <Sparkles className="w-2.5 h-2.5" />
                   <span>Realtime</span>
                 </div>
               </div>
 
               {/* Stats / Targets */}
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-bold text-slate-400">Listening & Reading</span>
-                    <span className="text-xs font-black text-[#0d153a]">8.5 / 9.0</span>
+                    <span className="text-[9px] font-black text-[#97a0c3] uppercase tracking-wider">Listening & Reading</span>
+                    <span className="text-xs font-black text-[#0f1738]">8.5 / 9.0</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full w-[90%] bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] rounded-full transition-all duration-1000 group-hover:w-[94%]" />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-bold text-slate-400">Writing & Speaking Labs</span>
+                    <span className="text-[9px] font-black text-[#97a0c3] uppercase tracking-wider">Writing & Speaking Labs</span>
                     <span className="text-xs font-black text-[#7c3aed]">7.5 / 9.0</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full w-[78%] bg-gradient-to-r from-[#7c3aed] to-[#b8a8ff] rounded-full transition-all duration-1000 group-hover:w-[83%]" />
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export default function LoginPage() {
                   <TrendingUp className="w-3.5 h-3.5 text-[#ff7a00]" />
                   Target Score
                 </span>
-                <span className="text-white bg-gradient-to-r from-[#ff7a00] via-[#ff8c42] to-[#7c3aed] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(255,122,0,0.2)]">
+                <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#ff7a00] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(255,122,0,0.2)]">
                   8.0+ Band
                 </span>
               </div>
@@ -348,16 +348,16 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom testimonial card */}
-          <div className="relative z-10 bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-white shadow-[0_12px_28px_rgba(15,23,56,0.04)] max-w-[360px] self-center">
+          <div className="relative z-10 bg-white p-5 rounded-2xl border border-white/60 shadow-[0_12px_28px_rgba(15,23,56,0.04)] max-w-[360px] self-center">
             <p className="text-xs font-semibold italic text-[#4b5472] leading-relaxed">
               "Trình đánh giá thử và sửa bài viết IELTS bằng AI siêu tốc giúp mình tăng ngay 1.5 band chỉ trong vòng 3 tuần luyện tập!"
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] font-black text-xs flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#ff7a00] text-white font-black text-[10px] flex items-center justify-center">
                 MA
               </div>
               <div>
-                <p className="text-xs font-bold text-[#0d153a]">Minh Anh</p>
+                <p className="text-xs font-bold text-[#0f1738]">Minh Anh</p>
                 <p className="text-[10px] text-[#5e6792] font-semibold">Học sinh lớp 12 chuyên Anh - Target 8.0</p>
               </div>
             </div>

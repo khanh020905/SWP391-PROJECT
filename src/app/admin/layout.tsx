@@ -23,77 +23,31 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [adminUser, setAdminUser] = useState<{ name: string; email: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [adminUser, setAdminUser] = useState<{ name: string; email: string } | null>({
+    name: "Quản trị viên",
+    email: "admin@qualicode.com",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Check admin session and implement route protection
+  // Check admin session and implement route protection - Bypassed per user request
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    async function checkAdminAuth(isPeriodic = false) {
+    // Attempt to load current user name if logged in, but don't block or redirect if not
+    async function loadUserInfo() {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          if (isPeriodic) {
-            const isNetworkError = 
-              error.message?.toLowerCase().includes("fetch") || 
-              error.message?.toLowerCase().includes("network") ||
-              error.status === 0 ||
-              error.status === undefined;
-              
-            if (isNetworkError) {
-              console.warn("⚠️ [Auth Check] Phát hiện lỗi kết nối mạng hoặc yêu cầu bị chặn, tạm bỏ qua:", error.message);
-              return;
-            }
-          }
-          
-          await supabase.auth.signOut();
-          window.location.href = "/login";
-          return;
-        }
-
-        if (!user) {
-          await supabase.auth.signOut();
-          window.location.href = "/login";
-          return;
-        }
-
-        const metadata = user.user_metadata || {};
-        const role = metadata.role || "GUEST";
-        const isLocked = metadata.isLocked === true;
-
-        if (role !== "ADMIN" || isLocked) {
-          // Sign out in case user got downgraded or locked
-          await supabase.auth.signOut();
-          window.location.href = "/login?error=insufficient_permissions";
-          return;
-        }
-
-        if (!isPeriodic) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const metadata = user.user_metadata || {};
           setAdminUser({
             name: metadata.name || "Quản trị viên",
             email: user.email || "admin@qualicode.com",
           });
-          setIsLoading(false);
         }
       } catch (err) {
-        console.error("Lỗi xác thực Admin:", err);
-        if (!isPeriodic) {
-          window.location.href = "/login";
-        }
+        console.warn("Could not fetch logged-in user metadata, using defaults:", err);
       }
     }
-
-    checkAdminAuth(false);
-
-    // Periodic check every 3 seconds to guarantee immediate kickout on downgrade/lockout
-    intervalId = setInterval(() => {
-      checkAdminAuth(true);
-    }, 3000);
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
+    loadUserInfo();
+    setIsLoading(false);
   }, []);
 
   const handleSignOut = async () => {

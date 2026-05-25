@@ -25,22 +25,29 @@ export default function SpeakingDashboard() {
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user && session.user.email_confirmed_at) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("Session verification error:", err);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
         setUser(session.user);
       } else {
         setUser(null);
       }
       setLoading(false);
-    }
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user && session.user.email_confirmed_at) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
     });
 
     // Load past attempts from LocalStorage

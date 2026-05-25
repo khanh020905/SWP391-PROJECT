@@ -38,5 +38,75 @@
     "targetName": "ádadas",
     "targetEmail": "biminbon3@gmail.com",
     "details": "Nâng cấp quyền học viên (từ GUEST lên STUDENT)"
+  },
+  {
+    "id": "log_gluh5x2",
+    "timestamp": "2026-05-25T14:49:27.005Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "ádadsa",
+    "targetEmail": "biminbon3@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_kwvfwaa",
+    "timestamp": "2026-05-25T14:49:28.991Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "Nguyễn Trần Khiết Đan",
+    "targetEmail": "nguyentrankhietdan@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_j7y27oc",
+    "timestamp": "2026-05-25T15:06:07.246Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "ádasdasd",
+    "targetEmail": "khietdannguyen12@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_2dw76ds",
+    "timestamp": "2026-05-25T15:08:00.008Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "ádasd",
+    "targetEmail": "khietdannguyen12@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_7athwkg",
+    "timestamp": "2026-05-25T15:08:02.592Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "ádasdasd",
+    "targetEmail": "biminbon3@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_nnxolv6",
+    "timestamp": "2026-05-25T15:08:03.906Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "ádsa",
+    "targetEmail": "nguyentrankhietdan@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống"
+  },
+  {
+    "id": "log_8okr8cf",
+    "timestamp": "2026-05-25T15:27:33.112Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "CREATE",
+    "targetName": "ádasdsa",
+    "targetEmail": "khietdannguyen12@gmail.com",
+    "details": "Tạo tài khoản mới thành công (Vai trò: STUDENT)"
   }
 ]
