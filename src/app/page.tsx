@@ -1,199 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { User, LogOut, ShieldAlert, Sparkles, Calendar, Mail, UserCheck } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  // Check current session
-  useEffect(() => {
-    async function checkUser() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser(session.user);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Session load error:", err);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-    checkUser();
-
-    // Listen for session modifications
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Handle outside clicks to close the dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Handle scrolling to trigger navbar glassmorphism
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setShowDropdown(false);
-    window.location.reload();
-  };
-
   return (
     <div className="bg-[#f4f5f9] text-[#0f1738]">
-      <div className={`w-full sticky top-0 z-30 border-b transition-all duration-300 ease-in-out ${
-        isScrolled 
-          ? "bg-[#e5ebd8]/80 backdrop-blur-md shadow-sm border-[#d8e0cc]/60" 
-          : "bg-[#e5ebd8] border-[#d8e0cc]"
-      }`}>
-        <header className={`mx-auto flex w-full max-w-[1160px] items-center justify-between px-9 transition-all duration-300 ease-in-out ${
-          isScrolled ? "py-3.5" : "py-5"
-        }`}>
-          <div className="flex items-center gap-2.5 text-xl font-black text-[#1b3d1e]">
-            <div className="w-8 h-8 rounded-lg bg-[#3B5C37] flex items-center justify-center text-white font-black text-lg shadow-sm">
-              Q
-            </div>
-            <span className="tracking-tight">Quali IELTS</span>
-          </div>
-          <nav className="hidden items-center gap-8 text-sm font-bold text-[#4e5c4c] md:flex">
-            <Link href="/" className="hover:text-[#3B5C37] transition-colors">Home</Link>
-            <Link href="/speaking" className="text-[#3B5C37] font-black flex items-center gap-1 transition-all hover:scale-105">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#3B5C37]" />
-              <span>Speaking AI</span>
-            </Link>
-            <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">Review Đáp án</Link>
-            <a href="#" className="hover:text-[#3B5C37] transition-colors">Cambridge Cams</a>
-            <a href="#" className="hover:text-[#3B5C37] transition-colors">Pricing</a>
-            <a href="#" className="hover:text-[#3B5C37] transition-colors">About Us</a>
-          </nav>
-          {/* Dynamic Auth Header section */}
-          <div className="flex items-center gap-3 relative" ref={dropdownRef}>
-            {loading ? (
-              <div className="w-8 h-8 border-2 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
-            ) : user ? (
-              <>
-                {/* Premium User Avatar Bubble */}
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.25)] active:scale-95 transition-all outline-none border border-white/40 select-none relative group"
-                  aria-label="User menu"
-                >
-                  <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt="Avatar"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span>
-                      {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </button>
-
-                {/* User Dropdown Menu */}
-                {showDropdown && (
-                  <div className="absolute right-0 top-12 w-64 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_16px_48px_rgba(15,23,56,0.1)] backdrop-blur-md p-4 animate-scale-in z-50 text-left">
-                    <div className="border-b border-slate-100 pb-3 mb-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">Đang đăng nhập</p>
-                      <p className="text-xs font-black text-[#0d153a] truncate">
-                        {user.user_metadata?.name || "Người dùng QualiCode"}
-                      </p>
-                      <p className="text-[10px] font-medium text-slate-500 truncate">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Link
-                        href="/profile"
-                        onClick={() => setShowDropdown(false)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37] active:scale-[0.98] transition-all cursor-pointer no-underline"
-                      >
-                        <User className="w-4 h-4 text-[#3B5C37]" />
-                        <span>Hồ sơ cá nhân</span>
-                      </Link>
-
-                      {user.user_metadata?.role === "ADMIN" && (
-                        <Link
-                          href="/admin/users"
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#B38F4D] active:scale-[0.98] transition-all cursor-pointer"
-                        >
-                          <ShieldAlert className="w-4 h-4 text-[#B38F4D]" />
-                          <span>Trang Quản trị Admin</span>
-                        </Link>
-                      )}
-
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-red-500 hover:bg-red-50 active:scale-[0.98] transition-all cursor-pointer border-none outline-none border-t border-slate-50 mt-1 pt-2"
-                      >
-                        <LogOut className="w-4 h-4 text-red-500" />
-                        <span>Đăng xuất</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/auth"
-                  className="rounded-xl border border-[#c7d1b8] px-5 py-2 text-sm font-semibold hover:bg-white/40 transition-colors cursor-pointer select-none text-[#1b3d1e]"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/auth"
-                  className="rounded-xl bg-[#3B5C37] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1f3e1b] transition-colors shadow-sm cursor-pointer select-none"
-                >
-                  Get Started
-                </Link>
-              </div>
-            )}
-          </div>
-        </header>
-      </div>
+      <Navbar />
 
       <section
-        className="relative w-full h-[calc(100vh-75px)] min-h-[600px] bg-no-repeat overflow-hidden bg-[#e5ebd8]"
+        className="relative w-full h-screen min-h-[600px] bg-no-repeat overflow-hidden bg-[#e5ebd8]"
         style={{
           backgroundImage: "url('/assets/hero-background-new.jpeg')",
           backgroundSize: "cover",
@@ -203,70 +20,68 @@ export default function Home() {
         {/* Full Screen Overlay Container that matches the aspect ratio of the image */}
         <div className="absolute inset-0 mx-auto w-full max-w-[1160px] h-full pointer-events-none select-none">
           
-          {/* 1. Brand Pill Overlay (Covers "THEIELTSDICTIONARY") */}
-          <div className="absolute left-[31.5%] top-[33.5%] pointer-events-auto">
-            <span className="inline-flex rounded-full bg-[#ebefe0] border border-[#d8e0cc] px-2.5 py-1 text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#3B5C37] uppercase shadow-sm">
-              QUALI IELTS
-            </span>
-          </div>
-
-          {/* 2. Brand Button Overlay (Covers "Bài viết của TID →") */}
-          <div className="absolute left-[7.2%] top-[78.2%] pointer-events-auto">
-            <Link
-              href="/speaking"
-              className="inline-flex items-center justify-center rounded-full bg-[#3B5C37] hover:bg-[#1f3e1b] px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black text-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none"
-            >
-              Bài viết của Quali IELTS →
-            </Link>
-          </div>
-
-          {/* 3. Free Resource Link Overlay (Covers "Khám phá tài liệu miễn phí >") */}
-          <div className="absolute left-[33%] md:left-[35%] top-[79.5%] pointer-events-auto">
-            <Link
-              href="/exam/review"
-              className="text-[10px] sm:text-xs md:text-sm font-black text-[#3B5C37] hover:underline cursor-pointer select-none flex items-center gap-1"
-            >
-              <span>Khám phá tài liệu miễn phí</span>
-              <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* 4. Dinosaur Speech Bubble Overlay (Covers the bubble in the image) */}
-          <div className="absolute left-[47%] md:left-[51.8%] top-[14%] pointer-events-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[280px]">
-            <div className="relative bg-white border border-[#d4dec7] rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-md text-left">
-              <p className="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#1b3d1e] leading-relaxed">
-                Bạn in the house! <span className="text-[#3B5C37] font-black">Quali IELTS</span> mở khóa bài học mới nè.
+          {/* Left Column Stack */}
+          <div className="absolute left-[36px] top-[calc(18%+60px)] sm:top-[calc(20%+60px)] md:top-[calc(22%+60px)] max-w-[650px] pointer-events-auto text-left select-text flex flex-col gap-6 md:gap-8">
+            
+            {/* Headline Group */}
+            <div>
+              <h1 className="font-extrabold text-[#1b3d1e] leading-tight">
+                <span className="block text-3xl sm:text-4xl md:text-5xl tracking-tight mb-1">
+                  Nền tảng
+                </span>
+                <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-black tracking-tight leading-[1.05]">
+                  Luyện thi IELTS
+                </span>
+              </h1>
+              <p className="mt-4 text-xs sm:text-sm md:text-base lg:text-[17px] font-medium text-[#4e5c4c] leading-relaxed max-w-[500px]">
+                Đầy đủ tài liệu, bài luyện, phương pháp và từ vựng giúp bạn chinh phục IELTS dễ dàng hơn mỗi ngày.
               </p>
-              {/* Arrow / Bubble tail */}
-              <div className="absolute bottom-[-8px] left-[50%] -translate-x-1/2 w-3.5 h-3.5 bg-white border-r border-b border-[#d4dec7] rotate-45" />
             </div>
-          </div>
 
-          {/* 5. Follow Us On Links */}
-          <div className="absolute left-[7.2%] top-[65%] pointer-events-auto flex items-center gap-2">
-            <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#4e5c4c] uppercase mr-1">Follow us on</span>
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-[#1877f2] flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
-            >
-              <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </a>
-            <a
-              href="https://tiktok.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-black flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
-            >
-              <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12.525.02c1.31-.032 2.61-.005 3.91-.012.08 1.543.705 3.013 1.782 4.12 1.094 1.097 2.574 1.71 4.123 1.776v3.832c-1.637-.024-3.238-.54-4.59-1.455-.41-.284-.795-.61-1.144-.975v7.242c.04 3.738-2.61 7.158-6.31 7.787-3.79.69-7.55-1.71-8.525-5.46-.994-3.593 1.077-7.614 4.67-8.73 1.114-.363 2.296-.39 3.424-.132v3.916c-.846-.226-1.74-.183-2.553.18-1.282.535-2.096 1.942-1.93 3.325.178 1.637 1.63 2.916 3.28 2.766 1.488-.066 2.72-1.218 2.87-2.7.072-1.042.023-2.094.043-3.14V0h.07z"/>
-              </svg>
-            </a>
+            {/* Follow Us On Links */}
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#4e5c4c] uppercase mr-1">Follow us on</span>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-[#1877f2] flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
+              >
+                <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-black flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
+              >
+                <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12.525.02c1.31-.032 2.61-.005 3.91-.012.08 1.543.705 3.013 1.782 4.12 1.094 1.097 2.574 1.71 4.123 1.776v3.832c-1.637-.024-3.238-.54-4.59-1.455-.41-.284-.795-.61-1.144-.975v7.242c.04 3.738-2.61 7.158-6.31 7.787-3.79.69-7.55-1.71-8.525-5.46-.994-3.593 1.077-7.614 4.67-8.73 1.114-.363 2.296-.39 3.424-.132v3.916c-.846-.226-1.74-.183-2.553.18-1.282.535-2.096 1.942-1.93 3.325.178 1.637 1.63 2.916 3.28 2.766 1.488-.066 2.72-1.218 2.87-2.7.072-1.042.023-2.094.043-3.14V0h.07z"/>
+                </svg>
+              </a>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-4">
+              <Link
+                href="/speaking"
+                className="inline-flex items-center justify-center rounded-full bg-[#3B5C37] hover:bg-[#1f3e1b] px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black text-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none"
+              >
+                Bài viết của Quali IELTS →
+              </Link>
+              <Link
+                href="/exam/review"
+                className="inline-flex items-center justify-center rounded-full bg-[#ebefe0] border-2 border-[#3B5C37] text-[#3B5C37] hover:bg-[#3B5C37] hover:text-white px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none gap-1.5"
+              >
+                <span>Khám phá tài liệu miễn phí</span>
+                <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
           </div>
 
         </div>
@@ -823,105 +638,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Premium Glassmorphic User Profile Modal */}
-      {showProfileModal && user && (
-        <div 
-          onClick={() => setShowProfileModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in select-none"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[480px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-left relative overflow-hidden"
-          >
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-2xl" />
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#3B5C37] to-[#5c9255] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(59, 92, 55,0.15)]">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-[#0d153a]">Thông tin tài khoản</h3>
-                <p className="text-[10px] font-bold text-slate-400">Chi tiết tài khoản học viên QualiCode</p>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="space-y-5 mb-6 relative z-10">
-              {/* Profile Avatar Card */}
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#f8faf5] border border-slate-100/60 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#5c9255] to-[#B38F4D] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
-                  {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-[#0d153a]">
-                    {user.user_metadata?.name || "Thành viên QualiCode"}
-                  </h4>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#3B5C37]/10 text-[#3B5C37] border border-[#3B5C37]/25">
-                    {user.user_metadata?.role === "ADMIN" ? "Quản trị viên (ADMIN)" : user.user_metadata?.role === "STUDENT" ? "Học sinh (STUDENT)" : "Khách (GUEST)"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Data list */}
-              <div className="space-y-3.5 p-4 bg-slate-50/50 border border-slate-100 rounded-2xl">
-                <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-[#B38F4D] mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Địa chỉ Email</span>
-                    <span className="text-xs font-bold text-[#0d153a] break-all">{user.email}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Calendar className="w-4 h-4 text-[#3B5C37] mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Ngày tham gia</span>
-                    <span className="text-xs font-bold text-[#0d153a]">
-                      {new Date(user.created_at).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <UserCheck className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Trạng thái hệ thống</span>
-                    <span className="text-xs font-bold text-green-600 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse" />
-                      Đang hoạt động (Active)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex gap-3 mt-5">
-              <Link
-                href="/reset-password"
-                onClick={() => setShowProfileModal(false)}
-                className="flex-1 py-3 px-4 bg-white border border-[#3B5C37] text-[#3B5C37] hover:bg-[#f2f6ee] font-bold text-xs rounded-2xl active:scale-[0.98] transition-all cursor-pointer text-center no-underline flex items-center justify-center"
-              >
-                Đổi mật khẩu
-              </Link>
-              <button
-                type="button"
-                onClick={() => setShowProfileModal(false)}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-[#0d153a] to-[#252f5f] hover:from-[#1b2550] hover:to-[#3b477c] text-white font-bold text-xs rounded-2xl shadow-[0_4px_12px_rgba(13,21,58,0.15)] hover:shadow-[0_6px_18px_rgba(13,21,58,0.25)] active:scale-[0.98] transition-all cursor-pointer text-center border-none outline-none"
-              >
-                Đóng thông tin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
