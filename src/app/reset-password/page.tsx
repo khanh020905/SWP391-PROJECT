@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { OtpInput } from "@/components/ui/OtpInput";
 import { 
   Eye, 
   EyeOff, 
@@ -39,7 +40,18 @@ export default function ResetPasswordPage() {
 
   // OTP state
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Detect recovery session on mount
+  useEffect(() => {
+    async function detectCallback() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setStep(3);
+        setSuccessMsg("Vui lòng thiết lập mật khẩu mới cho tài khoản của bạn.");
+      }
+    }
+    detectCallback();
+  }, []);
 
   // Countdown for resend (60s)
   const [countdown, setCountdown] = useState(0);
@@ -122,31 +134,18 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
-
     try {
-      const trimmedEmail = email.trim().toLowerCase();
-      if (!trimmedEmail) throw new Error("Vui lòng nhập địa chỉ email.");
-
-      // For OTP flow, we do not provide a redirectTo link
-      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail);
-
-      if (error) throw error;
-
-      setSuccessMsg("Mã OTP đã được gửi đến email của bạn!");
-      setStep(2);
-      setExpiryTimerTrigger((prev) => prev + 1);
-      startCountdown();
-      setIsLoading(false);
-      
-      // Auto-focus first OTP input
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuccessMsg("Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hòm thư của bạn.");
     } catch (err: any) {
-      console.error("Lỗi gửi yêu cầu reset mật khẩu:", err);
-      let msg = err.message || "Đã xảy ra lỗi khi gửi yêu cầu.";
-      if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
-        msg = "Tần suất gửi yêu cầu quá nhanh. Vui lòng đợi 1-2 phút trước khi thử lại.";
-      }
-      setErrorMsg(msg);
+      setErrorMsg(err.message || "Đã xảy ra lỗi khi gửi yêu cầu.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -157,15 +156,18 @@ export default function ResetPasswordPage() {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
-      if (error) throw error;
-      setSuccessMsg("Mã OTP mới đã được gửi đến email của bạn!");
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuccessMsg("Email đặt lại mật khẩu đã được gửi lại!");
       startCountdown();
-      setExpiryTimerTrigger((prev) => prev + 1);
       setOtp(["", "", "", "", "", ""]);
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err: any) {
-      let msg = err.message || "Không thể gửi lại OTP.";
+      let msg = err.message || "Không thể gửi lại email.";
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
         msg = "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút.";
       }
@@ -246,49 +248,7 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // OTP input handlers
-  const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, "").slice(-1);
-    const newOtp = [...otp];
-    newOtp[index] = digit;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (digit && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
-      if (!otp[index] && index > 0) {
-        const newOtp = [...otp];
-        newOtp[index - 1] = "";
-        setOtp(newOtp);
-        otpRefs.current[index - 1]?.focus();
-      }
-    } else if (e.key === "Enter") {
-      const otpCode = otp.join("");
-      if (otpCode.length === 6) {
-        handleVerifyOTP();
-      }
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pastedData.length > 0) {
-      const newOtp = [...otp];
-      for (let i = 0; i < 6; i++) {
-        newOtp[i] = pastedData[i] || "";
-      }
-      setOtp(newOtp);
-      // Focus the next empty input or the last one
-      const nextEmpty = newOtp.findIndex((d) => d === "");
-      otpRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
-    }
-  };
+  // OTP handlers removed - handled by OtpInput
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f4f5f9] p-4 md:p-6 overflow-hidden relative">
@@ -459,29 +419,7 @@ export default function ResetPasswordPage() {
                   </div>
                 )}
 
-                {/* OTP Inputs */}
-                <div className="flex justify-center gap-3 mb-6" onPaste={handleOtpPaste}>
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => { otpRefs.current[index] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      disabled={expiryCountdown <= 0}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all duration-300 bg-[#f0f4fd] text-[#0d153a] ${
-                        digit
-                          ? "border-[#ff7a00] bg-white shadow-[0_4px_16px_rgba(255,122,0,0.12)] scale-105"
-                          : "border-[#e1e4ed]/60 hover:border-[#ff7a00]/40"
-                      } focus:border-[#ff7a00] focus:bg-white focus:ring-4 focus:ring-[#ff7a00]/10 focus:scale-105 ${
-                        expiryCountdown <= 0 ? "opacity-50 pointer-events-none cursor-not-allowed" : ""
-                      }`}
-                    />
-                  ))}
-                </div>
+                <OtpInput value={otp} onChange={setOtp} disabled={expiryCountdown <= 0 || isLoading} />
 
                 {/* Submit button */}
                 <button
