@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, Mail, Lock, User, UserCheck, AlertTriangle, ArrowRight, Shield, Brain, Sparkles, TrendingUp, BookOpen, Compass, Zap, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, UserCheck, AlertTriangle, ArrowRight, Shield, Brain, Sparkles, TrendingUp, BookOpen, Compass, Zap, CheckCircle2, ArrowLeft, RefreshCw } from "lucide-react";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -17,7 +17,65 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [isRegistered, setIsRegistered] = useState(false);
+
+  // Multi-step: 1 = form, 2 = OTP
+  const [step, setStep] = useState<1 | 2>(1);
+
+  // OTP state
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Countdown for resend
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 5-minute countdown for OTP expiry
+  const [expiryCountdown, setExpiryCountdown] = useState(300);
+  const [expiryTimerTrigger, setExpiryTimerTrigger] = useState(0);
+  const expiryRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const formatExpiryTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  // Expiry timer effect (5 minutes = 300s)
+  useEffect(() => {
+    if (step !== 2) {
+      if (expiryRef.current) {
+        clearInterval(expiryRef.current);
+        expiryRef.current = null;
+      }
+      return;
+    }
+
+    setExpiryCountdown(300);
+
+    if (expiryRef.current) {
+      clearInterval(expiryRef.current);
+    }
+
+    expiryRef.current = setInterval(() => {
+      setExpiryCountdown((prev) => {
+        if (prev <= 1) {
+          if (expiryRef.current) {
+            clearInterval(expiryRef.current);
+            expiryRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (expiryRef.current) {
+        clearInterval(expiryRef.current);
+        expiryRef.current = null;
+      }
+    };
+  }, [step, expiryTimerTrigger]);
  
   // Check existing session
   useEffect(() => {
@@ -34,22 +92,30 @@ export default function RegisterPage() {
     }
     checkUser();
   }, []);
- 
-  // Listen for email confirmation events from other tabs (via localstorage session syncing)
+
+  // Countdown timer effect
   useEffect(() => {
-    if (!isRegistered) return;
- 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // When the user clicks the verification link in their Gmail tab, it logs them in
-      if (event === "SIGNED_IN" && session?.user) {
-        // Immediately sign out to clear auto-sign-in and redirect this tab to the login screen
-        await supabase.auth.signOut();
-        window.location.href = "/login?verified=true";
-      }
-    });
- 
-    return () => subscription.unsubscribe();
-  }, [isRegistered]);
+    if (countdown <= 0) {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      return;
+    }
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [countdown]);
+
+  const startCountdown = useCallback(() => {
+    setCountdown(60);
+  }, []);
 
   const handleRegister = (e: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -66,10 +132,10 @@ export default function RegisterPage() {
       return;
     }
 
-    confirmRegister();
+    sendSignUp();
   };
 
-  const confirmRegister = async () => {
+  const sendSignUp = async () => {
     setIsLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
@@ -79,7 +145,6 @@ export default function RegisterPage() {
         email,
         password,
         options: {
-          emailRedirectTo: typeof window !== "undefined" ? window.location.origin + "/login?verified=true" : undefined,
           data: {
             name,
             role: "STUDENT",
@@ -93,11 +158,15 @@ export default function RegisterPage() {
       }
 
       if (data?.user) {
-        // Sign out immediately to clear localstorage of unconfirmed user session
+        // Sign out immediately to clear unconfirmed user session
         await supabase.auth.signOut();
-        setSuccessMsg("Đăng ký thành công! Vui lòng xác thực email của bạn.");
-        setIsRegistered(true);
+        setSuccessMsg("Mã OTP đã được gửi đến email của bạn!");
+        setStep(2);
+        setExpiryTimerTrigger((prev) => prev + 1);
+        startCountdown();
         setIsLoading(false);
+        // Auto-focus first OTP input
+        setTimeout(() => otpRefs.current[0]?.focus(), 100);
       }
     } catch (err: any) {
       let msg = err.message || "Đã xảy ra lỗi trong quá trình đăng ký.";
@@ -108,6 +177,127 @@ export default function RegisterPage() {
       }
       setErrorMsg(msg);
       setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return;
+    setIsLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      // Re-send by calling signUp again (Supabase resends OTP for existing unconfirmed users)
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role: "STUDENT",
+            isLocked: false,
+          },
+        },
+      });
+      if (error) throw new Error(error.message);
+      await supabase.auth.signOut();
+      setSuccessMsg("Mã OTP mới đã được gửi đến email của bạn!");
+      startCountdown();
+      setExpiryTimerTrigger((prev) => prev + 1);
+      setOtp(["", "", "", "", "", ""]);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    } catch (err: any) {
+      let msg = err.message || "Không thể gửi lại OTP.";
+      if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
+        msg = "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút.";
+      }
+      setErrorMsg(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const otpCode = otp.join("");
+    if (otpCode.length !== 6) {
+      setErrorMsg("Vui lòng nhập đầy đủ mã OTP 6 số.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: "signup",
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.session) {
+        // Verification succeeded, sign out then redirect to login
+        await supabase.auth.signOut();
+        window.location.href = "/login?verified=true";
+      }
+    } catch (err: any) {
+      let msg = err.message || "Xác thực OTP thất bại.";
+      if (msg.includes("Token has expired") || msg.includes("expired")) {
+        msg = "Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.";
+      } else if (msg.includes("Invalid") || msg.includes("invalid")) {
+        msg = "Mã OTP không chính xác. Vui lòng kiểm tra lại.";
+      }
+      setErrorMsg(msg);
+      setIsLoading(false);
+    }
+  };
+
+  // OTP input handlers
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow digits
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const newOtp = [...otp];
+    newOtp[index] = digit;
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (digit && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      if (!otp[index] && index > 0) {
+        // Move to previous input on backspace if current is empty
+        const newOtp = [...otp];
+        newOtp[index - 1] = "";
+        setOtp(newOtp);
+        otpRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "Enter") {
+      const otpCode = otp.join("");
+      if (otpCode.length === 6) {
+        handleVerifyOTP();
+      }
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pastedData.length > 0) {
+      const newOtp = [...otp];
+      for (let i = 0; i < 6; i++) {
+        newOtp[i] = pastedData[i] || "";
+      }
+      setOtp(newOtp);
+      // Focus the next empty input or the last one
+      const nextEmpty = newOtp.findIndex((d) => d === "");
+      otpRefs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
     }
   };
 
@@ -277,7 +467,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Right Side: Premium Registration Form or Verification Notice */}
+        {/* Right Side: Registration Form (Step 1) or OTP Verification (Step 2) */}
         <div className="flex flex-col justify-between p-8 md:p-12 relative border-l border-white/50 min-h-[500px]">
           
           {/* Logo brand */}
@@ -285,6 +475,10 @@ export default function RegisterPage() {
             <span className="text-[#ff7a00] font-black">*</span>
             <span>QualiCode</span>
           </div>
+
+          {step === 1 ? (
+            /* ============ STEP 1: Registration Form ============ */
+            <>
               <div className="my-auto max-w-[420px] w-full">
                 <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-1">
                   Đăng ký tài khoản mới
@@ -430,70 +624,177 @@ export default function RegisterPage() {
                   Đăng nhập ngay
                 </Link>
               </div>
+            </>
+          ) : (
+            /* ============ STEP 2: OTP Verification ============ */
+            <>
+              <div className="my-auto max-w-[420px] w-full">
+                {/* Back button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep(1);
+                    setErrorMsg("");
+                    setSuccessMsg("");
+                    setOtp(["", "", "", "", "", ""]);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#5e6792] hover:text-[#ff7a00] transition-colors mb-6 bg-transparent border-none cursor-pointer outline-none"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Quay lại</span>
+                </button>
+
+                {/* OTP Icon */}
+                <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#ff7a00]/15 to-[#ff9e4f]/10 text-[#ff7a00] flex items-center justify-center mx-auto mb-5 relative">
+                  <div className="absolute inset-0 rounded-3xl bg-[#ff7a00]/20 scale-110 blur-md opacity-50 animate-pulse" />
+                  <Mail className="w-7 h-7 relative z-10" />
+                </div>
+
+                <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-2 text-center">
+                  Xác thực OTP
+                </h2>
+                <p className="text-xs font-semibold text-[#5e6792] mb-2 text-center leading-relaxed">
+                  Chúng tôi đã gửi mã xác thực 6 số đến email:
+                </p>
+                <p className="text-sm font-bold text-[#0d153a] text-center mb-6 bg-[#f0f4fd] py-2 px-4 rounded-xl border border-[#e1e4ed]/40 inline-block mx-auto w-fit break-all">
+                  {email}
+                </p>
+
+                {/* Yêu cầu xác nhận Banner */}
+                <div className="mb-6 p-4 rounded-2xl bg-[#ff7a00]/5 border border-[#ff7a00]/25 flex flex-col gap-3 animate-fade-in">
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="w-8 h-8 rounded-xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center shrink-0">
+                      <Shield className="w-4.5 h-4.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-[#0d153a] uppercase tracking-wider">
+                        Yêu cầu xác nhận Email
+                      </h4>
+                      <p className="text-[11px] text-[#5e6792] font-semibold leading-relaxed mt-0.5">
+                        Bạn cần nhập mã OTP được gửi tới hòm thư của mình để hoàn tất kích hoạt tài khoản. Yêu cầu này chỉ có hiệu lực trong vòng 5 phút.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Timer Badge */}
+                  <div className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 ${
+                    expiryCountdown <= 60 
+                      ? "bg-red-50 border-red-100 text-red-600 animate-pulse" 
+                      : "bg-[#ff7a00]/5 border-[#ff7a00]/10 text-[#ff7a00]"
+                  }`}>
+                    <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5" />
+                      {expiryCountdown <= 0 ? "Yêu cầu đã hết hạn" : "Thời gian xác thực còn lại"}
+                    </span>
+                    <span className="text-sm font-black tracking-wider">
+                      {formatExpiryTime(expiryCountdown)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {errorMsg && (
+                  <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3 text-red-700 text-xs animate-shake">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+
+                {/* Expiry Warning Message */}
+                {expiryCountdown <= 0 && (
+                  <div className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3 text-red-700 text-xs animate-shake">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>Mã OTP đã hết hạn sau 5 phút. Vui lòng nhấn gửi lại mã mới bên dưới.</span>
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {successMsg && (
+                  <div className="mb-5 p-3.5 rounded-2xl bg-green-50 border border-green-100 flex items-start gap-3 text-green-700 text-xs animate-fade-in">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{successMsg}</span>
+                  </div>
+                )}
+
+                {/* OTP Input Boxes */}
+                <div className="flex justify-center gap-3 mb-6" onPaste={handleOtpPaste}>
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => { otpRefs.current[index] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      disabled={expiryCountdown <= 0}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all duration-300 bg-[#f0f4fd] text-[#0d153a] ${
+                        digit
+                          ? "border-[#ff7a00] bg-white shadow-[0_4px_16px_rgba(255,122,0,0.12)] scale-105"
+                          : "border-[#e1e4ed]/60 hover:border-[#ff7a00]/40"
+                      } focus:border-[#ff7a00] focus:bg-white focus:ring-4 focus:ring-[#ff7a00]/10 focus:scale-105 ${
+                        expiryCountdown <= 0 ? "opacity-50 pointer-events-none cursor-not-allowed" : ""
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Verify button */}
+                <button
+                  type="button"
+                  onClick={handleVerifyOTP}
+                  disabled={isLoading || otp.join("").length !== 6 || expiryCountdown <= 0}
+                  className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Xác thực tài khoản</span>
+                      <CheckCircle2 className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                {/* Resend OTP */}
+                <div className="mt-5 text-center">
+                  <p className="text-[11px] font-semibold text-[#97a0c3] mb-2">
+                    Không nhận được mã? Kiểm tra thư mục Spam/Quảng cáo.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResendOTP}
+                    disabled={countdown > 0 || isLoading}
+                    className={`text-xs font-bold transition-colors bg-transparent border-none cursor-pointer outline-none flex items-center justify-center gap-1.5 mx-auto ${
+                      countdown > 0
+                        ? "text-[#97a0c3] cursor-not-allowed"
+                        : "text-[#ff7a00] hover:text-[#e06b00]"
+                    }`}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+                    {countdown > 0 ? (
+                      <span>Gửi lại sau {countdown}s</span>
+                    ) : (
+                      <span>Gửi lại mã OTP</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-xs font-semibold text-[#5e6792] mt-6 md:mt-0 text-center md:text-left">
+                Đã có tài khoản?{" "}
+                <Link href="/login" className="text-[#ff7a00] font-bold hover:underline">
+                  Đăng nhập ngay
+                </Link>
+              </div>
+            </>
+          )}
 
         </div>
 
       </div>
-
-      {/* Centered Gmail Verification Modal */}
-      {isRegistered && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-[460px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-center relative z-50">
-            
-            {/* Modal Header */}
-            <div className="w-16 h-16 rounded-3xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center mx-auto mb-6 shadow-[0_12px_24px_rgba(255,122,0,0.15)] relative group animate-bounce">
-              <div className="absolute inset-0 rounded-3xl bg-[#ff7a00]/25 scale-110 blur-md opacity-50" />
-              <Mail className="w-7 h-7 relative z-10 text-[#ff7a00]" />
-            </div>
-
-            <h3 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-2">
-              Xác nhận Email của bạn
-            </h3>
-            <p className="text-sm font-semibold text-[#ff7a00] mb-5 animate-pulse">
-              Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...
-            </p>
-
-            {/* Modal Content */}
-            <div className="space-y-4 text-slate-600 text-xs font-medium leading-relaxed bg-[#fbfbfe] border border-slate-100 p-5 rounded-2xl mb-6 text-left shadow-inner">
-              <p>
-                Chúng tôi đã gửi một liên kết xác nhận tài khoản đến địa chỉ:
-              </p>
-              <p className="font-bold text-[#0d153a] text-sm bg-white border border-[#e1e4ed] py-2 px-3.5 rounded-xl break-all">
-                {email}
-              </p>
-              <p>
-                Vui lòng mở hòm thư của bạn và bấm vào liên kết xác nhận để kích hoạt tài khoản.
-              </p>
-              <p className="font-semibold text-emerald-600">
-                Sau khi bấm nút xác thực trong email, hệ thống sẽ tự động chuyển hướng bạn đến trang Đăng nhập để tiếp tục.
-              </p>
-              <div className="pt-2 border-t border-slate-100 flex gap-2 text-[10px] text-slate-400">
-                <span className="font-bold text-[#ff7a00] shrink-0">* Lưu ý:</span>
-                <span>Hãy kiểm tra cả hòm thư **Spam (Thư rác)** hoặc **Quảng cáo** nếu không nhận được sau 1-2 phút.</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Link
-                href="/login"
-                className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.2)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Quay lại trang Đăng nhập</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <button 
-                type="button" 
-                onClick={confirmRegister}
-                className="w-full text-xs font-semibold text-[#ff7a00] hover:underline cursor-pointer bg-transparent border-none py-1"
-              >
-                Gửi lại email xác nhận
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 }

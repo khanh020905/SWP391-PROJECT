@@ -851,11 +851,18 @@ export default function Home() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end">
+            <div className="flex gap-3 mt-5">
+              <Link
+                href="/reset-password"
+                onClick={() => setShowProfileModal(false)}
+                className="flex-1 py-3 px-4 bg-white border border-[#ff7a00] text-[#ff7a00] hover:bg-orange-50 font-bold text-xs rounded-2xl active:scale-[0.98] transition-all cursor-pointer text-center no-underline flex items-center justify-center"
+              >
+                Đổi mật khẩu
+              </Link>
               <button
                 type="button"
                 onClick={() => setShowProfileModal(false)}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#0d153a] to-[#252f5f] hover:from-[#1b2550] hover:to-[#3b477c] text-white font-bold text-xs rounded-2xl shadow-[0_4px_12px_rgba(13,21,58,0.15)] hover:shadow-[0_6px_18px_rgba(13,21,58,0.25)] active:scale-[0.98] transition-all cursor-pointer text-center border-none outline-none"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-[#0d153a] to-[#252f5f] hover:from-[#1b2550] hover:to-[#3b477c] text-white font-bold text-xs rounded-2xl shadow-[0_4px_12px_rgba(13,21,58,0.15)] hover:shadow-[0_6px_18px_rgba(13,21,58,0.25)] active:scale-[0.98] transition-all cursor-pointer text-center border-none outline-none"
               >
                 Đóng thông tin
               </button>

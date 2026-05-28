@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLogger";
+import { db } from "@/lib/db";
 
 // PUT: Cập nhật thông tin chi tiết người dùng trên Supabase Auth DB
 export async function PUT(
@@ -121,8 +122,44 @@ export async function DELETE(
     }
 
     const name = user.user_metadata?.name || user.email || "Người dùng";
+    const emailAddress = user.email || "";
 
-    // Delete user from Supabase Auth
+    // 1. Delete from Prisma PostgreSQL users table if database is active
+    try {
+      if (emailAddress) {
+        // Try deleting by email since email is @unique and guaranteed to be consistent
+        await db.user.delete({
+          where: { email: emailAddress }
+        }).catch(async () => {
+          // If fail, try deleting by id
+          return db.user.delete({
+            where: { id }
+          });
+        });
+        console.log(`✅ [Prisma DB] Đã xóa người dùng với email: ${emailAddress} (ID: ${id}) khỏi bảng public.users`);
+      } else {
+        await db.user.delete({
+          where: { id }
+        });
+        console.log(`✅ [Prisma DB] Đã xóa người dùng với ID: ${id} khỏi bảng public.users`);
+      }
+    } catch (dbErr: any) {
+      console.log(`⚠️ [Prisma DB] Bỏ qua hoặc không thể xóa khỏi bảng public.users:`, dbErr.message);
+    }
+
+    // 2. Delete from public.users / public.profiles in Supabase public schema
+    try {
+      await supabaseAdmin.from("users").delete().eq("id", id);
+      if (emailAddress) {
+        await supabaseAdmin.from("users").delete().eq("email", emailAddress);
+      }
+      await supabaseAdmin.from("profiles").delete().eq("id", id);
+      console.log(`✅ [Supabase DB] Đã dọn dẹp các bảng public (users/profiles) cho ID: ${id}`);
+    } catch (sbDbErr: any) {
+      console.log(`⚠️ [Supabase DB] Bỏ qua hoặc không thể xóa khỏi public tables:`, sbDbErr.message);
+    }
+
+    // 3. Delete user from Supabase Auth
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(id);
 
     if (deleteError) {
@@ -133,8 +170,8 @@ export async function DELETE(
     await logActivity(
       "DELETE",
       name,
-      user.email || "",
-      `Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống`,
+      emailAddress,
+      `Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống (đồng bộ Auth + DB)`,
       request
     );
 
