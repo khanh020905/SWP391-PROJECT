@@ -22,16 +22,18 @@ export default function AuthCallbackPage() {
       if (code) {
         const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (!exchangeError && data?.user && !data.user.user_metadata?.role) {
+          const name =
+            data.user.user_metadata?.full_name ||
+            data.user.email?.split("@")[0] ||
+            "Người dùng";
           await supabase.auth.updateUser({
-            data: {
-              role: "STUDENT",
-              name:
-                data.user.user_metadata?.full_name ||
-                data.user.email?.split("@")[0] ||
-                "Người dùng",
-              isLocked: false,
-            },
+            data: { role: "STUDENT", name, isLocked: false },
           });
+          fetch("/api/auth/send-welcome", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: data.user.email, name }),
+          }).catch(() => {});
         }
       }
 
