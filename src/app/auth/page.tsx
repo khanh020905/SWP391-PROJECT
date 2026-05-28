@@ -118,39 +118,27 @@ const AuthPage = () => {
       }
 
       try {
-        const { data, error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password,
-          options: {
-            emailRedirectTo: typeof window !== "undefined" ? window.location.origin + "/auth?verified=true" : undefined,
-            data: {
-              name: trimmedName,
-              role: "STUDENT",
-              isLocked: false,
-            },
-          },
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmedEmail, password, name: trimmedName }),
         });
+        const json = await res.json();
 
-        if (error) throw error;
-
-        if (data?.user) {
-          fetch("/api/auth/send-welcome", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: trimmedEmail, name: trimmedName, userId: data.user.id }),
-          }).catch(() => {});
-          // Sign out immediately to clear localstorage of unconfirmed user session
-          await supabase.auth.signOut();
-          setMessage("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
-          setIsRegistered(true);
+        if (!res.ok) {
+          if (json.error === "email_exists" || res.status === 409) {
+            throw new Error("Địa chỉ email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập ngay.");
+          }
+          throw new Error(json.error || "Đã xảy ra lỗi trong quá trình đăng ký.");
         }
+
+        setMessage("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
+        setIsRegistered(true);
       } catch (err) {
-        console.error("Supabase register error:", err);
+        console.error("Register error:", err);
         let msg = err instanceof Error ? err.message : "Lỗi không xác định. Vui lòng thử lại.";
         if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
           msg = "Tần suất gửi email xác thực quá nhanh. Vui lòng đợi 1-2 phút trước khi thử lại.";
-        } else if (msg.includes("already registered") || msg.includes("already exists")) {
-          msg = "Địa chỉ email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập ngay.";
         }
         setError(msg);
       } finally {
@@ -219,21 +207,18 @@ const AuthPage = () => {
     setLoading(true);
     setError("");
     try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: email.trim().toLowerCase(),
-        options: {
-          emailRedirectTo: typeof window !== "undefined" ? window.location.origin + "/auth?verified=true" : undefined,
-        },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), isResend: true }),
       });
-
-      if (error) throw error;
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Không thể gửi lại email xác nhận.");
       setMessage("Đã gửi lại email xác nhận thành công!");
     } catch (err) {
-      console.error("Supabase resend error:", err);
       let msg = err instanceof Error ? err.message : "Lỗi không thể gửi lại email xác nhận.";
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
-        msg = "Tần suất gửi email xác thực quá nhanh. Vui lòng đợi 1-2 phút trước khi gửi lại.";
+        msg = "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút trước khi gửi lại.";
       }
       setError(msg);
     } finally {
