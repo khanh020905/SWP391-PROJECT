@@ -145,6 +145,7 @@ export default function RegisterPage() {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             name,
             role: "STUDENT",
@@ -276,7 +277,7 @@ export default function RegisterPage() {
           <div className="absolute inset-0 z-0">
             {/* Background glowing spheres matching image */}
             <div className="absolute top-[40%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full bg-gradient-to-tr from-[#ffe8d6] via-[#f3dbff] to-[#d6e4ff] opacity-80 filter blur-3xl animate-[pulse_8s_ease-in-out_infinite]" />
-            <div className="absolute top-[50%] left-[55%] -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full bg-gradient-to-br from-[#ffccd5]/50 to-[#ebd3f8]/50 filter blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
+            <div className="absolute top-[50%] left-[55%] -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full bg-gradient-to-br from-[#ffccd5]/50 to-[#f4f2eb]/50 filter blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
             
             {/* SVG curves & orbits representing the thin lines in the image */}
             <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 500 700" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -292,7 +293,7 @@ export default function RegisterPage() {
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" />
               </g>
               <g transform="translate(320, 140) scale(0.6)">
-                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#7c3aed" className="animate-pulse" style={{ animationDelay: "1.2s" }} />
+                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#B38F4D" className="animate-pulse" style={{ animationDelay: "1.2s" }} />
               </g>
               <g transform="translate(80, 480) scale(0.7)">
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3b82f6" className="animate-pulse" style={{ animationDelay: "0.6s" }} />
@@ -306,9 +307,9 @@ export default function RegisterPage() {
                   <stop offset="100%" stopColor="#ffccd5" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="orbit-purple" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.1" />
-                  <stop offset="60%" stopColor="#b8a8ff" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#ebd3f8" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#B38F4D" stopOpacity="0.1" />
+                  <stop offset="60%" stopColor="#d1c3a5" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#f4f2eb" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="orbit-teal" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
@@ -332,7 +333,7 @@ export default function RegisterPage() {
           {/* Interactive Floating AI Dashboard widget instead of cartoon girl image */}
           <div className="relative z-10 my-auto flex justify-center py-6">
             <div className="w-[310px] rounded-3xl bg-white/70 border border-white/80 shadow-[0_20px_50px_rgba(25,12,6,0.06)] backdrop-blur-md p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] hover:shadow-[0_24px_60px_rgba(25,12,6,0.1)] group">
-              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-xl" />
+              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-xl" />
               
               {/* Header inside widget */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -345,7 +346,7 @@ export default function RegisterPage() {
                     <span className="text-[9px] text-slate-400 font-semibold leading-none">Milestones Roadmap</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-[#7c3aed]/10 text-[#7c3aed] px-2 py-0.5 rounded-full text-[9px] font-bold animate-pulse">
+                <div className="flex items-center gap-1 bg-[#B38F4D]/10 text-[#B38F4D] px-2 py-0.5 rounded-full text-[9px] font-bold animate-pulse">
                   <Zap className="w-2.5 h-2.5" />
                   <span>Interactive</span>
                 </div>
@@ -401,10 +402,10 @@ export default function RegisterPage() {
               {/* Summary target bottom badge */}
               <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#7c3aed]" />
+                  <TrendingUp className="w-3.5 h-3.5 text-[#B38F4D]" />
                   Success Rate
                 </span>
-                <span className="text-[#7c3aed] bg-[#7c3aed]/10 px-3 py-1 rounded-xl">
+                <span className="text-[#B38F4D] bg-[#B38F4D]/10 px-3 py-1 rounded-xl">
                   98.6%
                 </span>
               </div>
