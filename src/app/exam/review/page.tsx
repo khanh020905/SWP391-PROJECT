@@ -418,12 +418,12 @@ function ExamReviewContent() {
     <div className="bg-[#f4f5f9] text-[#0f1738] min-h-screen font-sans antialiased pb-20">
       
       {/* Background patterns */}
-      <div className="absolute top-0 left-0 w-full h-[320px] bg-gradient-to-b from-[#3B5C37]/10 via-[#7c3aed]/5 to-transparent pointer-events-none z-0" />
+      <div className="absolute top-0 left-0 w-full h-[320px] bg-gradient-to-b from-[#3B5C37]/10 via-[#B38F4D]/5 to-transparent pointer-events-none z-0" />
 
       {/* Premium Header */}
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-5 relative z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] flex items-center justify-center text-white font-black text-xl shadow-[0_8px_16px_rgba(59, 92, 55,0.2)]">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] flex items-center justify-center text-white font-black text-xl shadow-[0_8px_16px_rgba(59, 92, 55,0.2)]">
             *
           </div>
           <Link href="/" className="text-xl font-extrabold text-[#11193f] tracking-tight hover:opacity-90 transition-opacity">
@@ -454,7 +454,7 @@ function ExamReviewContent() {
             <>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -487,9 +487,9 @@ function ExamReviewContent() {
                     {user.user_metadata?.role === "ADMIN" && (
                       <Link
                         href="/admin/users"
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#7c3aed] transition-all cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#B38F4D] transition-all cursor-pointer"
                       >
-                        <ShieldAlert className="w-4 h-4 text-[#7c3aed]" />
+                        <ShieldAlert className="w-4 h-4 text-[#B38F4D]" />
                         <span>Trang Quản trị Admin</span>
                       </Link>
                     )}

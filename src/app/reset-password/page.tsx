@@ -581,7 +581,7 @@ export default function ResetPasswordPage() {
           <div className="absolute inset-0 z-0">
             {/* Background glowing spheres matching image */}
             <div className="absolute top-[45%] left-[55%] -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full bg-gradient-to-tr from-[#ffe8d6] via-[#f3dbff] to-[#d6e4ff] opacity-80 filter blur-3xl animate-[pulse_8s_ease-in-out_infinite]" />
-            <div className="absolute top-[32%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-gradient-to-br from-[#ffccd5]/50 to-[#ebd3f8]/50 filter blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
+            <div className="absolute top-[32%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-gradient-to-br from-[#ffccd5]/50 to-[#f4f2eb]/50 filter blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
             
             {/* SVG curves & orbits representing the thin lines in the image */}
             <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 500 700" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -597,7 +597,7 @@ export default function ResetPasswordPage() {
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" />
               </g>
               <g transform="translate(180, 240) scale(0.6)">
-                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#7c3aed" className="animate-pulse" style={{ animationDelay: "1s" }} />
+                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#B38F4D" className="animate-pulse" style={{ animationDelay: "1s" }} />
               </g>
               <g transform="translate(420, 360) scale(0.8)">
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3b82f6" className="animate-pulse" style={{ animationDelay: "2s" }} />
@@ -611,9 +611,9 @@ export default function ResetPasswordPage() {
                   <stop offset="100%" stopColor="#ffccd5" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="orbit-purple" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.1" />
-                  <stop offset="60%" stopColor="#b8a8ff" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#ebd3f8" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#B38F4D" stopOpacity="0.1" />
+                  <stop offset="60%" stopColor="#d1c3a5" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#f4f2eb" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="orbit-teal" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
@@ -637,7 +637,7 @@ export default function ResetPasswordPage() {
           {/* Interactive Floating AI Dashboard widget */}
           <div className="relative z-10 my-auto flex justify-center py-6">
             <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
-              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-xl" />
+              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-xl" />
               
               {/* Header inside widget */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -671,10 +671,10 @@ export default function ResetPasswordPage() {
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[9px] font-black text-[#97a0c3] uppercase tracking-wider">Mã hóa đầu cuối</span>
-                    <span className="text-xs font-black text-[#7c3aed]">AES-256 Bit</span>
+                    <span className="text-xs font-black text-[#B38F4D]">AES-256 Bit</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full w-[95%] bg-gradient-to-r from-[#7c3aed] to-[#b8a8ff] rounded-full transition-all duration-1000" />
+                    <div className="h-full w-[95%] bg-gradient-to-r from-[#B38F4D] to-[#d1c3a5] rounded-full transition-all duration-1000" />
                   </div>
                 </div>
               </div>
@@ -685,7 +685,7 @@ export default function ResetPasswordPage() {
                   <TrendingUp className="w-3.5 h-3.5 text-[#3B5C37]" />
                   Độ mạnh mật khẩu yêu cầu
                 </span>
-                <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#3B5C37] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]">
+                <span className="text-white bg-gradient-to-r from-[#B38F4D] via-[#ff8c42] to-[#3B5C37] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]">
                   Mạnh (Strong)
                 </span>
               </div>

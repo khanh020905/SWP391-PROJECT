@@ -18,7 +18,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Cover Card */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-[#0d153a] to-[#7c3aed] p-8 text-white overflow-hidden shadow-md">
+      <div className="relative rounded-3xl bg-gradient-to-br from-[#0d153a] to-[#B38F4D] p-8 text-white overflow-hidden shadow-md">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B5C37]/10 blur-2xl rounded-full" />
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-5">
           {user.user_metadata?.avatar_url ? (

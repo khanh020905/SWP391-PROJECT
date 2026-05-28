@@ -796,8 +796,8 @@ function SpeakingTestRoomContent() {
     <div className="bg-[#0b0f19] text-[#e2e8f0] min-h-screen font-sans flex flex-col relative overflow-hidden">
       
       {/* Background radial effects */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#7c3aed]/10 to-[#3B5C37]/5 blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tr from-[#0284c7]/5 to-[#7c3aed]/5 blur-[100px]" />
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#B38F4D]/10 to-[#3B5C37]/5 blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tr from-[#0284c7]/5 to-[#B38F4D]/5 blur-[100px]" />
 
       {/* Header Bar */}
       <header className="w-full border-b border-slate-800 bg-[#0e1322]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between z-20 relative">
@@ -841,7 +841,7 @@ function SpeakingTestRoomContent() {
                 ? "bg-gradient-to-tr from-rose-700 to-rose-500 shadow-[0_8px_24px_rgba(225,29,72,0.25)]"
                 : micPermission === "checking"
                 ? "bg-gradient-to-tr from-amber-600 to-amber-400 shadow-[0_8px_24px_rgba(245,158,11,0.25)] animate-pulse"
-                : "bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed]"
+                : "bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D]"
             }`}>
               {micPermission === "denied" || micPermission === "unavailable"
                 ? <MicOff className="w-8 h-8" />
@@ -1059,7 +1059,7 @@ function SpeakingTestRoomContent() {
                 visualizerBars.map((bar, i) => (
                   <div 
                     key={i} 
-                    className="w-1.5 bg-gradient-to-t from-[#3B5C37] to-[#7c3aed] rounded-full transition-all duration-300 animate-pulse"
+                    className="w-1.5 bg-gradient-to-t from-[#3B5C37] to-[#B38F4D] rounded-full transition-all duration-300 animate-pulse"
                     style={{ 
                       height: `${bar.height}px`,
                       animationDelay: `${bar.delay}ms`,

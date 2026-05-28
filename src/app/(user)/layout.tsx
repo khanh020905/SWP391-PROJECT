@@ -76,7 +76,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
                 className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5C37] shadow-md"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
                 {initialsFallback}
               </div>
             )}
@@ -109,7 +109,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
             {user.user_metadata?.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[#7c3aed] hover:bg-[#7c3aed]/5 transition-all"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[#B38F4D] hover:bg-[#B38F4D]/5 transition-all"
               >
                 <ShieldAlert className="w-4 h-4 shrink-0" />
                 <span>Trang Admin</span>

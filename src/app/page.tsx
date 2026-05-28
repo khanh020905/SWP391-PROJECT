@@ -111,7 +111,7 @@ export default function Home() {
                 {/* Premium User Avatar Bubble */}
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.25)] active:scale-95 transition-all outline-none border border-white/40 select-none relative group"
+                  className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.25)] active:scale-95 transition-all outline-none border border-white/40 select-none relative group"
                   aria-label="User menu"
                 >
                   <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -154,9 +154,9 @@ export default function Home() {
                       {user.user_metadata?.role === "ADMIN" && (
                         <Link
                           href="/admin/users"
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#7c3aed] active:scale-[0.98] transition-all cursor-pointer"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#B38F4D] active:scale-[0.98] transition-all cursor-pointer"
                         >
-                          <ShieldAlert className="w-4 h-4 text-[#7c3aed]" />
+                          <ShieldAlert className="w-4 h-4 text-[#B38F4D]" />
                           <span>Trang Quản trị Admin</span>
                         </Link>
                       )}
@@ -380,7 +380,7 @@ export default function Home() {
           {/* Timeline progress bar */}
           <div className="mt-10 flex items-center justify-center w-full max-w-[800px] mx-auto px-2 md:px-4">
             {/* Number 9 circle */}
-            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#7c3aed] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(124,58,237,0.4)]">
+            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#B38F4D] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(124,58,237,0.4)]">
               9
             </div>
 
@@ -388,7 +388,7 @@ export default function Home() {
             <div
               className="flex-1 h-[6px] mx-2 md:mx-4"
               style={{
-                background: "linear-gradient(90deg, #7c3aed 0%, #3B5C37 100%)",
+                background: "linear-gradient(90deg, #B38F4D 0%, #3B5C37 100%)",
                 WebkitMaskImage: "radial-gradient(circle, black 2.5px, transparent 2.5px), linear-gradient(black, black)",
                 WebkitMaskSize: "28px 6px, 100% 2px",
                 WebkitMaskPosition: "center, center",
@@ -613,7 +613,7 @@ export default function Home() {
                   {/* AI Recommendation */}
                   <div className="mt-4 flex items-center justify-between rounded-xl bg-[#f8f5ff] border border-[#e8e0f8] px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-[#7c3aed] flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-lg bg-[#B38F4D] flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
@@ -632,13 +632,13 @@ export default function Home() {
         </section>
 
         {/* Why QualiCode */}
-        <section className="mb-6 rounded-3xl bg-[linear-gradient(135deg,#0a1540_0%,#1a1060_40%,#2f1f6f_100%)] px-6 py-8 md:px-10 md:py-10 text-white overflow-hidden relative">
+        <section className="mb-6 rounded-3xl bg-[linear-gradient(135deg,#0c1a0e_0%,#1a331c_40%,#2a4d2c_100%)] px-6 py-8 md:px-10 md:py-10 text-white overflow-hidden relative">
           {/* Decorative blurred circles */}
           <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#3B5C37]/10 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-[#4f84ff]/10 blur-3xl" />
 
           <h3 className="mb-8 text-center text-2xl md:text-3xl font-extrabold relative z-10">
-            Why <span className="text-[#3B5C37]">Quali IELTS?</span>
+            Why <span className="text-[#B38F4D]">Quali IELTS?</span>
           </h3>
           <div className="relative z-10 grid grid-cols-2 gap-4 md:gap-0 md:grid-cols-5 md:divide-x md:divide-white/10">
             {[
@@ -646,7 +646,7 @@ export default function Home() {
                 title: "100% AI Learning",
                 desc: "No human tutors. AI handles everything.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#3B5C37" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Brain icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c-3.5 0-6.5 1.2-8.5 3.5C13.5 14 12.5 17 13 20c-2 1-3 3-3 5.5 0 3 2 5.5 4.5 6 .5 2.5 2.5 4.5 5.5 4.5" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c3.5 0 6.5 1.2 8.5 3.5 2 2.5 3 5.5 2.5 8.5 2 1 3 3 3 5.5 0 3-2 5.5-4.5 6-.5 2.5-2.5 4.5-5.5 4.5" />
@@ -658,12 +658,12 @@ export default function Home() {
                 title: "Adaptive & Smart",
                 desc: "Learning path that adapts to you.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#3B5C37" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Target/bullseye icon */}
                     <circle cx="24" cy="24" r="18" />
                     <circle cx="24" cy="24" r="12" />
                     <circle cx="24" cy="24" r="6" />
-                    <circle cx="24" cy="24" r="2" fill="#ff8a28" />
+                    <circle cx="24" cy="24" r="2" fill="#B38F4D" />
                     <path strokeLinecap="round" d="M34 14l-7 7" />
                     <path strokeLinecap="round" d="M32 10h6v6" />
                   </svg>
@@ -673,7 +673,7 @@ export default function Home() {
                 title: "Cambridge Standard",
                 desc: "Official Cambridge materials 9 to 20.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#3B5C37" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Book with bookmark icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8a4 4 0 014 4v22a3 3 0 00-3-3H8V10z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M40 10h-8a4 4 0 00-4 4v22a3 3 0 013-3h9V10z" />
@@ -686,7 +686,7 @@ export default function Home() {
                 title: "Real-Time Feedback",
                 desc: "Instant AI feedback on everything.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#3B5C37" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Chat bubble with lightning */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h24a2 2 0 012 2v16a2 2 0 01-2 2H16l-6 6v-6H8a2 2 0 01-2-2V12a2 2 0 012-2z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 16l-3 6h6l-3 6" />
@@ -699,12 +699,12 @@ export default function Home() {
                 title: "Privacy First",
                 desc: "Your data is secure and always private.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#3B5C37" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Shield lock icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 4L8 12v10c0 11 7 20 16 22 9-2 16-11 16-22V12L24 4z" />
                     <rect x="18" y="22" width="12" height="10" rx="2" strokeLinejoin="round" />
                     <path strokeLinecap="round" d="M21 22v-4a3 3 0 016 0v4" />
-                    <circle cx="24" cy="27" r="1.5" fill="#ff8a28" />
+                    <circle cx="24" cy="27" r="1.5" fill="#B38F4D" />
                   </svg>
                 ),
               },
@@ -787,7 +787,7 @@ export default function Home() {
         </section>
 
         {/* CTA - Ready to Achieve */}
-        <section className="relative mt-12 rounded-3xl overflow-visible" style={{ background: "linear-gradient(105deg, #3B5C37 0%, #1f3e1b 30%, #b25cff 60%, #4f84ff 100%)" }}>
+        <section className="relative mt-12 rounded-3xl overflow-visible" style={{ background: "linear-gradient(105deg, #1a331c 0%, #3B5C37 40%, #5c8257 100%)" }}>
           {/* Decorative overlay */}
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
           <div className="relative z-10 flex flex-col items-center gap-6 p-8 md:p-0 md:flex-row md:items-end">
@@ -833,7 +833,7 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[480px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-left relative overflow-hidden"
           >
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-2xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-2xl" />
 
             {/* Modal Header */}
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
@@ -850,7 +850,7 @@ export default function Home() {
             <div className="space-y-5 mb-6 relative z-10">
               {/* Profile Avatar Card */}
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#f8faf5] border border-slate-100/60 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#5c9255] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#5c9255] to-[#B38F4D] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
                   {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -866,7 +866,7 @@ export default function Home() {
               {/* Data list */}
               <div className="space-y-3.5 p-4 bg-slate-50/50 border border-slate-100 rounded-2xl">
                 <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-[#7c3aed] mt-0.5 shrink-0" />
+                  <Mail className="w-4 h-4 text-[#B38F4D] mt-0.5 shrink-0" />
                   <div>
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Địa chỉ Email</span>
                     <span className="text-xs font-bold text-[#0d153a] break-all">{user.email}</span>

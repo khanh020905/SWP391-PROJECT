@@ -142,7 +142,7 @@ export default function SpeakingDashboard() {
             <>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -178,9 +178,9 @@ export default function SpeakingDashboard() {
                     {user.user_metadata?.role === "ADMIN" && (
                       <Link
                         href="/admin/users"
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#7c3aed] transition-all cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#B38F4D] transition-all cursor-pointer"
                       >
-                        <ShieldAlert className="w-4 h-4 text-[#7c3aed]" />
+                        <ShieldAlert className="w-4 h-4 text-[#B38F4D]" />
                         <span>Trang Quản trị Admin</span>
                       </Link>
                     )}
@@ -221,7 +221,7 @@ export default function SpeakingDashboard() {
         {/* Banner Hero */}
         <section className="relative rounded-3xl overflow-hidden mb-10 bg-gradient-to-r from-[#0d1330] via-[#151d45] to-[#25184f] text-white p-8 md:p-12 shadow-[0_16px_40px_rgba(15,20,50,0.15)] border border-white/5">
           <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3B5C37]/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-[#7c3aed]/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-[#B38F4D]/10 blur-3xl" />
           
           <div className="relative z-10 max-w-[700px]">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3B5C37]/15 text-[#ff8a1f] text-xs font-bold uppercase tracking-wider mb-5 border border-[#3B5C37]/25">
@@ -537,7 +537,7 @@ export default function SpeakingDashboard() {
                     >
                       <div className="flex items-center gap-3">
                         {/* Circular Score Badge */}
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
                           {parseFloat(item.band).toFixed(1)}
                         </div>
                         <div>
@@ -580,7 +580,7 @@ export default function SpeakingDashboard() {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[480px] rounded-3xl bg-white border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-left relative overflow-hidden"
           >
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-2xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-2xl" />
 
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#3B5C37] to-[#ff9e4f] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(59, 92, 55,0.15)]">
@@ -594,7 +594,7 @@ export default function SpeakingDashboard() {
 
             <div className="space-y-5 mb-6 relative z-10">
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#fff8f2] border border-slate-100/60 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#ff9e4f] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#ff9e4f] to-[#B38F4D] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
                   {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
                 </div>
                 <div>

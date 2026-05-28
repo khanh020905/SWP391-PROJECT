@@ -147,7 +147,7 @@ export default function SettingsAvatarPage() {
                 className="w-32 h-32 rounded-full object-cover border-4 border-slate-200 shadow-lg"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center text-5xl font-black shadow-lg">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center text-5xl font-black shadow-lg">
                 {initialsFallback}
               </div>
             )}

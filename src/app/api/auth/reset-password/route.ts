@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         <html>
         <body style="font-family: -apple-system, sans-serif; background: #f4f5f9; margin: 0; padding: 40px 16px;">
           <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(15,23,56,0.08);">
-            <div style="background: linear-gradient(135deg, #0d153a 0%, #7c3aed 100%); padding: 32px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #0d153a 0%, #B38F4D 100%); padding: 32px; text-align: center;">
               <div style="font-size: 28px; font-weight: 900; color: white;">
                 <span style="color: #3B5C37;">*</span> QualiCode
               </div>
