@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Format danh sách người dùng từ Supabase Auth thành định dạng mong muốn
-    let list = users.map((user) => {
+    // Only include users who have confirmed their email
+    let list = users.filter((user) => !!user.email_confirmed_at).map((user) => {
       const metadata = user.user_metadata || {};
       const isLocked = metadata.isLocked === true || !!user.banned_until;
       return {
