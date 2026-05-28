@@ -31,7 +31,7 @@ export default function AuthCallbackPage() {
           await supabase.auth.updateUser({
             data: { role: "STUDENT", name, isLocked: false },
           });
-          fetch("/api/auth/send-welcome", {
+          await fetch("/api/auth/send-welcome", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: data.user.email, name }),
