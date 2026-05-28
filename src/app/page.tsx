@@ -92,9 +92,17 @@ export default function Home() {
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
-                <span>
-                  {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
-                </span>
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Avatar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span>
+                    {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                )}
               </button>
 
               {/* User Dropdown Menu */}
@@ -111,16 +119,14 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-1">
-                    <button
-                      onClick={() => {
-                        setShowProfileModal(true);
-                        setShowDropdown(false);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00] active:scale-[0.98] transition-all cursor-pointer border-none outline-none"
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowDropdown(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00] active:scale-[0.98] transition-all cursor-pointer no-underline"
                     >
                       <User className="w-4 h-4 text-[#ff7a00]" />
-                      <span>Thông tin tài khoản</span>
-                    </button>
+                      <span>Hồ sơ cá nhân</span>
+                    </Link>
 
                     {user.user_metadata?.role === "ADMIN" && (
                       <Link
