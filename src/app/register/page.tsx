@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, Mail, Lock, User, UserCheck, AlertTriangle, ArrowRight, Shield, Brain, TrendingUp, BookOpen, Compass, Zap, CheckCircle2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, AlertTriangle, ArrowRight, Shield, Brain, TrendingUp, BookOpen, Compass, Zap, CheckCircle2, ArrowLeft, RefreshCw } from "lucide-react";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -25,54 +25,6 @@ export default function RegisterPage() {
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // 5-minute countdown for OTP expiry
-  const [expiryCountdown, setExpiryCountdown] = useState(300);
-  const [expiryTimerTrigger, setExpiryTimerTrigger] = useState(0);
-  const expiryRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const formatExpiryTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  // Expiry timer effect (5 minutes = 300s)
-  useEffect(() => {
-    if (step !== 2) {
-      if (expiryRef.current) {
-        clearInterval(expiryRef.current);
-        expiryRef.current = null;
-      }
-      return;
-    }
-
-    setExpiryCountdown(300);
-
-    if (expiryRef.current) {
-      clearInterval(expiryRef.current);
-    }
-
-    expiryRef.current = setInterval(() => {
-      setExpiryCountdown((prev) => {
-        if (prev <= 1) {
-          if (expiryRef.current) {
-            clearInterval(expiryRef.current);
-            expiryRef.current = null;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (expiryRef.current) {
-        clearInterval(expiryRef.current);
-        expiryRef.current = null;
-      }
-    };
-  }, [step, expiryTimerTrigger]);
- 
   // Check existing session
   useEffect(() => {
     async function checkUser() {
@@ -157,9 +109,7 @@ export default function RegisterPage() {
       if (data?.user) {
         // Sign out immediately to clear unconfirmed user session
         await supabase.auth.signOut();
-        setSuccessMsg("Mã OTP đã được gửi đến email của bạn!");
         setStep(2);
-        setExpiryTimerTrigger((prev) => prev + 1);
         startCountdown();
         setIsLoading(false);
       }
@@ -181,7 +131,7 @@ export default function RegisterPage() {
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      // Re-send by calling signUp again (Supabase resends OTP for existing unconfirmed users)
+      // Re-send by calling signUp again (Supabase resends confirmation email for existing unconfirmed users)
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -195,63 +145,15 @@ export default function RegisterPage() {
       });
       if (error) throw new Error(error.message);
       await supabase.auth.signOut();
-      setSuccessMsg("Mã OTP mới đã được gửi đến email của bạn!");
+      setSuccessMsg("Email xác nhận mới đã được gửi đến hòm thư của bạn!");
       startCountdown();
-      setExpiryTimerTrigger((prev) => prev + 1);
-      setOtp(["", "", "", "", "", ""]);
     } catch (err: any) {
-      let msg = err.message || "Không thể gửi lại OTP.";
+      let msg = err.message || "Không thể gửi lại email xác nhận.";
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
         msg = "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút.";
       }
       setErrorMsg(msg);
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async () => {
-    const otpCode = otp.join("");
-    if (otpCode.length !== 6) {
-      setErrorMsg("Vui lòng nhập đầy đủ mã OTP 6 số.");
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
-
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "signup",
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.user || data?.session) {
-        // Send welcome email via Resend
-        await fetch("/api/auth/send-welcome", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name }),
-        }).catch(() => {});
-
-        // Verification succeeded, sign out then redirect to login
-        await supabase.auth.signOut();
-        window.location.href = "/login?verified=true";
-      }
-    } catch (err: any) {
-      let msg = err.message || "Xác thực OTP thất bại.";
-      if (msg.includes("Token has expired") || msg.includes("expired")) {
-        msg = "Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.";
-      } else if (msg.includes("Invalid") || msg.includes("invalid")) {
-        msg = "Mã OTP không chính xác. Vui lòng kiểm tra lại.";
-      }
-      setErrorMsg(msg);
       setIsLoading(false);
     }
   };
@@ -453,7 +355,7 @@ export default function RegisterPage() {
                 {/* Success Message */}
                 {successMsg && (
                   <div className="mb-5 p-3.5 rounded-2xl bg-green-50 border border-green-100 flex items-start gap-3 text-green-700 text-xs animate-fade-in">
-                    <UserCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{successMsg}</span>
                   </div>
                 )}
