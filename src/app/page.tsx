@@ -11,6 +11,7 @@ export default function Home() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Check current session
   useEffect(() => {
@@ -55,6 +56,19 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handle scrolling to trigger navbar glassmorphism
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowDropdown(false);
@@ -63,8 +77,14 @@ export default function Home() {
 
   return (
     <div className="bg-[#f4f5f9] text-[#0f1738]">
-      <div className="w-full bg-[#e5ebd8] sticky top-0 z-30 border-b border-[#d8e0cc]">
-        <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-9 py-5">
+      <div className={`w-full sticky top-0 z-30 border-b transition-all duration-300 ease-in-out ${
+        isScrolled 
+          ? "bg-[#e5ebd8]/80 backdrop-blur-md shadow-sm border-[#d8e0cc]/60" 
+          : "bg-[#e5ebd8] border-[#d8e0cc]"
+      }`}>
+        <header className={`mx-auto flex w-full max-w-[1160px] items-center justify-between px-9 transition-all duration-300 ease-in-out ${
+          isScrolled ? "py-3.5" : "py-5"
+        }`}>
           <div className="flex items-center gap-2.5 text-xl font-black text-[#1b3d1e]">
             <div className="w-8 h-8 rounded-lg bg-[#2b5424] flex items-center justify-center text-white font-black text-lg shadow-sm">
               Q
@@ -173,10 +193,11 @@ export default function Home() {
       </div>
 
       <section
-        className="relative w-full h-[55.8vw] min-h-[580px] max-h-[720px] bg-no-repeat bg-top overflow-hidden bg-[#e5ebd8]"
+        className="relative w-full h-[calc(100vh-75px)] min-h-[600px] bg-no-repeat overflow-hidden bg-[#e5ebd8]"
         style={{
           backgroundImage: "url('/assets/hero-background-new.jpeg')",
-          backgroundSize: "100% auto"
+          backgroundSize: "cover",
+          backgroundPosition: "center top"
         }}
       >
         {/* Full Screen Overlay Container that matches the aspect ratio of the image */}
@@ -367,7 +388,7 @@ export default function Home() {
             <div
               className="flex-1 h-[6px] mx-2 md:mx-4"
               style={{
-                background: "linear-gradient(90deg, #7c3aed 0%, #ffab66 100%)",
+                background: "linear-gradient(90deg, #7c3aed 0%, #2b5424 100%)",
                 WebkitMaskImage: "radial-gradient(circle, black 2.5px, transparent 2.5px), linear-gradient(black, black)",
                 WebkitMaskSize: "28px 6px, 100% 2px",
                 WebkitMaskPosition: "center, center",
@@ -376,7 +397,7 @@ export default function Home() {
             />
 
             {/* Number 20 circle */}
-            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#ff7a00] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(255,122,0,0.4)]">
+            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#2b5424] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(43,84,36,0.4)]">
               20
             </div>
           </div>
@@ -417,7 +438,7 @@ export default function Home() {
             <h3 className="text-4xl md:text-5xl leading-[1.08] font-extrabold text-[#121a3c]">
               Adaptive Learning.
               <br />
-              Built Just <span className="text-[#ff7a00]">For You.</span>
+              Built Just <span className="text-[#2b5424]">For You.</span>
             </h3>
             <p className="mt-4 text-[15px] leading-7 text-[#5b6484]">
               Our AI analyzes your performance in real-time, identifies strengths and weaknesses, and creates a learning path that evolves with you.
@@ -426,8 +447,8 @@ export default function Home() {
             {/* Feature bullets */}
             <div className="mt-8 space-y-5">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#fff3e8] flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#ff7a00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#f2f6ee] flex items-center justify-center">
+                  <svg className="w-5 h-5 text-[#2b5424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -437,8 +458,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#fff3e8] flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#ff7a00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#f2f6ee] flex items-center justify-center">
+                  <svg className="w-5 h-5 text-[#2b5424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -448,8 +469,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#fff3e8] flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#ff7a00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#f2f6ee] flex items-center justify-center">
+                  <svg className="w-5 h-5 text-[#2b5424]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
@@ -460,7 +481,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button className="mt-8 rounded-xl bg-[#ff7a00] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,122,0,0.3)] hover:shadow-[0_12px_28px_rgba(255,122,0,0.4)] transition-all duration-300 flex items-center gap-2">
+            <button className="mt-8 rounded-xl bg-[#2b5424] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(43,84,36,0.3)] hover:shadow-[0_12px_28px_rgba(43,84,36,0.4)] transition-all duration-300 flex items-center gap-2">
               See How It Works
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -485,7 +506,7 @@ export default function Home() {
                     <div
                       key={item.label}
                       className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-medium cursor-pointer transition-colors ${item.active
-                          ? "bg-white text-[#ff7a00] shadow-sm font-semibold"
+                          ? "bg-white text-[#2b5424] shadow-sm font-semibold"
                           : "text-[#7b83a6] hover:bg-white/60"
                         }`}
                     >
@@ -525,11 +546,11 @@ export default function Home() {
                         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="none">
                           <defs>
                             <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#ff7a00" stopOpacity="0.15" />
-                              <stop offset="100%" stopColor="#ff7a00" stopOpacity="0" />
+                              <stop offset="0%" stopColor="#2b5424" stopOpacity="0.15" />
+                              <stop offset="100%" stopColor="#2b5424" stopOpacity="0" />
                             </linearGradient>
                           </defs>
-                          <path d="M20 90 Q60 85 100 80 T180 65 T260 45 T340 35 T380 30" fill="none" stroke="#ff7a00" strokeWidth="2.5" strokeLinecap="round" />
+                          <path d="M20 90 Q60 85 100 80 T180 65 T260 45 T340 35 T380 30" fill="none" stroke="#2b5424" strokeWidth="2.5" strokeLinecap="round" />
                           <path d="M20 90 Q60 85 100 80 T180 65 T260 45 T340 35 T380 30 L380 120 L20 120 Z" fill="url(#chartGrad)" />
                         </svg>
                         {/* Month labels */}
@@ -543,7 +564,7 @@ export default function Home() {
                       <div className="relative w-[90px] h-[90px]">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                           <circle cx="50" cy="50" r="42" fill="none" stroke="#eef0f6" strokeWidth="6" />
-                          <circle cx="50" cy="50" r="42" fill="none" stroke="#ff7a00" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${0.75 * 2 * Math.PI * 42} ${2 * Math.PI * 42}`} />
+                          <circle cx="50" cy="50" r="42" fill="none" stroke="#2b5424" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${0.75 * 2 * Math.PI * 42} ${2 * Math.PI * 42}`} />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-2xl font-extrabold text-[#1a2348]">7.5</span>
@@ -561,7 +582,7 @@ export default function Home() {
                     <div className="font-bold text-[#1a2348] text-[14px] mb-3">Skill Breakdown</div>
                     <div className="grid grid-cols-4 gap-3">
                       {[
-                        { score: "8.5", label: "Listening", level: "Advanced", color: "#ff7a00" },
+                        { score: "8.5", label: "Listening", level: "Advanced", color: "#2b5424" },
                         { score: "7.0", label: "Reading", level: "Good", color: "#3b82f6" },
                         { score: "7.0", label: "Writing", level: "Good", color: "#8b5cf6" },
                         { score: "7.5", label: "Speaking", level: "Good", color: "#10b981" },
@@ -602,7 +623,7 @@ export default function Home() {
                         <div className="text-[11px] text-[#7c7fa0]">Focus on Writing Task 2: Improve idea development</div>
                       </div>
                     </div>
-                    <span className="text-[12px] font-bold text-[#ff7a00] cursor-pointer hover:underline whitespace-nowrap">Start Practice →</span>
+                    <span className="text-[12px] font-bold text-[#2b5424] cursor-pointer hover:underline whitespace-nowrap">Start Practice →</span>
                   </div>
                 </div>
               </div>
@@ -613,11 +634,11 @@ export default function Home() {
         {/* Why QualiCode */}
         <section className="mb-6 rounded-3xl bg-[linear-gradient(135deg,#0a1540_0%,#1a1060_40%,#2f1f6f_100%)] px-6 py-8 md:px-10 md:py-10 text-white overflow-hidden relative">
           {/* Decorative blurred circles */}
-          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#ff7a00]/10 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#2b5424]/10 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-[#4f84ff]/10 blur-3xl" />
 
           <h3 className="mb-8 text-center text-2xl md:text-3xl font-extrabold relative z-10">
-            Why <span className="text-[#ff8a28]">QualiCode?</span>
+            Why <span className="text-[#2b5424]">Quali IELTS?</span>
           </h3>
           <div className="relative z-10 grid grid-cols-2 gap-4 md:gap-0 md:grid-cols-5 md:divide-x md:divide-white/10">
             {[
@@ -625,7 +646,7 @@ export default function Home() {
                 title: "100% AI Learning",
                 desc: "No human tutors. AI handles everything.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#ff8a28" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#2b5424" strokeWidth={1.8}>
                     {/* Brain icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c-3.5 0-6.5 1.2-8.5 3.5C13.5 14 12.5 17 13 20c-2 1-3 3-3 5.5 0 3 2 5.5 4.5 6 .5 2.5 2.5 4.5 5.5 4.5" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c3.5 0 6.5 1.2 8.5 3.5 2 2.5 3 5.5 2.5 8.5 2 1 3 3 3 5.5 0 3-2 5.5-4.5 6-.5 2.5-2.5 4.5-5.5 4.5" />
@@ -637,7 +658,7 @@ export default function Home() {
                 title: "Adaptive & Smart",
                 desc: "Learning path that adapts to you.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#ff8a28" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#2b5424" strokeWidth={1.8}>
                     {/* Target/bullseye icon */}
                     <circle cx="24" cy="24" r="18" />
                     <circle cx="24" cy="24" r="12" />
@@ -652,7 +673,7 @@ export default function Home() {
                 title: "Cambridge Standard",
                 desc: "Official Cambridge materials 9 to 20.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#ff8a28" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#2b5424" strokeWidth={1.8}>
                     {/* Book with bookmark icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8a4 4 0 014 4v22a3 3 0 00-3-3H8V10z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M40 10h-8a4 4 0 00-4 4v22a3 3 0 013-3h9V10z" />
@@ -665,7 +686,7 @@ export default function Home() {
                 title: "Real-Time Feedback",
                 desc: "Instant AI feedback on everything.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#ff8a28" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#2b5424" strokeWidth={1.8}>
                     {/* Chat bubble with lightning */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h24a2 2 0 012 2v16a2 2 0 01-2 2H16l-6 6v-6H8a2 2 0 01-2-2V12a2 2 0 012-2z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 16l-3 6h6l-3 6" />
@@ -678,7 +699,7 @@ export default function Home() {
                 title: "Privacy First",
                 desc: "Your data is secure and always private.",
                 icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#ff8a28" strokeWidth={1.8}>
+                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#2b5424" strokeWidth={1.8}>
                     {/* Shield lock icon */}
                     <path strokeLinecap="round" strokeLinejoin="round" d="M24 4L8 12v10c0 11 7 20 16 22 9-2 16-11 16-22V12L24 4z" />
                     <rect x="18" y="22" width="12" height="10" rx="2" strokeLinejoin="round" />
@@ -700,7 +721,7 @@ export default function Home() {
         {/* Loved by Learners Worldwide */}
         <section className="mb-6 rounded-3xl bg-white p-8 md:p-12 shadow-[0_4px_32px_rgba(20,28,60,0.07)]">
           <h3 className="mb-8 text-center text-3xl md:text-4xl font-extrabold text-[#141b40]">
-            Loved by <span className="text-[#ff7a00]">Learners</span> Worldwide
+            Loved by <span className="text-[#2b5424]">Learners</span> Worldwide
           </h3>
           <div className="relative">
             {/* Navigation arrows */}
@@ -721,7 +742,7 @@ export default function Home() {
                   name: "Ananya S.",
                   band: "Band 8.0 Achiever",
                   quote: "QualiCode's AI knows me better than I know myself. It helped me improve from 6.0 to 8.0 in 2 months!",
-                  color: "#ff7a00",
+                  color: "#2b5424",
                 },
                 {
                   name: "Minh T.",
@@ -766,7 +787,7 @@ export default function Home() {
         </section>
 
         {/* CTA - Ready to Achieve */}
-        <section className="relative mt-12 rounded-3xl overflow-visible" style={{ background: "linear-gradient(105deg, #ff6b00 0%, #e85500 30%, #b25cff 60%, #4f84ff 100%)" }}>
+        <section className="relative mt-12 rounded-3xl overflow-visible" style={{ background: "linear-gradient(105deg, #2b5424 0%, #1f3e1b 30%, #b25cff 60%, #4f84ff 100%)" }}>
           {/* Decorative overlay */}
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCBmaWxsPSJ1cmwoI2EpIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIvPjwvc3ZnPg==')] opacity-50" />
           <div className="relative z-10 flex flex-col items-center gap-6 p-8 md:p-0 md:flex-row md:items-end">
@@ -793,7 +814,7 @@ export default function Home() {
 
             {/* CTA button */}
             <div className="flex flex-col items-center gap-2 md:pr-10 flex-shrink-0 md:pb-10">
-              <button className="rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-[#ff7a00] shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 whitespace-nowrap">
+              <button className="rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-[#2b5424] shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 whitespace-nowrap">
                 Start Free Now →
               </button>
               <span className="text-[11px] text-white/60 italic">No credit card required</span>
@@ -812,11 +833,11 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[480px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-left relative overflow-hidden"
           >
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-2xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#2b5424]/10 to-[#7c3aed]/10 blur-2xl" />
 
             {/* Modal Header */}
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(255,122,0,0.15)]">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#2b5424] to-[#5c9255] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(43,84,36,0.15)]">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -828,15 +849,15 @@ export default function Home() {
             {/* Modal Content */}
             <div className="space-y-5 mb-6 relative z-10">
               {/* Profile Avatar Card */}
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#fff8f2] border border-slate-100/60 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#ff7a00] via-[#ff9e4f] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(255,122,0,0.2)]">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#f8faf5] border border-slate-100/60 shadow-sm">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#2b5424] via-[#5c9255] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(43,84,36,0.2)]">
                   {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-[#0d153a]">
                     {user.user_metadata?.name || "Thành viên QualiCode"}
                   </h4>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#ff7a00]/10 text-[#ff7a00] border border-[#ff7a00]/25">
+                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#2b5424]/10 text-[#2b5424] border border-[#2b5424]/25">
                     {user.user_metadata?.role === "ADMIN" ? "Quản trị viên (ADMIN)" : user.user_metadata?.role === "STUDENT" ? "Học sinh (STUDENT)" : "Khách (GUEST)"}
                   </span>
                 </div>
@@ -853,7 +874,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-4 h-4 text-[#ff7a00] mt-0.5 shrink-0" />
+                  <Calendar className="w-4 h-4 text-[#2b5424] mt-0.5 shrink-0" />
                   <div>
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Ngày tham gia</span>
                     <span className="text-xs font-bold text-[#0d153a]">
@@ -886,7 +907,7 @@ export default function Home() {
               <Link
                 href="/reset-password"
                 onClick={() => setShowProfileModal(false)}
-                className="flex-1 py-3 px-4 bg-white border border-[#ff7a00] text-[#ff7a00] hover:bg-orange-50 font-bold text-xs rounded-2xl active:scale-[0.98] transition-all cursor-pointer text-center no-underline flex items-center justify-center"
+                className="flex-1 py-3 px-4 bg-white border border-[#2b5424] text-[#2b5424] hover:bg-[#f2f6ee] font-bold text-xs rounded-2xl active:scale-[0.98] transition-all cursor-pointer text-center no-underline flex items-center justify-center"
               >
                 Đổi mật khẩu
               </Link>
