@@ -110,7 +110,7 @@ export default function LoginPage() {
       if (typeof window !== "undefined") {
         localStorage.setItem("mock_session", JSON.stringify({
           email: "admin@qualicode.com",
-          name: "Admin QualiCode (Bypass)",
+          name: "Admin QualiIelts (Bypass)",
           role: "ADMIN"
         }));
       }
@@ -197,7 +197,7 @@ export default function LoginPage() {
           {/* Logo brand */}
           <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-8 md:mb-0 select-none">
             <span className="text-[#3B5C37] font-black">*</span>
-            <span>QualiCode</span>
+            <span>QualiIelts</span>
           </div>
 
           <div className="my-auto max-w-[400px] w-full">
@@ -401,7 +401,7 @@ export default function LoginPage() {
                     <Brain className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-[#0f1738] leading-none">QualiCode AI</h4>
+                    <h4 className="text-xs font-black text-[#0f1738] leading-none">QualiIelts AI</h4>
                     <span className="text-[9px] text-slate-400 font-semibold leading-none">Band Predictor v2</span>
                   </div>
                 </div>

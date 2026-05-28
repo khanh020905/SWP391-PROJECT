@@ -48,7 +48,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0d153a] no-underline">
               <span className="text-[#3B5C37]">*</span>
-              <span>QualiCode</span>
+              <span>QualiIelts</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-[#5e6792]">
               <span>Tài khoản của tôi</span>
