@@ -173,60 +173,81 @@ export default function Home() {
       </div>
 
       <section
-        className="relative h-[55.8vw] min-h-[640px] max-h-[720px] bg-no-repeat bg-top bg-[length:100%_auto] md:bg-[length:100%_auto]"
-        style={{ backgroundImage: "url('/assets/background-hero-finall.jpeg')", backgroundPosition: "center 10px" }}
+        className="relative w-full h-[55.8vw] min-h-[580px] max-h-[720px] bg-no-repeat bg-top overflow-hidden bg-[#e5ebd8]"
+        style={{
+          backgroundImage: "url('/assets/hero-background-new.jpeg')",
+          backgroundSize: "100% auto"
+        }}
       >
-        <div className="relative mx-auto flex h-full w-full max-w-[1160px] flex-col px-4 py-0 md:px-8 md:py-2">
-          <div className="grid flex-1 items-start gap-8 p-4 pt-[9px] md:grid-cols-2 md:p-6 md:pt-[11px]">
-            <div className="flex flex-col justify-center">
-              <span className="mt-20 mb-5 inline-flex w-fit rounded-full border border-[#e8eaf2] bg-[#fbfcff] px-4 py-2 text-xs font-bold tracking-[0.02em] text-[#5e6792]">
-                AI-POWERED IELTS LEARNING
-              </span>
-              <h1 className="mb-4 text-5xl leading-[1.08] font-extrabold text-[#0d153a] md:text-7xl">
-                Crack IELTS.
-                <br />
-                The <span className="text-[#ff7a00]">AI</span> Way.
-              </h1>
-              <p className="mb-7 max-w-[470px] text-lg leading-8 text-[#4b5472]">
-                100% AI. Zero human intervention. Adaptive learning that understands you, and takes you from
-                <span className="font-bold text-[#ff7a00]"> 9 to 20</span>.
+        {/* Full Screen Overlay Container that matches the aspect ratio of the image */}
+        <div className="absolute inset-0 mx-auto w-full max-w-[1160px] h-full pointer-events-none select-none">
+          
+          {/* 1. Brand Pill Overlay (Covers "THEIELTSDICTIONARY") */}
+          <div className="absolute left-[31.5%] top-[33.5%] pointer-events-auto">
+            <span className="inline-flex rounded-full bg-[#ebefe0] border border-[#d8e0cc] px-2.5 py-1 text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#2b5424] uppercase shadow-sm">
+              QUALI IELTS
+            </span>
+          </div>
+
+          {/* 2. Brand Button Overlay (Covers "Bài viết của TID →") */}
+          <div className="absolute left-[7.2%] top-[78.2%] pointer-events-auto">
+            <Link
+              href="/speaking"
+              className="inline-flex items-center justify-center rounded-full bg-[#2b5424] hover:bg-[#1f3e1b] px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black text-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none"
+            >
+              Bài viết của Quali IELTS →
+            </Link>
+          </div>
+
+          {/* 3. Free Resource Link Overlay (Covers "Khám phá tài liệu miễn phí >") */}
+          <div className="absolute left-[33%] md:left-[35%] top-[79.5%] pointer-events-auto">
+            <Link
+              href="/exam/review"
+              className="text-[10px] sm:text-xs md:text-sm font-black text-[#2b5424] hover:underline cursor-pointer select-none flex items-center gap-1"
+            >
+              <span>Khám phá tài liệu miễn phí</span>
+              <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+
+          {/* 4. Dinosaur Speech Bubble Overlay (Covers the bubble in the image) */}
+          <div className="absolute left-[47%] md:left-[51.8%] top-[14%] pointer-events-auto w-[180px] sm:w-[220px] md:w-[260px] lg:w-[280px]">
+            <div className="relative bg-white border border-[#d4dec7] rounded-2xl p-2.5 sm:p-3 md:p-4 shadow-md text-left">
+              <p className="text-[9px] sm:text-[10px] md:text-xs font-bold text-[#1b3d1e] leading-relaxed">
+                Bạn in the house! <span className="text-[#2b5424] font-black">Quali IELTS</span> mở khóa bài học mới nè.
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Link 
-                  href="/speaking"
-                  className="rounded-xl bg-[#ff7a00] px-6 py-3 text-sm font-bold text-white shadow-[0_8px_18px_rgba(255,122,0,0.35)] hover:bg-orange-600 transition-colors select-none cursor-pointer flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-4 h-4 animate-pulse" />
-                  <span>Practice Speaking AI</span>
-                </Link>
-                <button className="rounded-xl border border-[#dde1ee] bg-white px-6 py-3 text-sm font-semibold text-[#2b355b]">
-                  Watch how it works
-                </button>
-              </div>
-            </div>
-            <div className="relative min-h-[520px]">
-              <div className="absolute right-6 top-10 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(20,28,58,0.12)]">
-                <p className="text-xs font-semibold text-[#5f678a]">Listening</p>
-                <p className="text-2xl font-extrabold text-[#121a41]">8.5</p>
-                <p className="text-xs font-medium text-[#2fa56f]">Advanced</p>
-              </div>
-              <div className="absolute right-0 top-44 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(20,28,58,0.12)]">
-                <p className="text-xs font-semibold text-[#5f678a]">Reading</p>
-                <p className="text-2xl font-extrabold text-[#121a41]">7.0</p>
-                <p className="text-xs font-medium text-[#6a7397]">Good</p>
-              </div>
-              <div className="absolute left-2 top-62 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(20,28,58,0.12)]">
-                <p className="text-xs font-semibold text-[#5f678a]">Writing</p>
-                <p className="text-2xl font-extrabold text-[#121a41]">7.0</p>
-                <p className="text-xs font-medium text-[#6a7397]">Good</p>
-              </div>
-              <div className="absolute right-8 bottom-8 rounded-2xl border border-white/70 bg-white/90 px-4 py-3 shadow-[0_12px_28px_rgba(20,28,58,0.12)]">
-                <p className="text-xs font-semibold text-[#5f678a]">Speaking</p>
-                <p className="text-2xl font-extrabold text-[#121a41]">7.5</p>
-                <p className="text-xs font-medium text-[#6a7397]">Good</p>
-              </div>
+              {/* Arrow / Bubble tail */}
+              <div className="absolute bottom-[-8px] left-[50%] -translate-x-1/2 w-3.5 h-3.5 bg-white border-r border-b border-[#d4dec7] rotate-45" />
             </div>
           </div>
+
+          {/* 5. Follow Us On Links */}
+          <div className="absolute left-[7.2%] top-[65%] pointer-events-auto flex items-center gap-2">
+            <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#4e5c4c] uppercase mr-1">Follow us on</span>
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-[#1877f2] flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
+            >
+              <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+            <a
+              href="https://tiktok.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-black flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"
+            >
+              <svg className="w-3 h-3 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12.525.02c1.31-.032 2.61-.005 3.91-.012.08 1.543.705 3.013 1.782 4.12 1.094 1.097 2.574 1.71 4.123 1.776v3.832c-1.637-.024-3.238-.54-4.59-1.455-.41-.284-.795-.61-1.144-.975v7.242c.04 3.738-2.61 7.158-6.31 7.787-3.79.69-7.55-1.71-8.525-5.46-.994-3.593 1.077-7.614 4.67-8.73 1.114-.363 2.296-.39 3.424-.132v3.916c-.846-.226-1.74-.183-2.553.18-1.282.535-2.096 1.942-1.93 3.325.178 1.637 1.63 2.916 3.28 2.766 1.488-.066 2.72-1.218 2.87-2.7.072-1.042.023-2.094.043-3.14V0h.07z"/>
+              </svg>
+            </a>
+          </div>
+
         </div>
       </section>
 
