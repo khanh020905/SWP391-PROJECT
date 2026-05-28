@@ -7,6 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const { email, name } = await request.json();
+    console.log("[send-welcome] called for:", email);
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
     await resend.emails.send({
