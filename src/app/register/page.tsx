@@ -235,15 +235,13 @@ export default function RegisterPage() {
         throw new Error(error.message);
       }
 
-      if (data?.session) {
+      if (data?.user || data?.session) {
         // Send welcome email via Resend
-        try {
-          await fetch("/api/auth/send-welcome", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, name }),
-          });
-        } catch (_) { /* non-blocking */ }
+        await fetch("/api/auth/send-welcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name }),
+        }).catch(() => {});
 
         // Verification succeeded, sign out then redirect to login
         await supabase.auth.signOut();
