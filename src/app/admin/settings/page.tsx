@@ -212,7 +212,7 @@ export default function AdminSettingsPage() {
   if (isLoading && !settings) {
     return (
       <div className="py-24 flex flex-col items-center justify-center text-slate-400 gap-3">
-        <Loader2 className="w-10 h-10 text-[#ff7a00] animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#3B5C37] animate-spin" />
         <p className="text-sm font-bold animate-pulse">Đang tải cấu hình hệ thống...</p>
       </div>
     );
@@ -222,7 +222,7 @@ export default function AdminSettingsPage() {
     <div className="space-y-8 animate-fade-in relative">
       {/* Custom Toast Notification */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#ff7a00] border border-slate-100 animate-slide-in max-w-sm">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#3B5C37] border border-slate-100 animate-slide-in max-w-sm">
           {toast.type === "success" ? (
             <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
           ) : (
@@ -234,15 +234,15 @@ export default function AdminSettingsPage() {
 
       {/* Header Banner */}
       <section className="bg-gradient-to-r from-[#0d153a] to-[#1e2a5e] text-white p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-lg border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[#ff7a00]/10 blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[#3B5C37]/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-3.5 max-w-xl">
-          <span className="bg-[#ff7a00]/25 text-[#ffab66] border border-[#ff7a00]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
+          <span className="bg-[#3B5C37]/25 text-[#ffab66] border border-[#3B5C37]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
             Quản trị tối cao
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-            Cấu hình <span className="text-[#ff7a00]">Hệ thống</span>
+            Cấu hình <span className="text-[#3B5C37]">Hệ thống</span>
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
             Thiết lập các thông số chung, máy chủ gửi email thông báo tự động và tùy chỉnh nhận xét AI cũng như trọng số tính điểm IELTS Speaking.
@@ -266,7 +266,7 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("system")}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "system"
-              ? "border-[#ff7a00] text-[#ff7a00]"
+              ? "border-[#3B5C37] text-[#3B5C37]"
               : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
           }`}
         >
@@ -278,7 +278,7 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("email")}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "email"
-              ? "border-[#ff7a00] text-[#ff7a00]"
+              ? "border-[#3B5C37] text-[#3B5C37]"
               : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
           }`}
         >
@@ -290,7 +290,7 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("band")}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 font-bold text-sm transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "band"
-              ? "border-[#ff7a00] text-[#ff7a00]"
+              ? "border-[#3B5C37] text-[#3B5C37]"
               : "border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
           }`}
         >
@@ -306,7 +306,7 @@ export default function AdminSettingsPage() {
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6 animate-scale-in">
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-[#ff7a00]" />
+                  <Globe className="w-5 h-5 text-[#3B5C37]" />
                   <span>Tham số chung của Ứng dụng</span>
                 </h3>
                 <p className="text-xs text-slate-400 font-semibold mt-1">
@@ -327,7 +327,7 @@ export default function AdminSettingsPage() {
                         system: { ...settings.system, appName: e.target.value },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
                     placeholder="Nhập tên ứng dụng..."
                     required
                   />
@@ -345,7 +345,7 @@ export default function AdminSettingsPage() {
                         system: { ...settings.system, supportEmail: e.target.value },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
                     placeholder="support@yourdomain.com"
                     required
                   />
@@ -365,7 +365,7 @@ export default function AdminSettingsPage() {
                         },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-600 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
                   >
                     <option value="GUEST">GUEST (Khách vãng lai)</option>
                     <option value="STUDENT">STUDENT (Học viên)</option>
@@ -398,7 +398,7 @@ export default function AdminSettingsPage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff7a00]"></div>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3B5C37]"></div>
                   </label>
                 </div>
 
@@ -437,7 +437,7 @@ export default function AdminSettingsPage() {
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6 animate-scale-in">
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
-                  <Key className="w-5 h-5 text-[#ff7a00]" />
+                  <Key className="w-5 h-5 text-[#3B5C37]" />
                   <span>Cấu hình SMTP Server & Email Gửi đi</span>
                 </h3>
                 <p className="text-xs text-slate-400 font-semibold mt-1">
@@ -458,7 +458,7 @@ export default function AdminSettingsPage() {
                         email: { ...settings.email, smtpHost: e.target.value },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
                     placeholder="smtp.gmail.com"
                     required
                   />
@@ -476,7 +476,7 @@ export default function AdminSettingsPage() {
                         email: { ...settings.email, smtpPort: Number(e.target.value) || 587 },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
                     placeholder="587"
                     required
                   />
@@ -494,7 +494,7 @@ export default function AdminSettingsPage() {
                         email: { ...settings.email, smtpUser: e.target.value },
                       })
                     }
-                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-semibold"
+                    className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
                     placeholder="sender@domain.com"
                     required
                   />
@@ -518,7 +518,7 @@ export default function AdminSettingsPage() {
                           email: { ...settings.email, sendOnRegister: e.target.checked },
                         })
                       }
-                      className="w-4.5 h-4.5 text-[#ff7a00] bg-white border-slate-300 rounded-lg focus:ring-[#ff7a00] cursor-pointer"
+                      className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
                       <span className="text-xs font-extrabold text-[#0d153a] block">Khi đăng ký mới</span>
@@ -537,7 +537,7 @@ export default function AdminSettingsPage() {
                           email: { ...settings.email, sendOnPayment: e.target.checked },
                         })
                       }
-                      className="w-4.5 h-4.5 text-[#ff7a00] bg-white border-slate-300 rounded-lg focus:ring-[#ff7a00] cursor-pointer"
+                      className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
                       <span className="text-xs font-extrabold text-[#0d153a] block">Thanh toán thành công</span>
@@ -556,7 +556,7 @@ export default function AdminSettingsPage() {
                           email: { ...settings.email, sendOnLock: e.target.checked },
                         })
                       }
-                      className="w-4.5 h-4.5 text-[#ff7a00] bg-white border-slate-300 rounded-lg focus:ring-[#ff7a00] cursor-pointer"
+                      className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
                       <span className="text-xs font-extrabold text-[#0d153a] block">Tài khoản bị khóa</span>
@@ -575,7 +575,7 @@ export default function AdminSettingsPage() {
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
                 <div className="border-b border-slate-100 pb-4">
                   <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
-                    <Database className="w-5 h-5 text-[#ff7a00]" />
+                    <Database className="w-5 h-5 text-[#3B5C37]" />
                     <span>Trọng số tính điểm IELTS Speaking</span>
                   </h3>
                   <p className="text-xs text-slate-400 font-semibold mt-1">
@@ -596,7 +596,7 @@ export default function AdminSettingsPage() {
                         max="100"
                         value={weights.fluency}
                         onChange={(e) => handleWeightChange("fluency", e.target.value)}
-                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-extrabold"
+                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-extrabold"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
                     </div>
@@ -614,7 +614,7 @@ export default function AdminSettingsPage() {
                         max="100"
                         value={weights.lexical}
                         onChange={(e) => handleWeightChange("lexical", e.target.value)}
-                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-extrabold"
+                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-extrabold"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
                     </div>
@@ -632,7 +632,7 @@ export default function AdminSettingsPage() {
                         max="100"
                         value={weights.grammar}
                         onChange={(e) => handleWeightChange("grammar", e.target.value)}
-                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-extrabold"
+                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-extrabold"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
                     </div>
@@ -650,7 +650,7 @@ export default function AdminSettingsPage() {
                         max="100"
                         value={weights.pronunciation}
                         onChange={(e) => handleWeightChange("pronunciation", e.target.value)}
-                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-700 font-extrabold"
+                        className="w-full bg-white pl-4 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-extrabold"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
                     </div>
@@ -677,7 +677,7 @@ export default function AdminSettingsPage() {
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
                 <div className="border-b border-slate-100 pb-4">
                   <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-[#ff7a00]" />
+                    <Layers className="w-5 h-5 text-[#3B5C37]" />
                     <span>Ngưỡng phân loại cấp độ & Nhận xét mẫu AI</span>
                   </h3>
                   <p className="text-xs text-slate-400 font-semibold mt-1">
@@ -707,7 +707,7 @@ export default function AdminSettingsPage() {
                               },
                             })
                           }
-                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#ff7a00]"
+                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#3B5C37]"
                         />
                       </div>
                     </div>
@@ -725,7 +725,7 @@ export default function AdminSettingsPage() {
                           })
                         }
                         rows={3}
-                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-600 font-medium leading-relaxed"
+                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
                         placeholder="Nhập nhận xét mẫu cho cấp độ Beginner..."
                         required
                       />
@@ -753,7 +753,7 @@ export default function AdminSettingsPage() {
                               },
                             })
                           }
-                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#ff7a00]"
+                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#3B5C37]"
                         />
                       </div>
                     </div>
@@ -771,7 +771,7 @@ export default function AdminSettingsPage() {
                           })
                         }
                         rows={3}
-                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-600 font-medium leading-relaxed"
+                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
                         placeholder="Nhập nhận xét mẫu cho cấp độ Intermediate..."
                         required
                       />
@@ -799,7 +799,7 @@ export default function AdminSettingsPage() {
                               },
                             })
                           }
-                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#ff7a00]"
+                          className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#3B5C37]"
                         />
                         <span>trở lên (đến 9.0)</span>
                       </div>
@@ -818,7 +818,7 @@ export default function AdminSettingsPage() {
                           })
                         }
                         rows={3}
-                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all text-slate-600 font-medium leading-relaxed"
+                        className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
                         placeholder="Nhập nhận xét mẫu cho cấp độ Advanced..."
                         required
                       />
@@ -839,7 +839,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={isSaving || (activeTab === "band" && !isWeightValid)}
-              className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-[#ff7a00] hover:bg-orange-600 disabled:opacity-50 transition-all shadow-md shadow-orange-100 flex items-center gap-2 cursor-pointer"
+              className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-[#3B5C37] hover:bg-[#2f4a2b] disabled:opacity-50 transition-all shadow-md shadow-orange-100 flex items-center gap-2 cursor-pointer"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>Lưu cấu hình hệ thống</span>

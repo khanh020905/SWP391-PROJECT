@@ -276,7 +276,7 @@ const AuthPage = () => {
               <div className="flex flex-col justify-between p-8 md:p-14 relative h-full">
                 {/* Logo brand */}
                 <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-8 md:mb-0 select-none">
-                  <span className="text-[#ff7a00] font-black">*</span>
+                  <span className="text-[#3B5C37] font-black">*</span>
                   <span>QualiCode</span>
                 </div>
 
@@ -305,11 +305,11 @@ const AuthPage = () => {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Email field */}
                     <div className="group relative">
-                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         Địa chỉ Email
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           <Mail className="w-4.5 h-4.5" />
                         </div>
                         <input
@@ -318,7 +318,7 @@ const AuthPage = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="nguyentrantkhietdan@gmail.com"
-                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                         />
                       </div>
                     </div>
@@ -326,15 +326,15 @@ const AuthPage = () => {
                     {/* Password field */}
                     <div className="group relative">
                       <div className="flex justify-between items-center mb-2">
-                        <label className="text-[10px] font-black text-[#5e6792] uppercase tracking-wider group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <label className="text-[10px] font-black text-[#5e6792] uppercase tracking-wider group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           Mật khẩu
                         </label>
-                        <Link href="/reset-password" className="text-xs font-bold text-[#ff7a00] hover:text-[#e06b00] transition-colors">
+                        <Link href="/reset-password" className="text-xs font-bold text-[#3B5C37] hover:text-[#e06b00] transition-colors">
                           Quên mật khẩu?
                         </Link>
                       </div>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           <Lock className="w-4.5 h-4.5" />
                         </div>
                         <input
@@ -343,7 +343,7 @@ const AuthPage = () => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••"
-                          className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                          className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                         />
                         <button
                           type="button"
@@ -359,7 +359,7 @@ const AuthPage = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
+                      className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
                     >
                       {loading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -401,7 +401,7 @@ const AuthPage = () => {
                 {/* Footer of card */}
                 <div className="text-xs font-semibold text-[#5e6792] mt-8 md:mt-0 text-center md:text-left">
                   Chưa có tài khoản?{" "}
-                  <button type="button" onClick={toggleMode} className="text-[#ff7a00] font-bold hover:underline bg-transparent border-none cursor-pointer">
+                  <button type="button" onClick={toggleMode} className="text-[#3B5C37] font-bold hover:underline bg-transparent border-none cursor-pointer">
                     Đăng ký miễn phí
                   </button>
                 </div>
@@ -417,11 +417,11 @@ const AuthPage = () => {
                     <path d="M-100,200 C150,100 350,250 450,500 C500,630 480,800 480,800" stroke="url(#orbit-orange)" strokeWidth="1.5" strokeDasharray="3 3" />
                     <path d="M-50,100 C200,20 400,200 480,450 C550,700 450,850 450,850" stroke="url(#orbit-purple)" strokeWidth="1" />
                     <path d="M-20,20 C250,-20 450,150 510,400" stroke="url(#orbit-teal)" strokeWidth="1" />
-                    <g transform="translate(120, 280) scale(0.8)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#ff7a00" className="animate-pulse" /></g>
+                    <g transform="translate(120, 280) scale(0.8)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" /></g>
                     <g transform="translate(320, 140) scale(0.6)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#7c3aed" className="animate-pulse" style={{ animationDelay: "1.2s" }} /></g>
                     <g transform="translate(80, 480) scale(0.7)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3b82f6" className="animate-pulse" style={{ animationDelay: "0.6s" }} /></g>
                     <defs>
-                      <linearGradient id="orbit-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ff7a00" stopOpacity="0.1" /><stop offset="50%" stopColor="#ff8c42" stopOpacity="0.6" /><stop offset="100%" stopColor="#ffccd5" stopOpacity="0" /></linearGradient>
+                      <linearGradient id="orbit-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#3B5C37" stopOpacity="0.1" /><stop offset="50%" stopColor="#ff8c42" stopOpacity="0.6" /><stop offset="100%" stopColor="#ffccd5" stopOpacity="0" /></linearGradient>
                       <linearGradient id="orbit-purple" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#7c3aed" stopOpacity="0.1" /><stop offset="60%" stopColor="#b8a8ff" stopOpacity="0.6" /><stop offset="100%" stopColor="#ebd3f8" stopOpacity="0" /></linearGradient>
                       <linearGradient id="orbit-teal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" stopOpacity="0" /><stop offset="50%" stopColor="#10b981" stopOpacity="0.4" /><stop offset="100%" stopColor="#d6e4ff" stopOpacity="0" /></linearGradient>
                     </defs>
@@ -429,7 +429,7 @@ const AuthPage = () => {
                 </div>
 
                 <div className="relative z-10 max-w-[320px]">
-                  <span className="text-[10px] font-black tracking-wider text-[#ff7a00] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
+                  <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
                     HỌC IELTS BẰNG AI
                   </span>
                   <h3 className="text-3xl font-black text-[#0f1738] mt-5 leading-tight tracking-tight">
@@ -440,10 +440,10 @@ const AuthPage = () => {
                 {/* AI Path Planner Card */}
                 <div className="relative z-10 my-auto flex justify-center py-6">
                   <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
-                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-xl" />
+                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-xl" />
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-[#ff7a00] text-white flex items-center justify-center font-bold">
+                        <div className="w-8 h-8 rounded-xl bg-[#3B5C37] text-white flex items-center justify-center font-bold">
                           <Brain className="w-4 h-4 text-white" />
                         </div>
                         <div>
@@ -474,17 +474,17 @@ const AuthPage = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[#ff7a00]/15 text-[#ff7a00] flex items-center justify-center shrink-0 mt-0.5 relative">
+                        <div className="w-6 h-6 rounded-full bg-[#3B5C37]/15 text-[#3B5C37] flex items-center justify-center shrink-0 mt-0.5 relative">
                           <Compass className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: "8s" }} />
-                          <span className="absolute inset-0 w-full h-full rounded-full bg-[#ff7a00]/25 scale-125 animate-ping opacity-35" />
+                          <span className="absolute inset-0 w-full h-full rounded-full bg-[#3B5C37]/25 scale-125 animate-ping opacity-35" />
                         </div>
                         <div className="flex-1">
                           <div className="flex justify-between items-center">
                             <span className="text-xs font-bold text-[#0f1738]">Personalized Path</span>
-                            <span className="text-[9px] text-[#ff7a00] font-black animate-pulse">Designing...</span>
+                            <span className="text-[9px] text-[#3B5C37] font-black animate-pulse">Designing...</span>
                           </div>
                           <div className="w-full h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
-                            <div className="h-full w-[45%] bg-[#ff7a00] rounded-full animate-pulse" />
+                            <div className="h-full w-[45%] bg-[#3B5C37] rounded-full animate-pulse" />
                           </div>
                         </div>
                       </div>
@@ -541,11 +541,11 @@ const AuthPage = () => {
                     <path d="M-100,500 C150,600 350,450 450,200 C500,70 480,-100 480,-100" stroke="url(#orbit-orange)" strokeWidth="1.5" strokeDasharray="3 3" />
                     <path d="M-50,600 C200,680 400,500 480,250 C550,0 450,-150 450,-150" stroke="url(#orbit-purple)" strokeWidth="1" />
                     <path d="M-20,680 C250,720 450,550 510,300" stroke="url(#orbit-teal)" strokeWidth="1" />
-                    <g transform="translate(380, 180)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#ff7a00" className="animate-pulse" /></g>
+                    <g transform="translate(380, 180)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" /></g>
                     <g transform="translate(180, 240) scale(0.6)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#7c3aed" className="animate-pulse" style={{ animationDelay: "1s" }} /></g>
                     <g transform="translate(420, 360) scale(0.8)"><path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3b82f6" className="animate-pulse" style={{ animationDelay: "2s" }} /></g>
                     <defs>
-                      <linearGradient id="orbit-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ff7a00" stopOpacity="0.1" /><stop offset="50%" stopColor="#ff8c42" stopOpacity="0.6" /><stop offset="100%" stopColor="#ffccd5" stopOpacity="0" /></linearGradient>
+                      <linearGradient id="orbit-orange" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#3B5C37" stopOpacity="0.1" /><stop offset="50%" stopColor="#ff8c42" stopOpacity="0.6" /><stop offset="100%" stopColor="#ffccd5" stopOpacity="0" /></linearGradient>
                       <linearGradient id="orbit-purple" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#7c3aed" stopOpacity="0.1" /><stop offset="60%" stopColor="#b8a8ff" stopOpacity="0.6" /><stop offset="100%" stopColor="#ebd3f8" stopOpacity="0" /></linearGradient>
                       <linearGradient id="orbit-teal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" stopOpacity="0" /><stop offset="50%" stopColor="#10b981" stopOpacity="0.4" /><stop offset="100%" stopColor="#d6e4ff" stopOpacity="0" /></linearGradient>
                     </defs>
@@ -553,7 +553,7 @@ const AuthPage = () => {
                 </div>
 
                 <div className="relative z-10 max-w-[320px]">
-                  <span className="text-[10px] font-black tracking-wider text-[#ff7a00] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
+                  <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
                     HỌC IELTS BẰNG AI
                   </span>
                   <h3 className="text-3xl font-black text-[#0f1738] mt-5 leading-tight tracking-tight">
@@ -564,10 +564,10 @@ const AuthPage = () => {
                 {/* QualiCode AI Card */}
                 <div className="relative z-10 my-auto flex justify-center py-6">
                   <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
-                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-xl" />
+                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-xl" />
                     <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-[#ff7a00] flex items-center justify-center text-white font-bold">
+                        <div className="w-8 h-8 rounded-xl bg-[#3B5C37] flex items-center justify-center text-white font-bold">
                           <Brain className="w-4 h-4 text-white" />
                         </div>
                         <div>
@@ -575,7 +575,7 @@ const AuthPage = () => {
                           <span className="text-[9px] text-slate-400 font-semibold leading-none">Band Predictor v2</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 bg-[#fff4e6] text-[#ff7a00] px-2.5 py-0.5 rounded-full text-[9px] font-bold">
+                      <div className="flex items-center gap-1 bg-[#fff4e6] text-[#3B5C37] px-2.5 py-0.5 rounded-full text-[9px] font-bold">
                         <Sparkles className="w-2.5 h-2.5" />
                         <span>Realtime</span>
                       </div>
@@ -588,7 +588,7 @@ const AuthPage = () => {
                           <span className="text-xs font-black text-[#0f1738]">8.5 / 9.0</span>
                         </div>
                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full w-[90%] bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] rounded-full transition-all duration-1000 group-hover:w-[94%]" />
+                          <div className="h-full w-[90%] bg-gradient-to-r from-[#3B5C37] to-[#ff9e4f] rounded-full transition-all duration-1000 group-hover:w-[94%]" />
                         </div>
                       </div>
 
@@ -605,10 +605,10 @@ const AuthPage = () => {
 
                     <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                       <span className="text-slate-400 flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-[#ff7a00]" />
+                        <TrendingUp className="w-3.5 h-3.5 text-[#3B5C37]" />
                         Target Score
                       </span>
-                      <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#ff7a00] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(255,122,0,0.2)]">
+                      <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#3B5C37] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]">
                         8.0+ Band
                       </span>
                     </div>
@@ -621,7 +621,7 @@ const AuthPage = () => {
                     "Trình đánh giá thử và sửa bài viết IELTS bằng AI siêu tốc giúp mình tăng ngay 1.5 band chỉ trong vòng 3 tuần luyện tập!"
                   </p>
                   <div className="mt-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#ff7a00] text-white font-black text-[10px] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-[#3B5C37] text-white font-black text-[10px] flex items-center justify-center">
                       MA
                     </div>
                     <div>
@@ -636,7 +636,7 @@ const AuthPage = () => {
               <div className="flex flex-col justify-between p-8 md:p-12 relative border-l border-white/50 min-h-[500px] h-full">
                 {/* Logo brand */}
                 <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-6 md:mb-0 select-none">
-                  <span className="text-[#ff7a00] font-black">*</span>
+                  <span className="text-[#3B5C37] font-black">*</span>
                   <span>QualiCode</span>
                 </div>
 
@@ -665,11 +665,11 @@ const AuthPage = () => {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Name field */}
                     <div className="group relative">
-                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         Họ và Tên
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           <User className="w-4.5 h-4.5" />
                         </div>
                         <input
@@ -678,18 +678,18 @@ const AuthPage = () => {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Nguyễn Văn A"
-                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Email field */}
                     <div className="group relative">
-                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         Địa chỉ Email
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           <Mail className="w-4.5 h-4.5" />
                         </div>
                         <input
@@ -698,18 +698,18 @@ const AuthPage = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="nguyentrantkhietdan@gmail.com"
-                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                          className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Password field */}
                     <div className="group relative">
-                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         Mật khẩu (Tối thiểu 6 ký tự)
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                           <Lock className="w-4.5 h-4.5" />
                         </div>
                         <input
@@ -718,7 +718,7 @@ const AuthPage = () => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••"
-                          className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                          className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                         />
                         <button
                           type="button"
@@ -734,7 +734,7 @@ const AuthPage = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
+                      className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
                     >
                       {loading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -751,7 +751,7 @@ const AuthPage = () => {
                 {/* Footer of card */}
                 <div className="text-xs font-semibold text-[#5e6792] mt-6 md:mt-0 text-center md:text-left">
                   Đã có tài khoản?{" "}
-                  <button type="button" onClick={toggleMode} className="text-[#ff7a00] font-bold hover:underline bg-transparent border-none cursor-pointer">
+                  <button type="button" onClick={toggleMode} className="text-[#3B5C37] font-bold hover:underline bg-transparent border-none cursor-pointer">
                     Đăng nhập ngay
                   </button>
                 </div>
@@ -767,15 +767,15 @@ const AuthPage = () => {
           <div className="w-full max-w-[460px] rounded-3xl bg-white/95 border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 text-center relative z-50 animate-scale-in">
             
             {/* Modal Header */}
-            <div className="w-16 h-16 rounded-3xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center mx-auto mb-6 shadow-[0_12px_24px_rgba(255,122,0,0.15)] relative group animate-bounce">
-              <div className="absolute inset-0 rounded-3xl bg-[#ff7a00]/25 scale-110 blur-md opacity-50" />
-              <Mail className="w-7 h-7 relative z-10 text-[#ff7a00]" />
+            <div className="w-16 h-16 rounded-3xl bg-[#3B5C37]/10 text-[#3B5C37] flex items-center justify-center mx-auto mb-6 shadow-[0_12px_24px_rgba(59, 92, 55,0.15)] relative group animate-bounce">
+              <div className="absolute inset-0 rounded-3xl bg-[#3B5C37]/25 scale-110 blur-md opacity-50" />
+              <Mail className="w-7 h-7 relative z-10 text-[#3B5C37]" />
             </div>
 
             <h3 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-2">
               Xác nhận Email của bạn
             </h3>
-            <p className="text-sm font-semibold text-[#ff7a00] mb-5 animate-pulse">
+            <p className="text-sm font-semibold text-[#3B5C37] mb-5 animate-pulse">
               Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...
             </p>
 
@@ -794,7 +794,7 @@ const AuthPage = () => {
                 Sau khi bấm nút xác thực trong email, hệ thống sẽ tự động chuyển hướng bạn đến trang Đăng nhập để tiếp tục.
               </p>
               <div className="pt-2 border-t border-slate-100 flex gap-2 text-[10px] text-slate-400">
-                <span className="font-bold text-[#ff7a00] shrink-0">* Lưu ý:</span>
+                <span className="font-bold text-[#3B5C37] shrink-0">* Lưu ý:</span>
                 <span>Hãy kiểm tra cả hòm thư **Spam (Thư rác)** hoặc **Quảng cáo** nếu không nhận được sau 1-2 phút.</span>
               </div>
             </div>
@@ -806,7 +806,7 @@ const AuthPage = () => {
                   setIsRegistered(false);
                   setMode("login");
                 }}
-                className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(255,122,0,0.2)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
+                className="w-full py-3.5 px-5 bg-gradient-to-r from-[#ff9100] to-[#ff6a00] hover:from-[#ff8000] hover:to-[#ef5900] text-white font-bold text-xs rounded-2xl shadow-[0_8px_24px_rgba(59, 92, 55,0.2)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
               >
                 <span>Quay lại trang Đăng nhập</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -814,7 +814,7 @@ const AuthPage = () => {
               <button 
                 type="button" 
                 onClick={handleResendEmail}
-                className="w-full text-xs font-semibold text-[#ff7a00] hover:underline cursor-pointer bg-transparent border-none py-1"
+                className="w-full text-xs font-semibold text-[#3B5C37] hover:underline cursor-pointer bg-transparent border-none py-1"
               >
                 Gửi lại email xác nhận
               </button>

@@ -68,7 +68,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
         <div className="group relative">
           <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">Họ và Tên</label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37]">
               <User className="w-4.5 h-4.5" />
             </div>
             <input
@@ -77,7 +77,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nguyễn Văn A"
-              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none"
+              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none"
             />
           </div>
         </div>
@@ -97,7 +97,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
         <div className="group relative">
           <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">Số điện thoại</label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37]">
               <Phone className="w-4.5 h-4.5" />
             </div>
             <input
@@ -105,7 +105,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0912345678"
-              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none"
+              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none"
             />
           </div>
         </div>
@@ -116,7 +116,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
             Giới thiệu bản thân (Tối đa 300 ký tự)
           </label>
           <div className="relative">
-            <div className="absolute top-3 left-4 text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+            <div className="absolute top-3 left-4 text-[#97a0c3] group-focus-within:text-[#3B5C37]">
               <FileText className="w-4.5 h-4.5" />
             </div>
             <textarea
@@ -124,7 +124,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
               onChange={(e) => setBio(e.target.value.slice(0, 300))}
               placeholder="Chia sẻ một chút thông tin về bạn..."
               rows={4}
-              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none resize-none"
+              className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none resize-none"
             />
           </div>
           <div className="flex justify-end text-[10px] font-bold text-slate-400 mt-1">
@@ -137,7 +137,7 @@ function ProfileEditFormInner({ user, router }: { user: AuthUser; router: Return
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 h-12 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none"
+            className="px-6 h-12 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none"
           >
             {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "Lưu thay đổi"}
           </button>

@@ -47,7 +47,7 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f4f5f9]">
-      <div className="w-10 h-10 border-4 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin mb-4" />
+      <div className="w-10 h-10 border-4 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin mb-4" />
       <p className="text-xs font-bold text-[#5e6792] animate-pulse">Đang xác thực...</p>
     </div>
   );

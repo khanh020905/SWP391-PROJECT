@@ -224,7 +224,7 @@ export default function AdminActivityLogsPage() {
     <div className="space-y-8 animate-fade-in relative">
       {/* Toast Notification Custom */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#ff7a00] border border-slate-100 animate-slide-in max-w-sm">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#3B5C37] border border-slate-100 animate-slide-in max-w-sm">
           {toast.type === "success" ? (
             <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
           ) : (
@@ -236,15 +236,15 @@ export default function AdminActivityLogsPage() {
 
       {/* Welcome Banner */}
       <section className="bg-gradient-to-r from-[#0d153a] to-[#1e2a5e] text-white p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-lg border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[#ff7a00]/10 blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-[#3B5C37]/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-3.5 max-w-xl">
-          <span className="bg-[#ff7a00]/25 text-[#ffab66] border border-[#ff7a00]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
+          <span className="bg-[#3B5C37]/25 text-[#ffab66] border border-[#3B5C37]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
             Nhật ký Bảo mật
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-            Lịch sử hoạt động <span className="text-[#ff7a00]">Hệ thống</span>
+            Lịch sử hoạt động <span className="text-[#3B5C37]">Hệ thống</span>
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
             Theo dõi thời gian thực mọi thay đổi, từ tạo tài khoản mới, nâng cấp học viên, cho đến khóa/mở khóa tài khoản bảo mật của QualiCode.
@@ -278,7 +278,7 @@ export default function AdminActivityLogsPage() {
       <section className="grid gap-5 grid-cols-2 lg:grid-cols-4">
         {/* KPI: Tổng số hoạt động */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 transition-all duration-200 hover:-translate-y-0.5">
-          <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-[#ff7a00] flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#e8ede6] flex items-center justify-center text-[#3B5C37] flex-shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
@@ -328,7 +328,7 @@ export default function AdminActivityLogsPage() {
         <div className="p-6 border-b border-slate-200/80 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-slate-50/50">
           <h2 className="text-base font-black text-[#0d153a] flex items-center gap-2">
             <span>Chi tiết nhật ký hoạt động</span>
-            {isLoading && <Loader2 className="w-4 h-4 text-[#ff7a00] animate-spin" />}
+            {isLoading && <Loader2 className="w-4 h-4 text-[#3B5C37] animate-spin" />}
           </h2>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -343,7 +343,7 @@ export default function AdminActivityLogsPage() {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-white pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all placeholder:text-slate-400 text-slate-700"
+                className="w-full bg-white pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all placeholder:text-slate-400 text-slate-700"
               />
             </div>
 
@@ -356,7 +356,7 @@ export default function AdminActivityLogsPage() {
                   setActionFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-600 font-semibold"
+                className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
               >
                 <option value="ALL">Tất cả hành động</option>
                 <option value="CREATE">CREATE (Tạo mới)</option>
@@ -374,7 +374,7 @@ export default function AdminActivityLogsPage() {
         <div className="overflow-x-auto">
           {isLoading && logs.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
-              <Loader2 className="w-8 h-8 text-[#ff7a00] animate-spin" />
+              <Loader2 className="w-8 h-8 text-[#3B5C37] animate-spin" />
               <p className="text-xs font-bold">Đang tải nhật ký lịch sử hệ thống...</p>
             </div>
           ) : logs.length === 0 ? (
@@ -387,7 +387,7 @@ export default function AdminActivityLogsPage() {
                   setActionFilter("ALL");
                   setCurrentPage(1);
                 }}
-                className="text-[#ff7a00] text-xs font-bold underline mt-2"
+                className="text-[#3B5C37] text-xs font-bold underline mt-2"
               >
                 Đặt lại bộ lọc
               </button>
@@ -409,7 +409,7 @@ export default function AdminActivityLogsPage() {
                     {/* Admin User */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] font-black text-xs flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] font-black text-xs flex items-center justify-center">
                           {getAvatarInitials(log.adminName)}
                         </div>
                         <div>

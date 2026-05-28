@@ -61,7 +61,7 @@ export default function EditExamPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <Loader2 className="w-8 h-8 animate-spin text-[#ff7a00]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#3B5C37]" />
         <p className="text-sm font-bold text-slate-400">Đang tải dữ liệu đề thi...</p>
       </div>
     );

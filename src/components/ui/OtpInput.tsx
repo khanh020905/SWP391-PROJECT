@@ -72,9 +72,9 @@ export function OtpInput({ value, onChange, disabled = false }: OtpInputProps) {
           onKeyDown={(e) => handleKeyDown(index, e)}
           className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2 outline-none transition-all duration-300 bg-[#f0f4fd] text-[#0d153a] ${
             digit
-              ? "border-[#ff7a00] bg-white shadow-[0_4px_16px_rgba(255,122,0,0.12)] scale-105"
-              : "border-[#e1e4ed]/60 hover:border-[#ff7a00]/40"
-          } focus:border-[#ff7a00] focus:bg-white focus:ring-4 focus:ring-[#ff7a00]/10 focus:scale-105 ${
+              ? "border-[#3B5C37] bg-white shadow-[0_4px_16px_rgba(59, 92, 55,0.12)] scale-105"
+              : "border-[#e1e4ed]/60 hover:border-[#3B5C37]/40"
+          } focus:border-[#3B5C37] focus:bg-white focus:ring-4 focus:ring-[#3B5C37]/10 focus:scale-105 ${
             disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""
           }`}
         />

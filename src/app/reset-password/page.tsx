@@ -265,7 +265,7 @@ export default function ResetPasswordPage() {
           
           {/* Logo brand */}
           <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-8 md:mb-0 select-none no-underline outline-none">
-            <span className="text-[#ff7a00] font-black">*</span>
+            <span className="text-[#3B5C37] font-black">*</span>
             <span>QualiCode</span>
           </Link>
 
@@ -299,11 +299,11 @@ export default function ResetPasswordPage() {
                 <form onSubmit={handleRequestReset} className="space-y-5">
                   {/* Email field */}
                   <div className="group relative">
-                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                       Địa chỉ Email tài khoản
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         <Mail className="w-4.5 h-4.5" />
                       </div>
                       <input
@@ -312,7 +312,7 @@ export default function ResetPasswordPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="nguyentrantkhietdan@gmail.com"
-                        className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                       />
                     </div>
                   </div>
@@ -321,7 +321,7 @@ export default function ResetPasswordPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
+                    className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -348,7 +348,7 @@ export default function ResetPasswordPage() {
                     setSuccessMsg("");
                     setOtp(["", "", "", "", "", ""]);
                   }}
-                  className="flex items-center gap-1.5 text-xs font-bold text-[#5e6792] hover:text-[#ff7a00] transition-colors mb-6 bg-transparent border-none cursor-pointer outline-none"
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#5e6792] hover:text-[#3B5C37] transition-colors mb-6 bg-transparent border-none cursor-pointer outline-none"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Quay lại</span>
@@ -365,9 +365,9 @@ export default function ResetPasswordPage() {
                 </p>
 
                 {/* Yêu cầu xác nhận Banner */}
-                <div className="mb-6 p-4 rounded-2xl bg-[#ff7a00]/5 border border-[#ff7a00]/25 flex flex-col gap-3 animate-fade-in">
+                <div className="mb-6 p-4 rounded-2xl bg-[#3B5C37]/5 border border-[#3B5C37]/25 flex flex-col gap-3 animate-fade-in">
                   <div className="flex items-start gap-3 text-left">
-                    <div className="w-8 h-8 rounded-xl bg-[#ff7a00]/10 text-[#ff7a00] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-[#3B5C37]/10 text-[#3B5C37] flex items-center justify-center shrink-0">
                       <Shield className="w-4.5 h-4.5" />
                     </div>
                     <div>
@@ -384,7 +384,7 @@ export default function ResetPasswordPage() {
                   <div className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 ${
                     expiryCountdown <= 60 
                       ? "bg-red-50 border-red-100 text-red-600 animate-pulse" 
-                      : "bg-[#ff7a00]/5 border-[#ff7a00]/10 text-[#ff7a00]"
+                      : "bg-[#3B5C37]/5 border-[#3B5C37]/10 text-[#3B5C37]"
                   }`}>
                     <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5" />
@@ -426,7 +426,7 @@ export default function ResetPasswordPage() {
                   type="button"
                   onClick={handleVerifyOTP}
                   disabled={isLoading || otp.join("").length !== 6 || expiryCountdown <= 0}
-                  className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
+                  className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -450,7 +450,7 @@ export default function ResetPasswordPage() {
                     className={`text-xs font-bold transition-colors bg-transparent border-none cursor-pointer outline-none flex items-center justify-center gap-1.5 mx-auto ${
                       countdown > 0
                         ? "text-[#97a0c3] cursor-not-allowed"
-                        : "text-[#ff7a00] hover:text-[#e06b00]"
+                        : "text-[#3B5C37] hover:text-[#e06b00]"
                     }`}
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
@@ -492,11 +492,11 @@ export default function ResetPasswordPage() {
                 <form onSubmit={handleUpdatePassword} className="space-y-5">
                   {/* New Password */}
                   <div className="group relative">
-                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                       Mật khẩu mới (Tối thiểu 6 ký tự)
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         <Lock className="w-4.5 h-4.5" />
                       </div>
                       <input
@@ -505,7 +505,7 @@ export default function ResetPasswordPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="••••••"
-                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                       />
                       <button
                         type="button"
@@ -519,11 +519,11 @@ export default function ResetPasswordPage() {
 
                   {/* Confirm New Password */}
                   <div className="group relative">
-                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                    <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#3B5C37] transition-colors duration-200">
                       Xác nhận mật khẩu mới
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00] transition-colors duration-200">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
                         <Lock className="w-4.5 h-4.5" />
                       </div>
                       <input
@@ -532,7 +532,7 @@ export default function ResetPasswordPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••"
-                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all duration-300 outline-none"
+                        className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                       />
                       <button
                         type="button"
@@ -548,7 +548,7 @@ export default function ResetPasswordPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-13 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:shadow-[0_12px_32px_rgba(255,122,0,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
+                    className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 mt-6 cursor-pointer border-none outline-none"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -567,7 +567,7 @@ export default function ResetPasswordPage() {
 
           {/* Footer: navigate back to login */}
           <div className="mt-8 md:mt-0 text-center md:text-left">
-            <Link href="/login" className="text-xs font-bold text-[#5e6792] hover:text-[#ff7a00] transition-colors flex items-center justify-center md:justify-start gap-1 select-none no-underline outline-none">
+            <Link href="/login" className="text-xs font-bold text-[#5e6792] hover:text-[#3B5C37] transition-colors flex items-center justify-center md:justify-start gap-1 select-none no-underline outline-none">
               <ChevronLeft className="w-4 h-4 shrink-0" />
               <span>Quay lại trang Đăng nhập</span>
             </Link>
@@ -594,7 +594,7 @@ export default function ResetPasswordPage() {
               
               {/* Star Sparkle SVG Shapes */}
               <g transform="translate(380, 180)">
-                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#ff7a00" className="animate-pulse" />
+                <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" />
               </g>
               <g transform="translate(180, 240) scale(0.6)">
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#7c3aed" className="animate-pulse" style={{ animationDelay: "1s" }} />
@@ -606,7 +606,7 @@ export default function ResetPasswordPage() {
               {/* Definitions for Gradients */}
               <defs>
                 <linearGradient id="orbit-orange" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ff7a00" stopOpacity="0.1" />
+                  <stop offset="0%" stopColor="#3B5C37" stopOpacity="0.1" />
                   <stop offset="50%" stopColor="#ff8c42" stopOpacity="0.6" />
                   <stop offset="100%" stopColor="#ffccd5" stopOpacity="0" />
                 </linearGradient>
@@ -626,7 +626,7 @@ export default function ResetPasswordPage() {
 
           {/* Top text */}
           <div className="relative z-10 max-w-[320px]">
-            <span className="text-[10px] font-black tracking-wider text-[#ff7a00] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
+            <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-3.5 py-1.5 rounded-full inline-block">
               HỌC IELTS BẰNG AI
             </span>
             <h3 className="text-3xl font-black text-[#0f1738] mt-5 leading-tight tracking-tight">
@@ -637,12 +637,12 @@ export default function ResetPasswordPage() {
           {/* Interactive Floating AI Dashboard widget */}
           <div className="relative z-10 my-auto flex justify-center py-6">
             <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
-              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-xl" />
+              <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-xl" />
               
               {/* Header inside widget */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-[#ff7a00] flex items-center justify-center text-white font-bold">
+                  <div className="w-8 h-8 rounded-xl bg-[#3B5C37] flex items-center justify-center text-white font-bold">
                     <Brain className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -650,7 +650,7 @@ export default function ResetPasswordPage() {
                     <span className="text-[9px] text-slate-400 font-semibold leading-none">Security Center</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-[#fff4e6] text-[#ff7a00] px-2.5 py-0.5 rounded-full text-[9px] font-bold">
+                <div className="flex items-center gap-1 bg-[#fff4e6] text-[#3B5C37] px-2.5 py-0.5 rounded-full text-[9px] font-bold">
                   <Sparkles className="w-2.5 h-2.5" />
                   <span>Verified</span>
                 </div>
@@ -664,7 +664,7 @@ export default function ResetPasswordPage() {
                     <span className="text-xs font-black text-[#0f1738]">99.9% / 100%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full w-[99%] bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] rounded-full transition-all duration-1000" />
+                    <div className="h-full w-[99%] bg-gradient-to-r from-[#3B5C37] to-[#ff9e4f] rounded-full transition-all duration-1000" />
                   </div>
                 </div>
 
@@ -682,10 +682,10 @@ export default function ResetPasswordPage() {
               {/* Summary target bottom badge */}
               <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#ff7a00]" />
+                  <TrendingUp className="w-3.5 h-3.5 text-[#3B5C37]" />
                   Độ mạnh mật khẩu yêu cầu
                 </span>
-                <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#ff7a00] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(255,122,0,0.2)]">
+                <span className="text-white bg-gradient-to-r from-[#7c3aed] via-[#ff8c42] to-[#3B5C37] px-3 py-1 rounded-xl shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]">
                   Mạnh (Strong)
                 </span>
               </div>
@@ -698,7 +698,7 @@ export default function ResetPasswordPage() {
               "QualiCode luôn tuân thủ quy trình mã hóa và bảo mật chuẩn công nghệ AI để bảo vệ dữ liệu học viên tốt nhất!"
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#ff7a00] text-white font-black text-[10px] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#3B5C37] text-white font-black text-[10px] flex items-center justify-center">
                 QC
               </div>
               <div>

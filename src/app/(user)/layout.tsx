@@ -25,7 +25,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   if (loading || !user) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f4f5f9] text-[#0f1738]">
-        <div className="w-10 h-10 border-4 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin mb-4" />
+        <div className="w-10 h-10 border-4 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin mb-4" />
         <p className="text-xs font-bold text-[#5e6792] animate-pulse">Đang xác thực thông tin...</p>
       </div>
     );
@@ -47,7 +47,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0d153a] no-underline">
-              <span className="text-[#ff7a00]">*</span>
+              <span className="text-[#3B5C37]">*</span>
               <span>QualiCode</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-[#5e6792]">
@@ -56,7 +56,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
               <span className="text-[#0d153a]">{pathname.includes("/settings") ? "Cài đặt" : "Hồ sơ"}</span>
             </div>
           </div>
-          <Link href="/" className="text-xs font-bold text-[#ff7a00] hover:underline flex items-center gap-1">
+          <Link href="/" className="text-xs font-bold text-[#3B5C37] hover:underline flex items-center gap-1">
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Quay lại Trang chủ</span>
           </Link>
@@ -73,15 +73,15 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
               <img
                 src={user.user_metadata.avatar_url}
                 alt="Avatar"
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#ff7a00] shadow-md"
+                className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5C37] shadow-md"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
                 {initialsFallback}
               </div>
             )}
             <h3 className="font-extrabold text-[#0d153a] mt-3 leading-tight text-base">{user.user_metadata?.name || "Người dùng"}</h3>
-            <span className="text-[10px] font-black tracking-wider text-[#ff7a00] bg-[#fff4e6] px-2.5 py-1 rounded-full mt-1.5 uppercase">
+            <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-2.5 py-1 rounded-full mt-1.5 uppercase">
               {user.user_metadata?.role || "STUDENT"}
             </span>
           </div>
@@ -96,8 +96,8 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
-                      ? "bg-[#ff7a00] text-white shadow-[0_4px_12px_rgba(255,122,0,0.2)]"
-                      : "text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00]"
+                      ? "bg-[#3B5C37] text-white shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]"
+                      : "text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37]"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />

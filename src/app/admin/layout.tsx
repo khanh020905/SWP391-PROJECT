@@ -124,7 +124,7 @@ export default function AdminLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f4f5f9] text-[#0f1738]">
-        <div className="w-10 h-10 border-4 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin mb-4" />
+        <div className="w-10 h-10 border-4 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin mb-4" />
         <p className="text-xs font-bold text-[#5e6792] animate-pulse">Đang xác thực quyền Admin...</p>
       </div>
     );
@@ -135,7 +135,7 @@ export default function AdminLayout({
       {/* Top Header Mobile */}
       <header className="md:hidden flex items-center justify-between bg-[#0d153a] text-white px-5 py-4 shadow-md sticky top-0 z-40">
         <div className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-          <span className="text-[#ff7a00] font-serif text-2xl leading-none">*</span>
+          <span className="text-[#3B5C37] font-serif text-2xl leading-none">*</span>
           <span>QualiCode Admin</span>
         </div>
         <button
@@ -155,7 +155,7 @@ export default function AdminLayout({
         >
           {/* Brand Logo Header (Desktop only) */}
           <div className="hidden md:flex items-center gap-2 px-6 py-6 border-b border-white/5">
-            <span className="text-[#ff7a00] font-serif text-3xl leading-none">*</span>
+            <span className="text-[#3B5C37] font-serif text-3xl leading-none">*</span>
             <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
               QualiCode Admin
             </span>
@@ -163,8 +163,8 @@ export default function AdminLayout({
 
           {/* Quick Profile Admin */}
           <div className="px-6 py-5 border-b border-white/5 flex items-center gap-3 bg-[#0a102e]/60">
-            <div className="w-10 h-10 rounded-xl bg-[#ff7a00]/10 border border-[#ff7a00]/30 flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-[#ff7a00]" />
+            <div className="w-10 h-10 rounded-xl bg-[#3B5C37]/10 border border-[#3B5C37]/30 flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-[#3B5C37]" />
             </div>
             <div className="flex-1 overflow-hidden">
               <div className="font-bold text-sm truncate text-white">{adminUser?.name}</div>
@@ -183,7 +183,7 @@ export default function AdminLayout({
                   onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
                     item.active
-                      ? "bg-[#ff7a00] text-white shadow-[0_6px_16px_rgba(255,122,0,0.25)] font-bold scale-[1.02]"
+                      ? "bg-[#3B5C37] text-white shadow-[0_6px_16px_rgba(59, 92, 55,0.25)] font-bold scale-[1.02]"
                       : "text-slate-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
@@ -256,11 +256,11 @@ export default function AdminLayout({
 
               {/* Profile Card */}
               <div className="flex items-center gap-3 cursor-pointer group">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#ff7a00] to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-[0_4px_10px_rgba(255,122,0,0.15)] uppercase">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#3B5C37] to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-[0_4px_10px_rgba(59, 92, 55,0.15)] uppercase">
                   {adminUser?.name?.substring(0, 2)}
                 </div>
                 <div className="text-left">
-                  <div className="font-bold text-sm text-[#0d153a] group-hover:text-[#ff7a00] transition-colors leading-tight">
+                  <div className="font-bold text-sm text-[#0d153a] group-hover:text-[#3B5C37] transition-colors leading-tight">
                     {adminUser?.name}
                   </div>
                   <div className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">

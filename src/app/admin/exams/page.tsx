@@ -165,7 +165,7 @@ export default function AdminExamsPage() {
         </div>
         <Link
           href="/admin/exams/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#ff7a00] text-white text-sm font-bold hover:bg-orange-600 transition-all shadow-[0_4px_16px_rgba(255,122,0,0.25)] hover:shadow-[0_6px_20px_rgba(255,122,0,0.35)] active:scale-95 select-none"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3B5C37] text-white text-sm font-bold hover:bg-[#2f4a2b] transition-all shadow-[0_4px_16px_rgba(59, 92, 55,0.25)] hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.35)] active:scale-95 select-none"
         >
           <Plus className="w-4 h-4" />
           Thêm đề thi mới
@@ -182,7 +182,7 @@ export default function AdminExamsPage() {
             placeholder="Tìm kiếm tên đề thi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 focus:border-[#ff7a00] transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors"
           />
           {search && (
             <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -196,7 +196,7 @@ export default function AdminExamsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 focus:border-[#ff7a00] transition-colors cursor-pointer"
+            className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors cursor-pointer"
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="published">Đã xuất bản</option>
@@ -219,7 +219,7 @@ export default function AdminExamsPage() {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-8 h-8 border-3 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
             <p className="text-sm font-bold text-slate-400">Đang tải dữ liệu...</p>
           </div>
         ) : exams.length === 0 ? (
@@ -238,7 +238,7 @@ export default function AdminExamsPage() {
             {!search && statusFilter === "all" && (
               <Link
                 href="/admin/exams/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#ff7a00]/10 text-[#ff7a00] text-xs font-bold hover:bg-[#ff7a00]/20 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B5C37]/10 text-[#3B5C37] text-xs font-bold hover:bg-[#3B5C37]/20 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Tạo đề thi mới
@@ -276,8 +276,8 @@ export default function AdminExamsPage() {
                     {/* Title */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-[#ff7a00]/10 flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-4.5 h-4.5 text-[#ff7a00]" />
+                        <div className="w-9 h-9 rounded-xl bg-[#3B5C37]/10 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4.5 h-4.5 text-[#3B5C37]" />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-[#0d153a] leading-tight line-clamp-1">
@@ -352,7 +352,7 @@ export default function AdminExamsPage() {
                       <div className="flex items-center gap-2 justify-end">
                         <Link
                           href={`/admin/exams/${exam.id}/edit`}
-                          className="p-2 rounded-xl text-slate-400 hover:text-[#ff7a00] hover:bg-orange-50 transition-all"
+                          className="p-2 rounded-xl text-slate-400 hover:text-[#3B5C37] hover:bg-[#e8ede6] transition-all"
                           title="Chỉnh sửa"
                         >
                           <Pencil className="w-4 h-4" />

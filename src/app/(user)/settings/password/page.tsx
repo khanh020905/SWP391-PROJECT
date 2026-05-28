@@ -33,7 +33,7 @@ export default function SettingsPasswordPage() {
   const getStrengthLabelAndColor = () => {
     switch (passwordStrength) {
       case 1: return { label: "Yếu", color: "bg-red-500", text: "text-red-500" };
-      case 2: return { label: "Trung bình", color: "bg-orange-500", text: "text-orange-500" };
+      case 2: return { label: "Trung bình", color: "bg-[#e8ede6]0", text: "text-orange-500" };
       case 3: return { label: "Khá", color: "bg-yellow-500", text: "text-yellow-500" };
       case 4: return { label: "Mạnh", color: "bg-green-500", text: "text-green-500" };
       case 5: return { label: "Rất mạnh", color: "bg-emerald-500", text: "text-emerald-500" };
@@ -137,7 +137,7 @@ export default function SettingsPasswordPage() {
             <div className="group relative">
               <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">Mật khẩu hiện tại</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37]">
                   <Lock className="w-4.5 h-4.5" />
                 </div>
                 <input
@@ -146,7 +146,7 @@ export default function SettingsPasswordPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="••••••"
-                  className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none"
+                  className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none"
                 />
                 <button
                   type="button"
@@ -162,7 +162,7 @@ export default function SettingsPasswordPage() {
           <div className="group relative">
             <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">Mật khẩu mới</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37]">
                 <Lock className="w-4.5 h-4.5" />
               </div>
               <input
@@ -171,7 +171,7 @@ export default function SettingsPasswordPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••"
-                className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none"
+                className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none"
               />
               <button
                 type="button"
@@ -206,7 +206,7 @@ export default function SettingsPasswordPage() {
           <div className="group relative">
             <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2">Xác nhận mật khẩu mới</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#ff7a00]">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37]">
                 <Lock className="w-4.5 h-4.5" />
               </div>
               <input
@@ -215,7 +215,7 @@ export default function SettingsPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••"
-                className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#ff7a00] focus:ring-4 focus:ring-[#ff7a00]/10 transition-all outline-none"
+                className="w-full pl-11 pr-11 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all outline-none"
               />
               <button
                 type="button"
@@ -241,7 +241,7 @@ export default function SettingsPasswordPage() {
           <button
             type="submit"
             disabled={isLoading || (newPassword !== confirmPassword && confirmPassword !== "")}
-            className="px-6 h-12 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none mt-6"
+            className="px-6 h-12 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none mt-6"
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -258,7 +258,7 @@ export default function SettingsPasswordPage() {
       {/* Security tips card */}
       <div className="bg-[#fcfcff] border border-slate-200/60 rounded-3xl p-6 shadow-sm">
         <h4 className="font-extrabold text-[#0d153a] text-xs flex items-center gap-2 mb-3">
-          <ShieldCheck className="w-4.5 h-4.5 text-[#ff7a00]" />
+          <ShieldCheck className="w-4.5 h-4.5 text-[#3B5C37]" />
           <span>Mẹo bảo mật mật khẩu an toàn</span>
         </h4>
         <ul className="list-disc pl-5 text-[11px] font-semibold text-[#5e6792] space-y-2 leading-relaxed">

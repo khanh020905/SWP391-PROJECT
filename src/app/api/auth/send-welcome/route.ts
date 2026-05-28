@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
           <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(15,23,56,0.08);">
             <div style="background: linear-gradient(135deg, #0d153a 0%, #7c3aed 100%); padding: 32px; text-align: center;">
               <div style="font-size: 28px; font-weight: 900; color: white;">
-                <span style="color: #ff7a00;">*</span> QualiCode
+                <span style="color: #3B5C37;">*</span> QualiCode
               </div>
               <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 8px 0 0;">AI-Powered IELTS Learning</p>
             </div>
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
                 Tài khoản của bạn đã được kích hoạt thành công. Bắt đầu hành trình chinh phục IELTS với AI ngay hôm nay!
               </p>
               <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/login"
-                style="display: inline-block; background: #ff7a00; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">
+                style="display: inline-block; background: #3B5C37; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">
                 Đăng nhập ngay →
               </a>
             </div>

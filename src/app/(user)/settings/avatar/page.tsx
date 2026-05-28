@@ -137,7 +137,7 @@ export default function SettingsAvatarPage() {
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="w-32 h-32 rounded-full object-cover border-4 border-[#ff7a00] shadow-lg transition-transform duration-300 group-hover:scale-105"
+                className="w-32 h-32 rounded-full object-cover border-4 border-[#3B5C37] shadow-lg transition-transform duration-300 group-hover:scale-105"
               />
             ) : user.user_metadata?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -147,16 +147,16 @@ export default function SettingsAvatarPage() {
                 className="w-32 h-32 rounded-full object-cover border-4 border-slate-200 shadow-lg"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white flex items-center justify-center text-5xl font-black shadow-lg">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center text-5xl font-black shadow-lg">
                 {initialsFallback}
               </div>
             )}
-            <div className="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-full bg-[#ff7a00] text-white flex items-center justify-center border-2 border-white shadow">
+            <div className="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-full bg-[#3B5C37] text-white flex items-center justify-center border-2 border-white shadow">
               <Camera className="w-4.5 h-4.5" />
             </div>
           </div>
           {previewUrl && (
-            <span className="text-[9px] bg-[#ff7a00]/10 text-[#ff7a00] font-black px-2 py-0.5 rounded-full mt-3 animate-pulse">
+            <span className="text-[9px] bg-[#3B5C37]/10 text-[#3B5C37] font-black px-2 py-0.5 rounded-full mt-3 animate-pulse">
               Xem trước ảnh mới
             </span>
           )}
@@ -164,14 +164,14 @@ export default function SettingsAvatarPage() {
 
         {/* Drag/Click area and Upload section */}
         <div className="md:col-span-3 space-y-4">
-          <div className="border-2 border-dashed border-[#e1e4ed] hover:border-[#ff7a00] transition-colors rounded-2xl p-6 flex flex-col items-center justify-center text-center relative cursor-pointer group bg-slate-50/50">
+          <div className="border-2 border-dashed border-[#e1e4ed] hover:border-[#3B5C37] transition-colors rounded-2xl p-6 flex flex-col items-center justify-center text-center relative cursor-pointer group bg-slate-50/50">
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
               className="absolute inset-0 opacity-0 cursor-pointer"
             />
-            <div className="w-10 h-10 rounded-full bg-[#fff4e6] text-[#ff7a00] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 rounded-full bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
               <Upload className="w-5 h-5" />
             </div>
             <p className="text-xs font-bold text-[#0d153a]">Nhấp chuột để chọn ảnh</p>
@@ -189,7 +189,7 @@ export default function SettingsAvatarPage() {
             <button
               onClick={handleUpload}
               disabled={isLoading || !file}
-              className="px-6 h-12 bg-[#ff7a00] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none"
+              className="px-6 h-12 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center cursor-pointer border-none outline-none"
             >
               Tải ảnh lên
             </button>

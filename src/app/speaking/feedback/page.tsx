@@ -165,14 +165,14 @@ function SpeakingFeedbackContent() {
   if (!attempt) {
     return (
       <div className="bg-[#f4f5f9] text-[#0f1738] min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-[#ff7a00] mb-6">
+        <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-[#3B5C37] mb-6">
           <AlertCircle className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-black mb-2">Không tìm thấy kết quả làm bài</h2>
         <p className="text-xs text-slate-500 max-w-sm mb-6 leading-relaxed">
           Có vẻ đường dẫn kết quả không chính xác hoặc bài thi này đã bị xóa khỏi thiết bị của bạn.
         </p>
-        <Link href="/speaking" className="px-6 py-3 rounded-2xl bg-[#ff7a00] hover:bg-orange-600 text-xs font-bold text-white transition-colors">
+        <Link href="/speaking" className="px-6 py-3 rounded-2xl bg-[#3B5C37] hover:bg-[#2f4a2b] text-xs font-bold text-white transition-colors">
           Quay lại phòng luyện Speaking
         </Link>
       </div>
@@ -194,13 +194,13 @@ function SpeakingFeedbackContent() {
       {/* Premium Header */}
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-6 relative z-30">
         <div className="flex items-center gap-2 text-xl font-extrabold text-[#11193f]">
-          <span className="text-[#ff7a00]">*</span>
+          <span className="text-[#3B5C37]">*</span>
           <Link href="/" className="hover:opacity-80 transition-opacity">QualiCode</Link>
         </div>
         <nav className="hidden items-center gap-8 text-sm font-medium text-[#404965] md:flex">
           <Link href="/">Trang chủ</Link>
-          <Link href="/speaking" className="text-[#ff7a00] font-bold">Luyện Speaking</Link>
-          <Link href="/exam/review" className="hover:text-[#ff7a00] transition-colors">Review Đáp án</Link>
+          <Link href="/speaking" className="text-[#3B5C37] font-bold">Luyện Speaking</Link>
+          <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">Review Đáp án</Link>
           <a href="#">Cambridge Cams</a>
           <a href="#">Bảng xếp hạng</a>
           <a href="#">Hỗ trợ</a>
@@ -208,12 +208,12 @@ function SpeakingFeedbackContent() {
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           {loading ? (
-            <div className="w-8 h-8 border-2 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
           ) : user ? (
             <>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(255,122,0,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -237,9 +237,9 @@ function SpeakingFeedbackContent() {
                   <div className="space-y-1">
                     <button
                       onClick={() => setShowDropdown(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00] transition-all cursor-pointer border-none outline-none"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37] transition-all cursor-pointer border-none outline-none"
                     >
-                      <User className="w-4 h-4 text-[#ff7a00]" />
+                      <User className="w-4 h-4 text-[#3B5C37]" />
                       <span>Thông tin tài khoản</span>
                     </button>
 
@@ -274,7 +274,7 @@ function SpeakingFeedbackContent() {
               </Link>
               <Link
                 href="/auth"
-                className="rounded-xl bg-[#ff7a00] px-5 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors shadow-sm"
+                className="rounded-xl bg-[#3B5C37] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2f4a2b] transition-colors shadow-sm"
               >
                 Bắt đầu
               </Link>
@@ -288,7 +288,7 @@ function SpeakingFeedbackContent() {
         
         {/* Back Link */}
         <div className="mb-6">
-          <Link href="/speaking" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#ff7a00] transition-colors select-none">
+          <Link href="/speaking" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#3B5C37] transition-colors select-none">
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lại phòng luyện Speaking</span>
           </Link>
@@ -302,7 +302,7 @@ function SpeakingFeedbackContent() {
                 <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-600 rounded-lg">
                   {attempt.mode === "mock" ? "Full Mock Test" : `Luyện tập Part ${attempt.mode.replace("part", "")}`}
                 </span>
-                <span className="text-xs font-bold px-3 py-1 bg-[#ff7a00]/10 text-[#ff7a00] rounded-lg capitalize">
+                <span className="text-xs font-bold px-3 py-1 bg-[#3B5C37]/10 text-[#3B5C37] rounded-lg capitalize">
                   Chủ đề: {attempt.topic}
                 </span>
               </div>
@@ -322,7 +322,7 @@ function SpeakingFeedbackContent() {
                   <circle cx="50" cy="50" r="42" fill="none" stroke="#2a2b4b" strokeWidth="6" />
                   <circle 
                     cx="50" cy="50" r="42" fill="none" 
-                    stroke="#ff7a00" 
+                    stroke="#3B5C37" 
                     strokeWidth="6" 
                     strokeLinecap="round" 
                     strokeDasharray={`${(parseFloat(attempt.band) / 9) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
@@ -335,7 +335,7 @@ function SpeakingFeedbackContent() {
 
               <div>
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">OVERALL BAND SCORE</span>
-                <h3 className="text-base font-black text-[#ff7a00] leading-none mb-1">
+                <h3 className="text-base font-black text-[#3B5C37] leading-none mb-1">
                   {parseFloat(attempt.band) >= 7.5 ? "Cực kỳ xuất sắc!" : parseFloat(attempt.band) >= 6.5 ? "Khá tốt!" : "Cần cố gắng thêm!"}
                 </h3>
                 <p className="text-[10px] text-slate-300 leading-normal max-w-[200px]">Đánh giá theo thang chuẩn IELTS Rubric.</p>
@@ -416,7 +416,7 @@ function SpeakingFeedbackContent() {
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-3xl p-6 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3]">
               <h2 className="text-lg font-black text-[#0f1738] mb-6 flex items-center gap-2">
-                <Mic className="w-5 h-5 text-[#ff7a00]" />
+                <Mic className="w-5 h-5 text-[#3B5C37]" />
                 Xem lại câu hỏi và file ghi âm giọng nói
               </h2>
 
@@ -427,7 +427,7 @@ function SpeakingFeedbackContent() {
                     className="p-5 rounded-2xl border border-[#eef1f6] bg-[#fafbfe] hover:border-slate-300 transition-colors"
                   >
                     <div className="flex justify-between items-start gap-4 mb-3 flex-wrap">
-                      <span className="text-[10px] font-black text-[#ff7a00] uppercase tracking-wider block">
+                      <span className="text-[10px] font-black text-[#3B5C37] uppercase tracking-wider block">
                         {ans.part} - Câu {idx + 1}
                       </span>
                       
@@ -438,7 +438,7 @@ function SpeakingFeedbackContent() {
                           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors outline-none cursor-pointer ${
                             playingIndex === idx
                               ? "bg-rose-50 border-rose-200 text-rose-600"
-                              : "bg-[#ff7a00]/5 border-[#ff7a00]/20 text-[#ff7a00] hover:bg-[#ff7a00]/10"
+                              : "bg-[#3B5C37]/5 border-[#3B5C37]/20 text-[#3B5C37] hover:bg-[#3B5C37]/10"
                           }`}
                         >
                           {playingIndex === idx ? (
@@ -447,7 +447,7 @@ function SpeakingFeedbackContent() {
                             </>
                           ) : (
                             <>
-                              <Play className="w-3.5 h-3.5 fill-[#ff7a00]" /> Nghe lại giọng bạn
+                              <Play className="w-3.5 h-3.5 fill-[#3B5C37]" /> Nghe lại giọng bạn
                             </>
                           )}
                         </button>
@@ -495,7 +495,7 @@ function SpeakingFeedbackContent() {
                   onClick={() => setActiveTab("transcript")}
                   className={`flex-1 pb-2 text-center text-xs font-black border-b-2 transition-all outline-none cursor-pointer ${
                     activeTab === "transcript"
-                      ? "border-[#ff7a00] text-[#ff7a00]"
+                      ? "border-[#3B5C37] text-[#3B5C37]"
                       : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
@@ -505,7 +505,7 @@ function SpeakingFeedbackContent() {
                   onClick={() => setActiveTab("vocabulary")}
                   className={`flex-1 pb-2 text-center text-xs font-black border-b-2 transition-all outline-none cursor-pointer ${
                     activeTab === "vocabulary"
-                      ? "border-[#ff7a00] text-[#ff7a00]"
+                      ? "border-[#3B5C37] text-[#3B5C37]"
                       : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
@@ -550,7 +550,7 @@ function SpeakingFeedbackContent() {
                   )}
 
                   <div className="p-4 rounded-xl bg-slate-900 text-white text-[11px] leading-relaxed border border-slate-800">
-                    <span className="font-extrabold text-[#ff7a00] flex items-center gap-1 mb-1.5">
+                    <span className="font-extrabold text-[#3B5C37] flex items-center gap-1 mb-1.5">
                       <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                       Lời khuyên ngữ pháp từ AI:
                     </span>
@@ -598,8 +598,8 @@ function SpeakingFeedbackContent() {
                     ))
                   )}
 
-                  <div className="p-4 rounded-xl bg-[#fafbfe] border border-[#ff7a00]/20 text-[11px] leading-relaxed text-[#5c6488]">
-                    <span className="font-extrabold text-[#ff7a00] block mb-1">💡 Mẹo tích lũy Lexical Resource:</span>
+                  <div className="p-4 rounded-xl bg-[#fafbfe] border border-[#3B5C37]/20 text-[11px] leading-relaxed text-[#5c6488]">
+                    <span className="font-extrabold text-[#3B5C37] block mb-1">💡 Mẹo tích lũy Lexical Resource:</span>
                     Thay thế các tính từ thường gặp như <span className="font-bold">"very good"</span> thành <span className="font-bold text-purple-600">"exemplary"</span>, <span className="font-bold">"important"</span> thành <span className="font-bold text-purple-600 font-sans">"crucial"</span> để thu hút sự chú ý của Giám khảo chấm thi.
                   </div>
                 </div>
@@ -620,7 +620,7 @@ export default function SpeakingFeedback() {
     <Suspense fallback={
       <div className="min-h-screen bg-[#0a0f1d] flex flex-col items-center justify-center p-6 text-center">
         <div className="relative w-16 h-16 mb-4">
-          <div className="absolute inset-0 rounded-full border-4 border-[#ff7a00]/20 border-t-[#ff7a00] animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-[#3B5C37]/20 border-t-[#3B5C37] animate-spin" />
         </div>
         <p className="text-sm font-black text-slate-400">Đang tải kết quả bài thi Speaking...</p>
       </div>

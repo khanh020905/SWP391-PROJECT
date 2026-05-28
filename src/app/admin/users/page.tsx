@@ -405,7 +405,7 @@ export default function AdminUsersPage() {
     <div className="space-y-8 relative">
       {/* Toast Notification Custom */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#ff7a00] border border-slate-100 animate-slide-in max-w-sm">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#3B5C37] border border-slate-100 animate-slide-in max-w-sm">
           {toast.type === "success" ? (
             <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
           ) : (
@@ -419,7 +419,7 @@ export default function AdminUsersPage() {
       <section className="grid gap-5 grid-cols-2 lg:grid-cols-4">
         {/* KPI: Tổng số user */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5 transition-transform duration-200 hover:-translate-y-0.5">
-          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-[#ff7a00] flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-[#e8ede6] flex items-center justify-center text-[#3B5C37] flex-shrink-0">
             <UsersIcon className="w-6 h-6" />
           </div>
           <div>
@@ -480,7 +480,7 @@ export default function AdminUsersPage() {
         <div className="p-6 border-b border-slate-200/80 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-slate-50/50">
           <h2 className="text-lg font-black text-[#0d153a] flex items-center gap-2">
             <span>Danh sách người dùng</span>
-            {isLoading && <Loader2 className="w-4 h-4 text-[#ff7a00] animate-spin" />}
+            {isLoading && <Loader2 className="w-4 h-4 text-[#3B5C37] animate-spin" />}
           </h2>
 
           {/* Controls: Search, Filters, Add button */}
@@ -496,7 +496,7 @@ export default function AdminUsersPage() {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-white pl-10 pr-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all placeholder:text-slate-400 text-slate-700"
+                className="w-full bg-white pl-10 pr-4 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all placeholder:text-slate-400 text-slate-700"
               />
             </div>
 
@@ -507,7 +507,7 @@ export default function AdminUsersPage() {
                 setRoleFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-600 font-semibold"
+              className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
             >
               <option value="ALL">Tất cả vai trò</option>
               <option value="ADMIN">ADMIN</option>
@@ -522,7 +522,7 @@ export default function AdminUsersPage() {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-600 font-semibold"
+              className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
             >
               <option value="ALL">Tất cả trạng thái</option>
               <option value="ACTIVE">Hoạt động</option>
@@ -536,7 +536,7 @@ export default function AdminUsersPage() {
                 fetchKpis();
                 showToast("Đã cập nhật danh sách người dùng.");
               }}
-              className="p-2 text-slate-500 hover:text-[#ff7a00] hover:bg-slate-100 rounded-xl transition-all"
+              className="p-2 text-slate-500 hover:text-[#3B5C37] hover:bg-slate-100 rounded-xl transition-all"
               title="Làm mới"
             >
               <RefreshCw className="w-5 h-5" />
@@ -548,7 +548,7 @@ export default function AdminUsersPage() {
                 resetForm();
                 setShowAddModal(true);
               }}
-              className="bg-[#ff7a00] hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 hover:scale-[1.01]"
+              className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 hover:scale-[1.01]"
             >
               <UserPlus className="w-4 h-4" />
               <span>Thêm User</span>
@@ -560,7 +560,7 @@ export default function AdminUsersPage() {
         <div className="overflow-x-auto">
           {isLoading && users.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
-              <Loader2 className="w-10 h-10 text-[#ff7a00] animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#3B5C37] animate-spin" />
               <p className="text-sm font-bold">Đang tải danh sách người dùng...</p>
             </div>
           ) : users.length === 0 ? (
@@ -574,7 +574,7 @@ export default function AdminUsersPage() {
                   setStatusFilter("ALL");
                   setCurrentPage(1);
                 }}
-                className="text-[#ff7a00] text-xs font-bold underline mt-2"
+                className="text-[#3B5C37] text-xs font-bold underline mt-2"
               >
                 Xóa tất cả bộ lọc
               </button>
@@ -687,7 +687,7 @@ export default function AdminUsersPage() {
                           }}
                           className={`p-1.5 rounded-lg border transition-all ${
                             user.isLocked
-                              ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600"
+                              ? "bg-emerald-50 hover:bg-[#2f4a2b]merald-100 border-emerald-200 text-emerald-600"
                               : "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600"
                           }`}
                           title={user.isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
@@ -786,7 +786,7 @@ export default function AdminUsersPage() {
                   placeholder="Nhập họ tên đầy đủ..."
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
                 />
               </div>
 
@@ -799,7 +799,7 @@ export default function AdminUsersPage() {
                   placeholder="name@gmail.com..."
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
                 />
               </div>
 
@@ -812,7 +812,7 @@ export default function AdminUsersPage() {
                   placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)..."
                   value={formPassword}
                   onChange={(e) => setFormPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
                 />
               </div>
 
@@ -822,7 +822,7 @@ export default function AdminUsersPage() {
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value as any)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700 font-semibold"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-semibold"
                 >
                   <option value="STUDENT">STUDENT (Học viên)</option>
                   <option value="GUEST">GUEST (Khách hàng vãng lai)</option>
@@ -842,7 +842,7 @@ export default function AdminUsersPage() {
                 <button
                   type="submit"
                   disabled={isSubmitLoading}
-                  className="bg-[#ff7a00] hover:bg-orange-600 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isSubmitLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>Thêm mới</span>
@@ -883,7 +883,7 @@ export default function AdminUsersPage() {
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
                 />
               </div>
 
@@ -895,7 +895,7 @@ export default function AdminUsersPage() {
                   required
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
                 />
               </div>
 
@@ -905,7 +905,7 @@ export default function AdminUsersPage() {
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value as any)}
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff7a00] text-slate-700 font-semibold"
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-semibold"
                 >
                   <option value="STUDENT">STUDENT (Học viên)</option>
                   <option value="GUEST">GUEST (Khách hàng vãng lai)</option>
@@ -925,7 +925,7 @@ export default function AdminUsersPage() {
                   type="checkbox"
                   checked={formIsLocked}
                   onChange={(e) => setFormIsLocked(e.target.checked)}
-                  className="w-5 h-5 rounded border-slate-300 text-[#ff7a00] focus:ring-[#ff7a00] accent-[#ff7a00] cursor-pointer"
+                  className="w-5 h-5 rounded border-slate-300 text-[#3B5C37] focus:ring-[#3B5C37] accent-[#3B5C37] cursor-pointer"
                 />
               </div>
 
@@ -941,7 +941,7 @@ export default function AdminUsersPage() {
                 <button
                   type="submit"
                   disabled={isSubmitLoading}
-                  className="bg-[#ff7a00] hover:bg-orange-600 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isSubmitLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>Lưu thay đổi</span>
@@ -990,7 +990,7 @@ export default function AdminUsersPage() {
                   disabled={isSubmitLoading}
                   className={`flex-1 px-4 py-2.5 text-xs font-bold text-white rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 ${
                     selectedUser.isLocked
-                      ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200"
+                      ? "bg-emerald-500 hover:bg-[#2f4a2b]merald-600 shadow-emerald-200"
                       : "bg-rose-500 hover:bg-rose-600 shadow-rose-200"
                   }`}
                 >

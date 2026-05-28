@@ -270,7 +270,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       {/* ── Section 1: Basic Info ─────────────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-5">
         <h2 className="text-sm font-black text-[#0d153a] flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] text-xs font-black flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] text-xs font-black flex items-center justify-center">
             1
           </span>
           Thông tin đề thi
@@ -286,8 +286,8 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
             placeholder="VD: Cambridge IELTS 17 – Test 1 Listening"
-            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 transition-colors ${
-              errors.title ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#ff7a00]"
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors ${
+              errors.title ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
             }`}
           />
           {errors.title && (
@@ -307,7 +307,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
             placeholder="Mô tả ngắn gọn về đề thi này..."
             rows={2}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 focus:border-[#ff7a00] transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-none"
           />
         </div>
 
@@ -324,8 +324,8 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
               value={form.cambridge_no}
               onChange={(e) => setForm((p) => ({ ...p, cambridge_no: e.target.value }))}
               placeholder="VD: 17"
-              className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 transition-colors ${
-                errors.cambridge_no ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#ff7a00]"
+              className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors ${
+                errors.cambridge_no ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
               }`}
             />
             {errors.cambridge_no && (
@@ -343,8 +343,8 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
               value={form.test_no}
               onChange={(e) => setForm((p) => ({ ...p, test_no: e.target.value }))}
               placeholder="VD: 1"
-              className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 transition-colors ${
-                errors.test_no ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#ff7a00]"
+              className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors ${
+                errors.test_no ? "border-red-400 bg-red-50/30" : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
               }`}
             />
             {errors.test_no && (
@@ -357,7 +357,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       {/* ── Section 2: Audio Upload ───────────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-5">
         <h2 className="text-sm font-black text-[#0d153a] flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] text-xs font-black flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] text-xs font-black flex items-center justify-center">
             2
           </span>
           Upload file Audio
@@ -432,19 +432,19 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
             onClick={() => fileInputRef.current?.click()}
             className={`rounded-2xl border-2 border-dashed p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all ${
               isDragOver
-                ? "border-[#ff7a00] bg-orange-50/50 scale-[1.01]"
-                : "border-slate-200 bg-slate-50/50 hover:border-[#ff7a00]/60 hover:bg-orange-50/20"
+                ? "border-[#3B5C37] bg-[#e8ede6]/50 scale-[1.01]"
+                : "border-slate-200 bg-slate-50/50 hover:border-[#3B5C37]/60 hover:bg-[#e8ede6]/20"
             }`}
           >
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isDragOver ? "bg-[#ff7a00]/15" : "bg-slate-100"}`}>
-              <Upload className={`w-7 h-7 transition-colors ${isDragOver ? "text-[#ff7a00]" : "text-slate-400"}`} />
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isDragOver ? "bg-[#3B5C37]/15" : "bg-slate-100"}`}>
+              <Upload className={`w-7 h-7 transition-colors ${isDragOver ? "text-[#3B5C37]" : "text-slate-400"}`} />
             </div>
             <div className="text-center">
               <p className="text-sm font-bold text-[#0d153a]">
                 Kéo thả file audio vào đây
               </p>
               <p className="text-xs text-slate-400 mt-1">
-                hoặc <span className="text-[#ff7a00] font-bold underline">nhấp để chọn file</span>
+                hoặc <span className="text-[#3B5C37] font-bold underline">nhấp để chọn file</span>
               </p>
               <p className="text-[10px] text-slate-400 mt-2 font-medium">
                 Hỗ trợ: MP3, WAV, OGG, M4A, AAC · Tối đa 200MB
@@ -471,7 +471,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       {/* ── Section 3: Exam Sections ──────────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-4">
         <h2 className="text-sm font-black text-[#0d153a] flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] text-xs font-black flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] text-xs font-black flex items-center justify-center">
             3
           </span>
           Nội dung 4 Section
@@ -489,7 +489,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
               key={section.section_no}
               className={`rounded-2xl border transition-all ${
                 expandedSection === section.section_no
-                  ? "border-[#ff7a00]/40 shadow-sm"
+                  ? "border-[#3B5C37]/40 shadow-sm"
                   : "border-slate-200"
               }`}
             >
@@ -507,7 +507,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                   <div
                     className={`w-8 h-8 rounded-xl text-xs font-black flex items-center justify-center flex-shrink-0 ${
                       expandedSection === section.section_no
-                        ? "bg-[#ff7a00] text-white"
+                        ? "bg-[#3B5C37] text-white"
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
@@ -545,7 +545,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                       value={section.title}
                       onChange={(e) => updateSection(idx, "title", e.target.value)}
                       placeholder={`VD: Section ${section.section_no}: A conversation between two students`}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 focus:border-[#ff7a00] transition-colors"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors"
                     />
                   </div>
 
@@ -559,7 +559,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                       onChange={(e) => updateSection(idx, "content", e.target.value)}
                       placeholder={`Nhập transcript audio hoặc nội dung câu hỏi cho Section ${section.section_no}...`}
                       rows={8}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 focus:border-[#ff7a00] transition-colors resize-y font-mono"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-y font-mono"
                     />
                   </div>
 
@@ -573,10 +573,10 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                       onChange={(e) => updateSection(idx, "answers", e.target.value)}
                       placeholder={`{"${(section.section_no - 1) * 10 + 1}": "A", "${(section.section_no - 1) * 10 + 2}": "castle", "${(section.section_no - 1) * 10 + 3}": "B"}`}
                       rows={4}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#ff7a00]/30 transition-colors resize-none font-mono ${
+                      className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors resize-none font-mono ${
                         errors[`section_${idx}_answers`]
                           ? "border-red-400 bg-red-50/30"
-                          : "border-slate-200 bg-slate-50 focus:border-[#ff7a00]"
+                          : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
                       }`}
                     />
                     {errors[`section_${idx}_answers`] && (
@@ -622,7 +622,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
           <button
             onClick={() => handleSubmit("published")}
             disabled={isSaving || isUploadingAudio}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#ff7a00] text-white text-sm font-bold hover:bg-orange-600 transition-all shadow-[0_4px_16px_rgba(255,122,0,0.25)] hover:shadow-[0_6px_20px_rgba(255,122,0,0.35)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#3B5C37] text-white text-sm font-bold hover:bg-[#2f4a2b] transition-all shadow-[0_4px_16px_rgba(59, 92, 55,0.25)] hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.35)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
             {isSaving ? (
               <Loader2 className="w-4 h-4 animate-spin" />

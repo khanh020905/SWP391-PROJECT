@@ -19,7 +19,7 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Cover Card */}
       <div className="relative rounded-3xl bg-gradient-to-br from-[#0d153a] to-[#7c3aed] p-8 text-white overflow-hidden shadow-md">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff7a00]/10 blur-2xl rounded-full" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B5C37]/10 blur-2xl rounded-full" />
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-5">
           {user.user_metadata?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -29,14 +29,14 @@ export default function ProfilePage() {
               className="w-24 h-24 rounded-full object-cover border-4 border-white/20 shadow-lg"
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-white text-[#ff7a00] flex items-center justify-center text-4xl font-black shadow-lg">
+            <div className="w-24 h-24 rounded-full bg-white text-[#3B5C37] flex items-center justify-center text-4xl font-black shadow-lg">
               {initialsFallback}
             </div>
           )}
           <div className="text-center sm:text-left flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
               <h2 className="text-2xl font-black">{user.user_metadata?.name || "Người dùng"}</h2>
-              <span className="text-[10px] font-black tracking-wider text-white bg-[#ff7a00] px-2.5 py-1 rounded-full uppercase">
+              <span className="text-[10px] font-black tracking-wider text-white bg-[#3B5C37] px-2.5 py-1 rounded-full uppercase">
                 {user.user_metadata?.role || "STUDENT"}
               </span>
             </div>
@@ -44,7 +44,7 @@ export default function ProfilePage() {
           </div>
           <Link
             href="/profile/edit"
-            className="px-5 py-2.5 bg-[#ff7a00] hover:bg-[#ff8e26] text-white text-xs font-bold rounded-2xl shadow-lg transition-all"
+            className="px-5 py-2.5 bg-[#3B5C37] hover:bg-[#ff8e26] text-white text-xs font-bold rounded-2xl shadow-lg transition-all"
           >
             Chỉnh sửa hồ sơ
           </Link>
@@ -56,7 +56,7 @@ export default function ProfilePage() {
         <h3 className="font-extrabold text-[#0d153a] text-lg">Thông tin chi tiết</h3>
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#ff7a00]">
+            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#3B5C37]">
               <Mail className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -66,7 +66,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#ff7a00]">
+            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#3B5C37]">
               <Calendar className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#ff7a00]">
+            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#3B5C37]">
               <Phone className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -88,7 +88,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#ff7a00]">
+            <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#3B5C37]">
               <Heart className="w-4.5 h-4.5" />
             </div>
             <div>
@@ -112,34 +112,34 @@ export default function ProfilePage() {
       <div className="grid sm:grid-cols-3 gap-4">
         <Link
           href="/profile/edit"
-          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#ff7a00]/30 hover:shadow-md transition-all group no-underline text-left"
+          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#3B5C37]/30 hover:shadow-md transition-all group no-underline text-left"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#ff7a00] flex items-center justify-center mb-3">
+          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <User className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#ff7a00] transition-colors">Chỉnh sửa hồ sơ</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Chỉnh sửa hồ sơ</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Cập nhật họ tên, số điện thoại và tiểu sử bản thân.</p>
         </Link>
 
         <Link
           href="/settings/password"
-          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#ff7a00]/30 hover:shadow-md transition-all group no-underline text-left"
+          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#3B5C37]/30 hover:shadow-md transition-all group no-underline text-left"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#ff7a00] flex items-center justify-center mb-3">
+          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <Key className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#ff7a00] transition-colors">Đổi mật khẩu</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Đổi mật khẩu</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Thiết lập mật khẩu bảo mật cao để bảo vệ tài khoản.</p>
         </Link>
 
         <Link
           href="/settings/avatar"
-          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#ff7a00]/30 hover:shadow-md transition-all group no-underline text-left"
+          className="bg-white rounded-2xl p-5 border border-slate-100 hover:border-[#3B5C37]/30 hover:shadow-md transition-all group no-underline text-left"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#ff7a00] flex items-center justify-center mb-3">
+          <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <Camera className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#ff7a00] transition-colors">Ảnh đại diện</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Ảnh đại diện</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Tải lên hình ảnh đại diện mới hoặc gỡ bỏ ảnh hiện tại.</p>
         </Link>
       </div>

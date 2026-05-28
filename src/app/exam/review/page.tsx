@@ -418,12 +418,12 @@ function ExamReviewContent() {
     <div className="bg-[#f4f5f9] text-[#0f1738] min-h-screen font-sans antialiased pb-20">
       
       {/* Background patterns */}
-      <div className="absolute top-0 left-0 w-full h-[320px] bg-gradient-to-b from-[#ff7a00]/10 via-[#7c3aed]/5 to-transparent pointer-events-none z-0" />
+      <div className="absolute top-0 left-0 w-full h-[320px] bg-gradient-to-b from-[#3B5C37]/10 via-[#7c3aed]/5 to-transparent pointer-events-none z-0" />
 
       {/* Premium Header */}
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-5 relative z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] flex items-center justify-center text-white font-black text-xl shadow-[0_8px_16px_rgba(255,122,0,0.2)]">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] flex items-center justify-center text-white font-black text-xl shadow-[0_8px_16px_rgba(59, 92, 55,0.2)]">
             *
           </div>
           <Link href="/" className="text-xl font-extrabold text-[#11193f] tracking-tight hover:opacity-90 transition-opacity">
@@ -432,11 +432,11 @@ function ExamReviewContent() {
         </div>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-[#404965] md:flex">
-          <Link href="/" className="hover:text-[#ff7a00] transition-colors">Trang chủ</Link>
-          <Link href="/speaking" className="hover:text-[#ff7a00] transition-colors">Speaking AI</Link>
-          <Link href="/exam/review" className="text-[#ff7a00] font-black border-b-2 border-[#ff7a00] pb-1">Review Đáp án</Link>
-          <a href="#" className="hover:text-[#ff7a00] transition-colors">Tài liệu Cam</a>
-          <a href="#" className="hover:text-[#ff7a00] transition-colors">Hỗ trợ</a>
+          <Link href="/" className="hover:text-[#3B5C37] transition-colors">Trang chủ</Link>
+          <Link href="/speaking" className="hover:text-[#3B5C37] transition-colors">Speaking AI</Link>
+          <Link href="/exam/review" className="text-[#3B5C37] font-black border-b-2 border-[#3B5C37] pb-1">Review Đáp án</Link>
+          <a href="#" className="hover:text-[#3B5C37] transition-colors">Tài liệu Cam</a>
+          <a href="#" className="hover:text-[#3B5C37] transition-colors">Hỗ trợ</a>
         </nav>
 
         {/* Auth / Avatar logic */}
@@ -449,12 +449,12 @@ function ExamReviewContent() {
           )}
 
           {loading ? (
-            <div className="w-8 h-8 border-2 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
           ) : user ? (
             <>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(255,122,0,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -478,9 +478,9 @@ function ExamReviewContent() {
                   <div className="space-y-1">
                     <button
                       onClick={() => setShowDropdown(false)}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00] transition-all cursor-pointer border-none outline-none"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37] transition-all cursor-pointer border-none outline-none"
                     >
-                      <User className="w-4 h-4 text-[#ff7a00]" />
+                      <User className="w-4 h-4 text-[#3B5C37]" />
                       <span>Thông tin tài khoản</span>
                     </button>
 
@@ -515,7 +515,7 @@ function ExamReviewContent() {
               </Link>
               <Link
                 href="/auth"
-                className="rounded-xl bg-[#ff7a00] px-4.5 py-2 text-xs font-bold text-white hover:bg-orange-600 shadow-[0_4px_12px_rgba(255,122,0,0.25)] transition-all"
+                className="rounded-xl bg-[#3B5C37] px-4.5 py-2 text-xs font-bold text-white hover:bg-[#2f4a2b] shadow-[0_4px_12px_rgba(59, 92, 55,0.25)] transition-all"
               >
                 Đăng ký
               </Link>
@@ -529,7 +529,7 @@ function ExamReviewContent() {
         
         {/* Breadcrumbs & Navigation Back */}
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#ff7a00] transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#3B5C37] transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lại trang chủ</span>
           </Link>
@@ -571,7 +571,7 @@ function ExamReviewContent() {
 
         {/* Dashboard Header Status Card */}
         <section className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_16px_36px_rgba(20,28,60,0.03)] border border-[#e8ebf3] mb-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-[#ff7a00]/5 to-transparent rounded-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-[#3B5C37]/5 to-transparent rounded-full pointer-events-none" />
           
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div>
@@ -579,7 +579,7 @@ function ExamReviewContent() {
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-slate-900 text-white rounded-lg">
                   Practice Exam Review
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-[#ff7a00]/10 text-[#ff7a00] rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-[#3B5C37]/10 text-[#3B5C37] rounded-lg">
                   {reviewType === "reading" ? "IELTS Academic Reading" : "IELTS Listening"}
                 </span>
               </div>
@@ -601,7 +601,7 @@ function ExamReviewContent() {
                   <circle cx="50" cy="50" r="42" fill="none" stroke="#2c2d4a" strokeWidth="7" />
                   <circle 
                     cx="50" cy="50" r="42" fill="none" 
-                    stroke="#ff7a00" 
+                    stroke="#3B5C37" 
                     strokeWidth="7" 
                     strokeLinecap="round" 
                     strokeDasharray={`${(accuracy / 100) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
@@ -616,7 +616,7 @@ function ExamReviewContent() {
               <div>
                 <span className="text-[9px] font-black text-slate-400 tracking-wider block mb-0.5">KẾT QUẢ ĐẠT ĐƯỢC</span>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-[#ff7a00]">
+                  <span className="text-2xl font-black text-[#3B5C37]">
                     {correctCount}/{totalQuestions}
                   </span>
                   <span className="text-[11px] text-slate-300 font-bold">Câu đúng</span>
@@ -677,7 +677,7 @@ function ExamReviewContent() {
               <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_32px_rgba(20,28,60,0.02)] border border-[#e8ebf3] max-h-[750px] overflow-y-auto sticky top-6">
                 <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#ff7a00]" />
+                    <BookOpen className="w-5 h-5 text-[#3B5C37]" />
                     <h2 className="text-md font-black text-[#0f1738] uppercase tracking-wide">Văn bản bài đọc</h2>
                   </div>
                   <span className="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg">
@@ -707,7 +707,7 @@ function ExamReviewContent() {
                         }`}
                       >
                         <span className={`text-[11px] font-extrabold uppercase tracking-widest block mb-2 ${
-                          isParagraphHighlighted ? "text-[#ff7a00]" : "text-slate-400"
+                          isParagraphHighlighted ? "text-[#3B5C37]" : "text-slate-400"
                         }`}>
                           {paragraph.number} {isParagraphHighlighted && "— Manh mối chứa đáp án"}
                         </span>
@@ -725,7 +725,7 @@ function ExamReviewContent() {
               <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_32px_rgba(20,28,60,0.02)] border border-[#e8ebf3] sticky top-6">
                 <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-2">
-                    <Headphones className="w-5 h-5 text-[#ff7a00]" />
+                    <Headphones className="w-5 h-5 text-[#3B5C37]" />
                     <h2 className="text-md font-black text-[#0f1738] uppercase tracking-wide">Trình phát Audio & Transcript</h2>
                   </div>
                   <span className="text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg">
@@ -748,7 +748,7 @@ function ExamReviewContent() {
                   <div className="flex items-center justify-between gap-3 mb-4">
                     <div>
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">MOCK AUDIO PLAYER</span>
-                      <h4 className="text-xs font-bold text-[#ff7a00] truncate max-w-[280px]">
+                      <h4 className="text-xs font-bold text-[#3B5C37] truncate max-w-[280px]">
                         {mockListeningReview.audioTitle}
                       </h4>
                     </div>
@@ -756,7 +756,7 @@ function ExamReviewContent() {
                     {/* Speed Controls */}
                     <button 
                       onClick={handleSpeedChange}
-                      className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-slate-800 hover:bg-slate-700 text-[#ff7a00] border border-slate-700/50 transition-colors select-none"
+                      className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-slate-800 hover:bg-slate-700 text-[#3B5C37] border border-slate-700/50 transition-colors select-none"
                     >
                       Tốc độ: {playbackRate}x
                     </button>
@@ -775,7 +775,7 @@ function ExamReviewContent() {
                         <div 
                           key={i} 
                           className={`w-[3px] rounded-full transition-all duration-300 ${
-                            isBarActive ? "bg-[#ff7a00]" : "bg-slate-700"
+                            isBarActive ? "bg-[#3B5C37]" : "bg-slate-700"
                           }`}
                           style={{ height }}
                         />
@@ -787,7 +787,7 @@ function ExamReviewContent() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={handlePlayPause}
-                      className="w-10 h-10 rounded-full bg-[#ff7a00] text-white flex items-center justify-center flex-shrink-0 hover:bg-orange-600 transition-colors shadow-sm outline-none cursor-pointer"
+                      className="w-10 h-10 rounded-full bg-[#3B5C37] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#2f4a2b] transition-colors shadow-sm outline-none cursor-pointer"
                     >
                       {isPlaying ? (
                         <Pause className="w-4 h-4 fill-white" />
@@ -804,7 +804,7 @@ function ExamReviewContent() {
                         max={duration || 100} 
                         value={currentTime} 
                         onChange={handleSliderChange}
-                        className="flex-1 accent-[#ff7a00] h-1 bg-slate-700 rounded-lg cursor-pointer appearance-none outline-none" 
+                        className="flex-1 accent-[#3B5C37] h-1 bg-slate-700 rounded-lg cursor-pointer appearance-none outline-none" 
                       />
                       <span>{formatTime(duration)}</span>
                     </div>
@@ -816,7 +816,7 @@ function ExamReviewContent() {
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Bản Script hội thoại</h4>
                   <button 
                     onClick={() => setShowTranscript(!showTranscript)}
-                    className="text-xs font-bold text-[#ff7a00] hover:underline"
+                    className="text-xs font-bold text-[#3B5C37] hover:underline"
                   >
                     {showTranscript ? "Thu gọn bản dịch" : "Hiện bản dịch"}
                   </button>
@@ -831,7 +831,7 @@ function ExamReviewContent() {
                         className="flex items-start gap-3 p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200/50 transition-all cursor-pointer group"
                         onClick={() => handleJumpToTime(line.time)}
                       >
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded group-hover:bg-[#ff7a00]/10 group-hover:text-[#ff7a00] transition-colors mt-0.5 flex-shrink-0">
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded group-hover:bg-[#3B5C37]/10 group-hover:text-[#3B5C37] transition-colors mt-0.5 flex-shrink-0">
                           {line.time}
                         </span>
                         
@@ -866,7 +866,7 @@ function ExamReviewContent() {
                   placeholder="Tìm kiếm đáp án hoặc lý giải..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium placeholder-slate-400 outline-none focus:border-[#ff7a00] focus:bg-white transition-all"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium placeholder-slate-400 outline-none focus:border-[#3B5C37] focus:bg-white transition-all"
                 />
                 {searchQuery && (
                   <button 
@@ -896,7 +896,7 @@ function ExamReviewContent() {
                     }}
                     className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wide border transition-all cursor-pointer select-none ${
                       activeFilter === tag.id
-                        ? "bg-[#ff7a00] border-[#ff7a00] text-white shadow-sm"
+                        ? "bg-[#3B5C37] border-[#3B5C37] text-white shadow-sm"
                         : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                     }`}
                   >
@@ -934,7 +934,7 @@ function ExamReviewContent() {
                       key={q.id}
                       className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden shadow-[0_4px_24px_rgba(20,28,60,0.01)] ${
                         isExpanded 
-                          ? "border-[#ff7a00] ring-1 ring-[#ff7a00]/30 shadow-md" 
+                          ? "border-[#3B5C37] ring-1 ring-[#3B5C37]/30 shadow-md" 
                           : "border-[#e8ebf3] hover:border-slate-300"
                       }`}
                     >
@@ -972,7 +972,7 @@ function ExamReviewContent() {
                             </span>
                             
                             {q.explanation.paragraphId !== "audio" && (
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-orange-50 text-[#ff7a00] rounded">
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-[#e8ede6] text-[#3B5C37] rounded">
                                 {q.explanation.paragraphId.replace("p", "Đoạn ")}
                               </span>
                             )}
@@ -1004,7 +1004,7 @@ function ExamReviewContent() {
                         {/* Dropdown Chevron */}
                         <div className="flex-shrink-0 mt-2 text-slate-400">
                           {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-[#ff7a00]" />
+                            <ChevronUp className="w-4 h-4 text-[#3B5C37]" />
                           ) : (
                             <ChevronDown className="w-4 h-4" />
                           )}
@@ -1062,7 +1062,7 @@ function ExamReviewContent() {
                                       <strong className="text-slate-800 font-extrabold">{vocab.word}</strong>
                                       <span className="text-[9px] text-slate-400 ml-1.5 italic">({vocab.type})</span>
                                     </div>
-                                    <span className="text-[#ff7a00] font-bold text-right">
+                                    <span className="text-[#3B5C37] font-bold text-right">
                                       {vocab.meaning}
                                     </span>
                                   </div>
@@ -1117,7 +1117,7 @@ export default function ExamReview() {
     <Suspense fallback={
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
         <div className="relative w-14 h-14 mb-4">
-          <div className="absolute inset-0 rounded-full border-4 border-white/10 border-t-[#ff7a00] animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-white/10 border-t-[#3B5C37] animate-spin" />
         </div>
         <p className="text-xs font-bold text-slate-400">Đang tải giao diện review đáp án...</p>
       </div>

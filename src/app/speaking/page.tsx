@@ -123,13 +123,13 @@ export default function SpeakingDashboard() {
       {/* Premium Header */}
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-6 relative z-30">
         <div className="flex items-center gap-2 text-xl font-extrabold text-[#11193f]">
-          <span className="text-[#ff7a00]">*</span>
+          <span className="text-[#3B5C37]">*</span>
           <Link href="/" className="hover:opacity-80 transition-opacity">QualiCode</Link>
         </div>
         <nav className="hidden items-center gap-8 text-sm font-medium text-[#404965] md:flex">
           <Link href="/">Trang chủ</Link>
-          <Link href="/speaking" className="text-[#ff7a00] font-bold">Luyện Speaking</Link>
-          <Link href="/exam/review" className="hover:text-[#ff7a00] transition-colors">Review Đáp án</Link>
+          <Link href="/speaking" className="text-[#3B5C37] font-bold">Luyện Speaking</Link>
+          <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">Review Đáp án</Link>
           <a href="#">Cambridge Cams</a>
           <a href="#">Bảng xếp hạng</a>
           <a href="#">Hỗ trợ</a>
@@ -137,12 +137,12 @@ export default function SpeakingDashboard() {
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           {loading ? (
-            <div className="w-8 h-8 border-2 border-[#ff7a00]/30 border-t-[#ff7a00] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
           ) : user ? (
             <>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(255,122,0,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-[0_4px_16px_rgba(59, 92, 55,0.15)] hover:scale-105 transition-all outline-none border border-white/40 select-none relative group"
                 aria-label="User menu"
               >
                 <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
@@ -169,9 +169,9 @@ export default function SpeakingDashboard() {
                         setShowProfileModal(true);
                         setShowDropdown(false);
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#ff7a00] transition-all cursor-pointer border-none outline-none"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37] transition-all cursor-pointer border-none outline-none"
                     >
-                      <User className="w-4 h-4 text-[#ff7a00]" />
+                      <User className="w-4 h-4 text-[#3B5C37]" />
                       <span>Thông tin tài khoản</span>
                     </button>
 
@@ -206,7 +206,7 @@ export default function SpeakingDashboard() {
               </Link>
               <Link
                 href="/auth"
-                className="rounded-xl bg-[#ff7a00] px-5 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors shadow-sm"
+                className="rounded-xl bg-[#3B5C37] px-5 py-2 text-sm font-semibold text-white hover:bg-[#2f4a2b] transition-colors shadow-sm"
               >
                 Bắt đầu
               </Link>
@@ -220,18 +220,18 @@ export default function SpeakingDashboard() {
         
         {/* Banner Hero */}
         <section className="relative rounded-3xl overflow-hidden mb-10 bg-gradient-to-r from-[#0d1330] via-[#151d45] to-[#25184f] text-white p-8 md:p-12 shadow-[0_16px_40px_rgba(15,20,50,0.15)] border border-white/5">
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#ff7a00]/10 blur-3xl" />
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#3B5C37]/10 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-[#7c3aed]/10 blur-3xl" />
           
           <div className="relative z-10 max-w-[700px]">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#ff7a00]/15 text-[#ff8a1f] text-xs font-bold uppercase tracking-wider mb-5 border border-[#ff7a00]/25">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#3B5C37]/15 text-[#ff8a1f] text-xs font-bold uppercase tracking-wider mb-5 border border-[#3B5C37]/25">
               <Sparkles className="w-3.5 h-3.5 animate-pulse" />
               Luyện thi AI thế hệ mới
             </span>
             
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight mb-4 text-white">
               Phòng Luyện Thi IELTS <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-[#ff7a00] to-[#a78bfa] bg-clip-text text-transparent">Speaking Thực Tế</span>
+              <span className="bg-gradient-to-r from-[#3B5C37] to-[#a78bfa] bg-clip-text text-transparent">Speaking Thực Tế</span>
             </h1>
             
             <p className="text-sm md:text-base text-slate-300 leading-relaxed mb-8 max-w-[580px]">
@@ -241,7 +241,7 @@ export default function SpeakingDashboard() {
             
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                <Mic className="w-4 h-4 text-[#ff7a00]" /> Nhận diện giọng nói chính xác
+                <Mic className="w-4 h-4 text-[#3B5C37]" /> Nhận diện giọng nói chính xác
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
                 <Volume2 className="w-4 h-4 text-violet-400" /> Giọng đọc Giám khảo AI tự nhiên
@@ -258,7 +258,7 @@ export default function SpeakingDashboard() {
             {/* Step 1: Mode Selection */}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3]">
               <div className="flex items-center gap-3 mb-6">
-                <span className="w-8 h-8 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] font-black text-sm flex items-center justify-center">1</span>
+                <span className="w-8 h-8 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] font-black text-sm flex items-center justify-center">1</span>
                 <h2 className="text-lg font-black text-[#0f1738]">Chọn chế độ luyện tập</h2>
               </div>
               
@@ -268,11 +268,11 @@ export default function SpeakingDashboard() {
                   onClick={() => setSelectedMode("mock")}
                   className={`relative flex items-start gap-4 p-5 rounded-2xl text-left border cursor-pointer select-none transition-all outline-none ${
                     selectedMode === "mock" 
-                      ? "border-[#ff7a00] bg-orange-50/20 shadow-[0_8px_20px_rgba(255,122,0,0.06)]"
+                      ? "border-[#3B5C37] bg-[#e8ede6]/20 shadow-[0_8px_20px_rgba(59, 92, 55,0.06)]"
                       : "border-[#eef1f6] hover:border-slate-300 bg-white"
                   }`}
                 >
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "mock" ? "bg-[#ff7a00] text-white" : "bg-orange-100 text-[#ff7a00]"}`}>
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "mock" ? "bg-[#3B5C37] text-white" : "bg-orange-100 text-[#3B5C37]"}`}>
                     <MedalIcon className="w-5 h-5" />
                   </div>
                   <div>
@@ -282,7 +282,7 @@ export default function SpeakingDashboard() {
                     </p>
                   </div>
                   {selectedMode === "mock" && (
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#ff7a00]" />
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#3B5C37]" />
                   )}
                 </button>
 
@@ -291,11 +291,11 @@ export default function SpeakingDashboard() {
                   onClick={() => setSelectedMode("part1")}
                   className={`relative flex items-start gap-4 p-5 rounded-2xl text-left border cursor-pointer select-none transition-all outline-none ${
                     selectedMode === "part1" 
-                      ? "border-[#ff7a00] bg-orange-50/20 shadow-[0_8px_20px_rgba(255,122,0,0.06)]"
+                      ? "border-[#3B5C37] bg-[#e8ede6]/20 shadow-[0_8px_20px_rgba(59, 92, 55,0.06)]"
                       : "border-[#eef1f6] hover:border-slate-300 bg-white"
                   }`}
                 >
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part1" ? "bg-[#ff7a00] text-white" : "bg-orange-100 text-[#ff7a00]"}`}>
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part1" ? "bg-[#3B5C37] text-white" : "bg-orange-100 text-[#3B5C37]"}`}>
                     <Mic className="w-5 h-5" />
                   </div>
                   <div>
@@ -305,7 +305,7 @@ export default function SpeakingDashboard() {
                     </p>
                   </div>
                   {selectedMode === "part1" && (
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#ff7a00]" />
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#3B5C37]" />
                   )}
                 </button>
 
@@ -314,11 +314,11 @@ export default function SpeakingDashboard() {
                   onClick={() => setSelectedMode("part2")}
                   className={`relative flex items-start gap-4 p-5 rounded-2xl text-left border cursor-pointer select-none transition-all outline-none ${
                     selectedMode === "part2" 
-                      ? "border-[#ff7a00] bg-orange-50/20 shadow-[0_8px_20px_rgba(255,122,0,0.06)]"
+                      ? "border-[#3B5C37] bg-[#e8ede6]/20 shadow-[0_8px_20px_rgba(59, 92, 55,0.06)]"
                       : "border-[#eef1f6] hover:border-slate-300 bg-white"
                   }`}
                 >
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part2" ? "bg-[#ff7a00] text-white" : "bg-orange-100 text-[#ff7a00]"}`}>
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part2" ? "bg-[#3B5C37] text-white" : "bg-orange-100 text-[#3B5C37]"}`}>
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -328,7 +328,7 @@ export default function SpeakingDashboard() {
                     </p>
                   </div>
                   {selectedMode === "part2" && (
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#ff7a00]" />
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#3B5C37]" />
                   )}
                 </button>
 
@@ -337,11 +337,11 @@ export default function SpeakingDashboard() {
                   onClick={() => setSelectedMode("part3")}
                   className={`relative flex items-start gap-4 p-5 rounded-2xl text-left border cursor-pointer select-none transition-all outline-none ${
                     selectedMode === "part3" 
-                      ? "border-[#ff7a00] bg-orange-50/20 shadow-[0_8px_20px_rgba(255,122,0,0.06)]"
+                      ? "border-[#3B5C37] bg-[#e8ede6]/20 shadow-[0_8px_20px_rgba(59, 92, 55,0.06)]"
                       : "border-[#eef1f6] hover:border-slate-300 bg-white"
                   }`}
                 >
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part3" ? "bg-[#ff7a00] text-white" : "bg-orange-100 text-[#ff7a00]"}`}>
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${selectedMode === "part3" ? "bg-[#3B5C37] text-white" : "bg-orange-100 text-[#3B5C37]"}`}>
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <div>
@@ -351,7 +351,7 @@ export default function SpeakingDashboard() {
                     </p>
                   </div>
                   {selectedMode === "part3" && (
-                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#ff7a00]" />
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#3B5C37]" />
                   )}
                 </button>
               </div>
@@ -360,7 +360,7 @@ export default function SpeakingDashboard() {
             {/* Step 2: Topic Selection */}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3]">
               <div className="flex items-center gap-3 mb-6">
-                <span className="w-8 h-8 rounded-full bg-[#ff7a00]/10 text-[#ff7a00] font-black text-sm flex items-center justify-center">2</span>
+                <span className="w-8 h-8 rounded-full bg-[#3B5C37]/10 text-[#3B5C37] font-black text-sm flex items-center justify-center">2</span>
                 <h2 className="text-lg font-black text-[#0f1738]">Chọn chủ đề thi nói</h2>
               </div>
               
@@ -371,7 +371,7 @@ export default function SpeakingDashboard() {
                     onClick={() => setSelectedTopic(t.id)}
                     className={`w-full relative flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl text-left border cursor-pointer select-none transition-all outline-none ${
                       selectedTopic === t.id 
-                        ? "border-[#ff7a00] bg-orange-50/10 shadow-sm"
+                        ? "border-[#3B5C37] bg-[#e8ede6]/10 shadow-sm"
                         : "border-[#eef1f6] hover:border-slate-300 bg-white"
                     }`}
                   >
@@ -394,7 +394,7 @@ export default function SpeakingDashboard() {
                         
                         {/* Summary of Questions in mode preview */}
                         {selectedMode !== "part1" && (
-                          <div className="mt-2.5 flex items-center gap-1 text-[11px] text-[#ff7a00] font-semibold">
+                          <div className="mt-2.5 flex items-center gap-1 text-[11px] text-[#3B5C37] font-semibold">
                             <span className="underline">Part 2 Cue:</span>
                             <span className="text-slate-600 italic font-medium truncate">{t.part2Prompt}</span>
                           </div>
@@ -404,7 +404,7 @@ export default function SpeakingDashboard() {
                     
                     <div className="md:text-right flex items-center justify-end flex-shrink-0">
                       {selectedTopic === t.id ? (
-                        <div className="w-6 h-6 rounded-full bg-[#ff7a00] text-white flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-[#3B5C37] text-white flex items-center justify-center">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -422,7 +422,7 @@ export default function SpeakingDashboard() {
             <div className="flex justify-end pt-2">
               <Link
                 href={`/speaking/test?mode=${selectedMode}&topic=${selectedTopic}`}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] px-8 py-4 text-base font-extrabold text-white shadow-[0_12px_28px_rgba(255,122,0,0.3)] hover:shadow-[0_16px_36px_rgba(255,122,0,0.4)] active:scale-95 transition-all select-none cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#3B5C37] to-[#ff9e4f] px-8 py-4 text-base font-extrabold text-white shadow-[0_12px_28px_rgba(59, 92, 55,0.3)] hover:shadow-[0_16px_36px_rgba(59, 92, 55,0.4)] active:scale-95 transition-all select-none cursor-pointer"
               >
                 <Play className="w-5 h-5 fill-white text-white" />
                 <span>Bắt đầu thi thử ngay</span>
@@ -437,10 +437,10 @@ export default function SpeakingDashboard() {
             
             {/* Quick Status Card */}
             <div className="bg-white rounded-3xl p-6 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#ff7a00]/5 to-transparent rounded-full" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#3B5C37]/5 to-transparent rounded-full" />
               
               <h2 className="text-sm font-black text-[#5c6488] uppercase tracking-wider mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#ff7a00]" />
+                <TrendingUp className="w-4 h-4 text-[#3B5C37]" />
                 Tiến trình Speaking của bạn
               </h2>
 
@@ -464,8 +464,8 @@ export default function SpeakingDashboard() {
                     <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#ff7a00" stopOpacity="0.2" />
-                          <stop offset="100%" stopColor="#ff7a00" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#3B5C37" stopOpacity="0.2" />
+                          <stop offset="100%" stopColor="#3B5C37" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       {/* Path */}
@@ -478,7 +478,7 @@ export default function SpeakingDashboard() {
                           return path + `${idx === 0 ? "M" : "L"} ${x} ${Math.max(5, Math.min(35, y))}`;
                         }, "")} 
                         fill="none" 
-                        stroke="#ff7a00" 
+                        stroke="#3B5C37" 
                         strokeWidth="1.8" 
                         strokeLinecap="round" 
                       />
@@ -523,7 +523,7 @@ export default function SpeakingDashboard() {
             {/* History Table */}
             <div className="bg-white rounded-3xl p-6 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3]">
               <h2 className="text-sm font-black text-[#0f1738] mb-4 flex items-center gap-2">
-                <History className="w-4.5 h-4.5 text-[#ff7a00]" />
+                <History className="w-4.5 h-4.5 text-[#3B5C37]" />
                 Lịch sử thi & kết quả
               </h2>
               
@@ -533,15 +533,15 @@ export default function SpeakingDashboard() {
                     <Link
                       key={item.id || idx}
                       href={`/speaking/feedback?id=${item.id}`}
-                      className="group flex items-center justify-between p-3.5 rounded-xl border border-[#eef1f6] bg-[#fafbfe] hover:bg-white hover:border-[#ff7a00]/40 transition-all select-none cursor-pointer"
+                      className="group flex items-center justify-between p-3.5 rounded-xl border border-[#eef1f6] bg-[#fafbfe] hover:bg-white hover:border-[#3B5C37]/40 transition-all select-none cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
                         {/* Circular Score Badge */}
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed] text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#7c3aed] text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
                           {parseFloat(item.band).toFixed(1)}
                         </div>
                         <div>
-                          <p className="text-xs font-black text-[#0f1738] group-hover:text-[#ff7a00] transition-colors leading-none mb-1">
+                          <p className="text-xs font-black text-[#0f1738] group-hover:text-[#3B5C37] transition-colors leading-none mb-1">
                             {item.mode === "mock" ? "Mock Test" : `Part ${item.mode.replace("part", "")}`}
                           </p>
                           <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
@@ -551,7 +551,7 @@ export default function SpeakingDashboard() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-[#ff7a00] transition-colors">
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-[#3B5C37] transition-colors">
                         <span>Chi tiết</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </div>
@@ -580,10 +580,10 @@ export default function SpeakingDashboard() {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-[480px] rounded-3xl bg-white border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.15)] p-6 md:p-8 animate-scale-in text-left relative overflow-hidden"
           >
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#ff7a00]/10 to-[#7c3aed]/10 blur-2xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#7c3aed]/10 blur-2xl" />
 
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(255,122,0,0.15)]">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#3B5C37] to-[#ff9e4f] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(59, 92, 55,0.15)]">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -594,14 +594,14 @@ export default function SpeakingDashboard() {
 
             <div className="space-y-5 mb-6 relative z-10">
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-[#fafaff] to-[#fff8f2] border border-slate-100/60 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#ff7a00] via-[#ff9e4f] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(255,122,0,0.2)]">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#3B5C37] via-[#ff9e4f] to-[#7c3aed] text-white text-xl font-extrabold flex items-center justify-center shadow-[0_4px_16px_rgba(59, 92, 55,0.2)]">
                   {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-[#0d153a]">
                     {user.user_metadata?.name || "Thành viên QualiCode"}
                   </h4>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#ff7a00]/10 text-[#ff7a00] border border-[#ff7a00]/25">
+                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#3B5C37]/10 text-[#3B5C37] border border-[#3B5C37]/25">
                     {user.user_metadata?.role === "ADMIN" ? "Quản trị viên (ADMIN)" : user.user_metadata?.role === "STUDENT" ? "Học sinh (STUDENT)" : "Khách (GUEST)"}
                   </span>
                 </div>

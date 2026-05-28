@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 32px rgba(15,23,56,0.08);">
             <div style="background: linear-gradient(135deg, #0d153a 0%, #7c3aed 100%); padding: 32px; text-align: center;">
               <div style="font-size: 28px; font-weight: 900; color: white;">
-                <span style="color: #ff7a00;">*</span> QualiCode
+                <span style="color: #3B5C37;">*</span> QualiCode
               </div>
             </div>
             <div style="padding: 32px;">
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
                 Nhấn nút bên dưới để tạo mật khẩu mới. Link có hiệu lực trong <strong>1 giờ</strong>.
               </p>
               <a href="${resetLink}"
-                style="display: inline-block; background: #ff7a00; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">
+                style="display: inline-block; background: #3B5C37; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">
                 Đặt lại mật khẩu →
               </a>
               <p style="color: #97a0c3; font-size: 12px; margin: 24px 0 0;">
