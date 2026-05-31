@@ -73,8 +73,8 @@ export default function SettingsAvatarPage() {
       setSuccessMsg("Tải ảnh đại diện mới thành công!");
       setFile(null);
       setPreviewUrl(null);
-      
-      // Force session refresh to apply avatar
+
+      await supabase.auth.refreshSession();
       window.location.reload();
     } catch (err: unknown) {
       setErrorMsg((err as Error).message || "Đã xảy ra lỗi.");
