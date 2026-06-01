@@ -1,10 +1,13 @@
 "use client";
 import React from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { Mail, Calendar, Phone, Heart, User, Key, Camera } from "lucide-react";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
+  const tc = useTranslations("common");
   const { user } = useAuth();
   if (!user) return null;
 
@@ -46,21 +49,21 @@ export default function ProfilePage() {
             href="/profile/edit"
             className="px-5 py-2.5 bg-[#3B5C37] hover:bg-[#ff8e26] text-white text-xs font-bold rounded-2xl shadow-lg transition-all"
           >
-            Chỉnh sửa hồ sơ
+            {t("editProfile")}
           </Link>
         </div>
       </div>
 
       {/* Info Card */}
       <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-6">
-        <h3 className="font-extrabold text-[#0d153a] text-lg">Thông tin chi tiết</h3>
+        <h3 className="font-extrabold text-[#0d153a] text-lg">{t("detailedInfo")}</h3>
         <div className="grid sm:grid-cols-2 gap-6">
           <div className="flex items-start gap-3.5">
             <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-[#3B5C37]">
               <Mail className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{tc("email")}</p>
               <p className="text-xs font-bold text-[#0d153a] mt-0.5">{user.email}</p>
             </div>
           </div>
@@ -70,7 +73,7 @@ export default function ProfilePage() {
               <Calendar className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Ngày tham gia</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t("joinDate")}</p>
               <p className="text-xs font-bold text-[#0d153a] mt-0.5">{dateFormatted}</p>
             </div>
           </div>
@@ -80,7 +83,7 @@ export default function ProfilePage() {
               <Phone className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Số điện thoại</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t("phone")}</p>
               <p className="text-xs font-bold text-[#0d153a] mt-0.5">
                 {user.user_metadata?.phone || "Chưa thiết lập"}
               </p>
@@ -92,16 +95,16 @@ export default function ProfilePage() {
               <Heart className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Trạng thái</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t("status")}</p>
               <span className="text-[10px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
-                Đang hoạt động
+                {t("statusActive")}
               </span>
             </div>
           </div>
         </div>
 
         <div className="border-t border-slate-100 pt-6">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Giới thiệu bản thân</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">{t("bio")}</p>
           <p className="text-xs text-[#5e6792] leading-relaxed">
             {user.user_metadata?.bio || "Chưa có lời giới thiệu nào. Hãy viết gì đó về bản thân bạn nhé!"}
           </p>
@@ -117,7 +120,7 @@ export default function ProfilePage() {
           <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <User className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Chỉnh sửa hồ sơ</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("editProfile")}</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Cập nhật họ tên, số điện thoại và tiểu sử bản thân.</p>
         </Link>
 
@@ -128,7 +131,7 @@ export default function ProfilePage() {
           <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <Key className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Đổi mật khẩu</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("changePassword")}</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Thiết lập mật khẩu bảo mật cao để bảo vệ tài khoản.</p>
         </Link>
 
@@ -139,7 +142,7 @@ export default function ProfilePage() {
           <div className="w-9 h-9 rounded-xl bg-[#fff4e6] text-[#3B5C37] flex items-center justify-center mb-3">
             <Camera className="w-4.5 h-4.5" />
           </div>
-          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">Ảnh đại diện</h4>
+          <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("uploadAvatar")}</h4>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">Tải lên hình ảnh đại diện mới hoặc gỡ bỏ ảnh hiện tại.</p>
         </Link>
       </div>

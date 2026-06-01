@@ -1,10 +1,97 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import Navbar from "@/components/Navbar";
 
+
+const getSkillCards = (t: any) => [
+  {
+    src: "/assets/skill-choose-section/listening.jpeg",
+    alt: t("skills.listening.title"),
+    href: "/listening",
+    title: "Listening",
+    desc: t("skills.listening.desc"),
+    badge: t("skills.listening.count"),
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#5b7a95]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 00-18 0v4a2 2 0 002 2h2v-6h-2M21 12v4a2 2 0 01-2 2h-2v-6h2" />
+      </svg>
+    )
+  },
+  {
+    src: "/assets/skill-choose-section/reading.jpeg",
+    alt: t("skills.reading.title"),
+    href: "/reading",
+    title: "Reading",
+    desc: t("skills.reading.desc"),
+    badge: "100+ Đề",
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#5c985c]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+    )
+  },
+  {
+    src: "/assets/skill-choose-section/speaking.jpeg",
+    alt: t("skills.speaking.title"),
+    href: "/speaking",
+    title: "Speaking",
+    desc: t("skills.speaking.desc"),
+    badge: "100+ Đề",
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#c78b42]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    )
+  },
+  {
+    src: "/assets/skill-choose-section/writting.jpeg",
+    alt: t("skills.writing.title"),
+    href: "/writing",
+    title: "Writing",
+    desc: t("skills.writing.desc"),
+    badge: "100+ Đề",
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#bd6470]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      </svg>
+    )
+  },
+  {
+    src: "/assets/skill-choose-section/orientation.jpeg",
+    alt: "Định Hướng Tự Học",
+    href: "/orientation",
+    title: t("skills.orientation.title"),
+    desc: t("skills.orientation.desc"),
+    badge: t("skills.orientation.count"),
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#8b6ba8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6" />
+      </svg>
+    )
+  },
+  {
+    src: "/assets/skill-choose-section/vocab-grammar.jpeg",
+    alt: "Vocab & Grammar",
+    href: "/vocab-grammar",
+    title: t("skills.vocabGrammar.title"),
+    desc: t("skills.vocabGrammar.desc"),
+    badge: "100+ Đề",
+    icon: (
+      <svg className="w-5 h-5 md:w-6 md:h-6 text-[#4a8a7a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    )
+  },
+];
+
 export default function Home() {
+  const t = useTranslations("home");
+  const skillCards = getSkillCards(t);
   return (
     <div className="bg-[#f4f5f9] text-[#0f1738]">
       <Navbar />
@@ -27,20 +114,20 @@ export default function Home() {
             <div>
               <h1 className="font-extrabold text-[#1b3d1e] leading-tight">
                 <span className="block text-3xl sm:text-4xl md:text-5xl tracking-tight mb-1">
-                  Nền tảng
+                  {t("hero.tagline")}
                 </span>
                 <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-black tracking-tight leading-[1.05]">
-                  Luyện thi IELTS
+                  {t("hero.title")}
                 </span>
               </h1>
               <p className="mt-4 text-xs sm:text-sm md:text-base lg:text-[17px] font-medium text-[#4e5c4c] leading-relaxed max-w-[500px]">
-                Đầy đủ tài liệu, bài luyện, phương pháp và từ vựng giúp bạn chinh phục IELTS dễ dàng hơn mỗi ngày.
+                {t("hero.subtitle")}
               </p>
             </div>
 
             {/* Follow Us On Links */}
             <div className="flex items-center gap-2">
-              <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#4e5c4c] uppercase mr-1">Follow us on</span>
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] font-black tracking-wider text-[#4e5c4c] uppercase mr-1">{t("hero.followUs")}</span>
               <a
                 href="https://facebook.com"
                 target="_blank"
@@ -69,13 +156,13 @@ export default function Home() {
                 href="/speaking"
                 className="inline-flex items-center justify-center rounded-full bg-[#3B5C37] hover:bg-[#1f3e1b] px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black text-white shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none"
               >
-                Bài viết của Quali IELTS →
+                {t("blog.link")}
               </Link>
               <Link
                 href="/exam/review"
                 className="inline-flex items-center justify-center rounded-full bg-[#ebefe0] border-2 border-[#3B5C37] text-[#3B5C37] hover:bg-[#3B5C37] hover:text-white px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-3.5 text-[10px] sm:text-xs md:text-sm font-black shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer select-none gap-1.5"
               >
-                <span>Khám phá tài liệu miễn phí</span>
+                <span>{t("hero.ctaFree")}</span>
                 <svg className="w-3 h-3 md:w-3.5 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
@@ -87,12 +174,54 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="mx-auto w-full max-w-[1480px] px-4 pt-6 md:px-8">
+        {/* Skill Choose Section */}
+        <div className="mb-4 w-full overflow-x-auto pb-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-4 md:gap-5 lg:grid lg:grid-cols-6 lg:gap-5 min-w-max lg:min-w-0 px-2 lg:px-2 py-3 pr-4">
+            {skillCards.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="snap-start relative flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] lg:w-full h-[400px] md:h-[420px] lg:h-[450px] transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden block border-[3px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] group"
+              >
+                <img src={item.src} alt={item.alt} className="absolute inset-0 w-full h-full object-cover object-bottom" />
+
+                {/* Content Overlay */}
+                <div className="absolute inset-0 flex flex-col p-4 md:p-5 pointer-events-none">
+                  {/* Icon Box */}
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-lg md:rounded-xl flex items-center justify-center mb-3 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    {item.icon}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-extrabold text-[#1f3e1b] text-[17px] md:text-[19px] leading-[1.15] mb-2 whitespace-pre-line group-hover:text-[#2d5727] transition-colors drop-shadow-sm">
+                    {item.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-[11px] md:text-[12px] font-bold text-[#1f3e1b]/90 leading-[1.4] max-w-[90%] drop-shadow-sm">
+                    {item.desc}
+                  </p>
+                </div>
+
+                {/* Badge */}
+                <div className="absolute bottom-4 md:bottom-5 left-1/2 -translate-x-1/2">
+                  <span className="bg-[#2c4728] text-white px-4 md:px-5 py-1.5 rounded-full text-[11px] md:text-[12px] font-extrabold whitespace-nowrap tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    {item.badge}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <main className="mx-auto w-full max-w-[1160px] px-4 pb-6 pt-3 md:px-8 md:pb-8 md:pt-4">
         <section className="mb-6 rounded-3xl bg-white p-8 md:p-12 shadow-[0_4px_32px_rgba(20,28,60,0.07)]">
           <h2 className="text-center text-3xl md:text-4xl font-extrabold text-[#141c41]">
-            Complete Cambridge Cams <span className="text-[#3B5C37]">9 → 20</span>
+            {t("cambridge.title")} <span className="text-[#3B5C37]">{t("cambridge.range")}</span>
           </h2>
-          <p className="mt-3 text-center text-[15px] text-[#5a6282]">Full access to all official Cambridge IELTS practice tests.</p>
+          <p className="mt-3 text-center text-[15px] text-[#5a6282]">{t("cambridge.desc")}</p>
 
           {/* Book covers */}
           <div className="mt-10 flex items-center justify-center gap-3 md:gap-4 flex-wrap">
@@ -223,26 +352,26 @@ export default function Home() {
               <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span className="text-sm font-semibold text-[#141c41]">Official Tests</span>
+              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.official")}</span>
             </div>
             <div className="flex items-center gap-2 text-[#4b5472]">
               <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm font-semibold text-[#141c41]">Real Exam Experience</span>
+              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.realExam")}</span>
             </div>
             <div className="flex items-center gap-2 text-[#4b5472]">
               <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-sm font-semibold text-[#141c41]">AI Evaluation</span>
+              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.aiEval")}</span>
             </div>
             <div className="flex items-center gap-2 text-[#4b5472]">
               <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm font-semibold text-[#141c41]">Detailed Feedback</span>
+              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.detailedFeedback")}</span>
             </div>
           </div>
         </section>
@@ -251,12 +380,12 @@ export default function Home() {
           {/* Left side - Text content */}
           <div className="p-6 md:p-8">
             <h3 className="text-4xl md:text-5xl leading-[1.08] font-extrabold text-[#121a3c]">
-              Adaptive Learning.
+              {t("adaptive.titlePart1")}
               <br />
-              Built Just <span className="text-[#3B5C37]">For You.</span>
+              {t("adaptive.titlePart2")} <span className="text-[#3B5C37]">{t("adaptive.titlePart3")}</span>
             </h3>
             <p className="mt-4 text-[15px] leading-7 text-[#5b6484]">
-              Our AI analyzes your performance in real-time, identifies strengths and weaknesses, and creates a learning path that evolves with you.
+              {t("adaptive.desc")}
             </p>
 
             {/* Feature bullets */}
@@ -268,8 +397,8 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-bold text-[#121a3c] text-[15px]">Diagnose</div>
-                  <div className="text-sm text-[#6b7394]">AI analyzes 4 skills in depth</div>
+                  <div className="font-bold text-[#121a3c] text-[15px]">{t("adaptive.diagnose.title")}</div>
+                  <div className="text-sm text-[#6b7394]">{t("adaptive.diagnose.desc")}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -279,8 +408,8 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-bold text-[#121a3c] text-[15px]">Personalize</div>
-                  <div className="text-sm text-[#6b7394]">Get a plan unique to your profile</div>
+                  <div className="font-bold text-[#121a3c] text-[15px]">{t("adaptive.personalize.title")}</div>
+                  <div className="text-sm text-[#6b7394]">{t("adaptive.personalize.desc")}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -290,14 +419,14 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-bold text-[#121a3c] text-[15px]">Improve</div>
-                  <div className="text-sm text-[#6b7394]">Focus on what matters, improve faster</div>
+                  <div className="font-bold text-[#121a3c] text-[15px]">{t("adaptive.improve.title")}</div>
+                  <div className="text-sm text-[#6b7394]">{t("adaptive.improve.desc")}</div>
                 </div>
               </div>
             </div>
 
             <button className="mt-8 rounded-xl bg-[#3B5C37] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(59, 92, 55,0.3)] hover:shadow-[0_12px_28px_rgba(59, 92, 55,0.4)] transition-all duration-300 flex items-center gap-2">
-              See How It Works
+              {t("adaptive.cta")}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
@@ -311,12 +440,12 @@ export default function Home() {
                 {/* Sidebar navigation */}
                 <div className="hidden md:flex flex-col w-[140px] border-r border-[#eef0f6] bg-[#fafbfe] p-3 gap-1 rounded-l-2xl">
                   {[
-                    { icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6", label: "Overview", active: true },
-                    { icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z", label: "Practice", active: false },
-                    { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", label: "Mock Tests", active: false },
-                    { icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6", label: "Progress", active: false },
-                    { icon: "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", label: "AI Tutor", active: false },
-                    { icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", label: "Reports", active: false },
+                    { icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6", label: t("dashboard.sidebar.overview"), active: true },
+                    { icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z", label: t("dashboard.sidebar.practice"), active: false },
+                    { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", label: t("dashboard.sidebar.mockTests"), active: false },
+                    { icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6", label: t("dashboard.sidebar.progress"), active: false },
+                    { icon: "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", label: t("dashboard.sidebar.aiTutor"), active: false },
+                    { icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", label: t("dashboard.sidebar.reports"), active: false },
                   ].map((item) => (
                     <div
                       key={item.label}
@@ -342,7 +471,7 @@ export default function Home() {
 
                 {/* Main dashboard content */}
                 <div className="flex-1 p-5 relative">
-                  {/* Your Progress header + Overall Band */}
+                  {/* {t("dashboard.progress.title")} header + {t("dashboard.progress.subtitle")} */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-3">
@@ -386,21 +515,21 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="mt-1 text-xs font-medium text-[#2fa56f] flex items-center gap-1">
-                        Good Progress! 🎉
+                        {t("dashboard.progress.message")}
                       </div>
                       <div className="text-[11px] text-[#2fa56f] font-semibold mt-0.5">▲ 1.5</div>
                     </div>
                   </div>
 
-                  {/* Skill Breakdown */}
+                  {/* {t("dashboard.breakdown.title")} */}
                   <div className="mt-4">
                     <div className="font-bold text-[#1a2348] text-[14px] mb-3">Skill Breakdown</div>
                     <div className="grid grid-cols-4 gap-3">
                       {[
-                        { score: "8.5", label: "Listening", level: "Advanced", color: "#3B5C37" },
-                        { score: "7.0", label: "Reading", level: "Good", color: "#3b82f6" },
-                        { score: "7.0", label: "Writing", level: "Good", color: "#8b5cf6" },
-                        { score: "7.5", label: "Speaking", level: "Good", color: "#10b981" },
+                        { score: "8.5", label: t("skills.listening.title"), level: t("dashboard.breakdown.levelAdvanced"), color: "#3B5C37" },
+                        { score: "7.0", label: t("skills.reading.title"), level: t("dashboard.breakdown.levelGood"), color: "#3b82f6" },
+                        { score: "7.0", label: t("skills.writing.title"), level: t("dashboard.breakdown.levelGood"), color: "#8b5cf6" },
+                        { score: "7.5", label: t("skills.speaking.title"), level: t("dashboard.breakdown.levelGood"), color: "#10b981" },
                       ].map((skill) => (
                         <div key={skill.label} className="flex flex-col items-center">
                           <div className="relative w-[52px] h-[52px]">
@@ -425,7 +554,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* AI Recommendation */}
+                  {/* {t("dashboard.aiRec.title")} */}
                   <div className="mt-4 flex items-center justify-between rounded-xl bg-[#f8f5ff] border border-[#e8e0f8] px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-lg bg-[#B38F4D] flex items-center justify-center">
@@ -435,10 +564,10 @@ export default function Home() {
                       </div>
                       <div>
                         <div className="text-[11px] font-bold text-[#5b21b6]">AI Recommendation</div>
-                        <div className="text-[11px] text-[#7c7fa0]">Focus on Writing Task 2: Improve idea development</div>
+                        <div className="text-[11px] text-[#7c7fa0]">{t("dashboard.aiRec.desc")}</div>
                       </div>
                     </div>
-                    <span className="text-[12px] font-bold text-[#3B5C37] cursor-pointer hover:underline whitespace-nowrap">Start Practice →</span>
+                    <span className="text-[12px] font-bold text-[#3B5C37] cursor-pointer hover:underline whitespace-nowrap">{t("dashboard.aiRec.cta")}</span>
                   </div>
                 </div>
               </div>
@@ -453,13 +582,13 @@ export default function Home() {
           <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-[#4f84ff]/10 blur-3xl" />
 
           <h3 className="mb-8 text-center text-2xl md:text-3xl font-extrabold relative z-10">
-            Why <span className="text-[#B38F4D]">Quali IELTS?</span>
+            {t("features.titlePrefix")} <span className="text-[#B38F4D]">{t("features.titleHighlight")}</span>
           </h3>
           <div className="relative z-10 grid grid-cols-2 gap-4 md:gap-0 md:grid-cols-5 md:divide-x md:divide-white/10">
             {[
               {
-                title: "100% AI Learning",
-                desc: "No human tutors. AI handles everything.",
+                title: t("features.items.aiLearning.title"),
+                desc: t("features.items.aiLearning.desc"),
                 icon: (
                   <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Brain icon */}
@@ -470,8 +599,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "Adaptive & Smart",
-                desc: "Learning path that adapts to you.",
+                title: t("features.items.adaptive.title"),
+                desc: t("features.items.adaptive.desc"),
                 icon: (
                   <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Target/bullseye icon */}
@@ -485,8 +614,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "Cambridge Standard",
-                desc: "Official Cambridge materials 9 to 20.",
+                title: t("features.items.cambridge.title"),
+                desc: t("features.items.cambridge.desc"),
                 icon: (
                   <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Book with bookmark icon */}
@@ -498,8 +627,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "Real-Time Feedback",
-                desc: "Instant AI feedback on everything.",
+                title: t("features.items.feedback.title"),
+                desc: t("features.items.feedback.desc"),
                 icon: (
                   <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Chat bubble with lightning */}
@@ -511,8 +640,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "Privacy First",
-                desc: "Your data is secure and always private.",
+                title: t("features.items.privacy.title"),
+                desc: t("features.items.privacy.desc"),
                 icon: (
                   <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
                     {/* Shield lock icon */}
@@ -536,7 +665,7 @@ export default function Home() {
         {/* Loved by Learners Worldwide */}
         <section className="mb-6 rounded-3xl bg-white p-8 md:p-12 shadow-[0_4px_32px_rgba(20,28,60,0.07)]">
           <h3 className="mb-8 text-center text-3xl md:text-4xl font-extrabold text-[#141b40]">
-            Loved by <span className="text-[#3B5C37]">Learners</span> Worldwide
+            {t("testimonials.titlePrefix")} <span className="text-[#3B5C37]">{t("testimonials.titleHighlight")}</span> {t("testimonials.titleSuffix")}
           </h3>
           <div className="relative">
             {/* Navigation arrows */}
@@ -554,21 +683,21 @@ export default function Home() {
             <div className="grid gap-5 md:grid-cols-3 px-4">
               {[
                 {
-                  name: "Ananya S.",
-                  band: "Band 8.0 Achiever",
-                  quote: "QualiCode's AI knows me better than I know myself. It helped me improve from 6.0 to 8.0 in 2 months!",
+                  name: t("testimonials.items.ananya.name"),
+                  band: t("testimonials.items.ananya.band"),
+                  quote: t("testimonials.items.ananya.quote"),
                   color: "#3B5C37",
                 },
                 {
-                  name: "Minh T.",
-                  band: "Band 7.5 Achiever",
-                  quote: "The adaptive practice is insanely good. I only practice what I need, and I see real improvement.",
+                  name: t("testimonials.items.minh.name"),
+                  band: t("testimonials.items.minh.band"),
+                  quote: t("testimonials.items.minh.quote"),
                   color: "#3b82f6",
                 },
                 {
-                  name: "Fatima K.",
-                  band: "Band 8.5 Achiever",
-                  quote: "All Cambridge Cams, AI feedback, and mock tests – everything I need in one place!",
+                  name: t("testimonials.items.fatima.name"),
+                  band: t("testimonials.items.fatima.band"),
+                  quote: t("testimonials.items.fatima.quote"),
                   color: "#8b5cf6",
                 },
               ].map((item) => (
@@ -618,21 +747,19 @@ export default function Home() {
             {/* Text content */}
             <div className="flex-1 md:py-10">
               <h3 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                Ready to Achieve Your
-                <br />
-                Dream IELTS Score?
+                {t("cta.title").split("\\n").map((line, i) => <React.Fragment key={i}>{line}<br/></React.Fragment>)}
               </h3>
               <p className="mt-3 text-[15px] text-white/85 leading-relaxed">
-                Start your AI-powered journey today. 100% AI. 100% For You.
+                {t("cta.desc")}
               </p>
             </div>
 
             {/* CTA button */}
             <div className="flex flex-col items-center gap-2 md:pr-10 flex-shrink-0 md:pb-10">
               <button className="rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-[#3B5C37] shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:scale-105 whitespace-nowrap">
-                Start Free Now →
+                {t("cta.button")}
               </button>
-              <span className="text-[11px] text-white/60 italic">No credit card required</span>
+              <span className="text-[11px] text-white/60 italic">{t("cta.noCreditCard")}</span>
             </div>
           </div>
         </section>

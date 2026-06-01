@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Mail, Lock, CheckCircle2, AlertTriangle, ArrowRight, Brain, Sparkles, TrendingUp } from "lucide-react";
 
 export default function LoginPage() {
+  const t = useTranslations("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +23,7 @@ export default function LoginPage() {
       // Check if arriving from a downgrade/insufficient permissions redirect
       const errorParam = urlParams.get("error");
       if (errorParam === "insufficient_permissions") {
-        setErrorMsg("Quyền hạn của bạn không đủ để truy cập trang quản trị.");
+        setErrorMsg(t("error.insufficientPermissions"));
         // Clean up URL query parameters
         if (typeof window !== "undefined" && window.history.replaceState) {
           const newUrl = window.location.pathname;
@@ -35,7 +37,7 @@ export default function LoginPage() {
       if (isVerified) {
         // Log out immediately to clear auto-sign-in and let them log in manually
         await supabase.auth.signOut();
-        setSuccessMsg("Tài khoản của bạn đã được kích hoạt thành công! Vui lòng đăng nhập bên dưới.");
+        setSuccessMsg(t("success.activated"));
         
         // Clean up URL query parameters/hash so refreshing doesn't show successMsg again
         if (typeof window !== "undefined" && window.history.replaceState) {
@@ -114,7 +116,7 @@ export default function LoginPage() {
           role: "ADMIN"
         }));
       }
-      setSuccessMsg("Đăng nhập thành công (Bypass Mode)! Đang chuyển hướng...");
+      setSuccessMsg(t("success.loggedIn"));
       setTimeout(() => {
         window.location.href = "/admin/users";
       }, 1200);
@@ -130,9 +132,9 @@ export default function LoginPage() {
       if (error) {
         let msg = error.message;
         if (msg === "Invalid login credentials") {
-          msg = "Email hoặc mật khẩu không chính xác.";
+          msg = t("error.invalidCredentials");
         } else if (msg === "Email not confirmed") {
-          msg = "Email của bạn chưa được xác nhận. Vui lòng kiểm tra Gmail để kích hoạt tài khoản trước khi đăng nhập.";
+          msg = t("error.emailNotConfirmed");
         }
         throw new Error(msg);
       }
@@ -144,10 +146,10 @@ export default function LoginPage() {
 
         if (isLocked) {
           await supabase.auth.signOut();
-          throw new Error("Tài khoản của bạn đã bị khóa bởi Quản trị viên. Vui lòng liên hệ hỗ trợ.");
+          throw new Error(t("error.accountLocked"));
         }
 
-        setSuccessMsg("Đăng nhập thành công! Đang chuyển hướng...");
+        setSuccessMsg(t("success.loggedIn"));
         
         setTimeout(() => {
           if (role === "ADMIN") {
@@ -176,7 +178,7 @@ export default function LoginPage() {
       });
       if (error) throw error;
     } catch (err: any) {
-      setErrorMsg(err.message || "Đã xảy ra lỗi khi đăng nhập bằng Google.");
+      setErrorMsg(err.message || t("error.googleFailed"));
       setIsLoading(false);
     }
   };
@@ -202,10 +204,10 @@ export default function LoginPage() {
 
           <div className="my-auto max-w-[400px] w-full">
             <h2 className="text-3xl font-extrabold text-[#0f1738] tracking-tight mb-2">
-              Chào mừng quay lại!
+              {t("title")}
             </h2>
             <p className="text-xs font-semibold text-[#5e6792] mb-8 leading-relaxed">
-              Đăng nhập để tiếp tục hành trình học IELTS đột phá bằng công nghệ AI.
+              {t("subtitle")}
             </p>
 
             {/* Error Message */}
@@ -252,7 +254,7 @@ export default function LoginPage() {
                     Mật khẩu
                   </label>
                   <Link href="/reset-password" className="text-xs font-bold text-[#3B5C37] hover:text-[#e06b00] transition-colors">
-                    Quên mật khẩu?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
                 <div className="relative">
@@ -287,7 +289,7 @@ export default function LoginPage() {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>Đăng nhập ngay</span>
+                    <span>{t("submitBtn")}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -315,14 +317,14 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
                 </svg>
-                <span>Tiếp tục với Google</span>
+                <span>{t("googleBtn")}</span>
               </button>
             </form>
           </div>
 
           {/* Footer of card */}
           <div className="text-xs font-semibold text-[#5e6792] mt-8 md:mt-0 text-center md:text-left">
-            Chưa có tài khoản?{" "}
+            {t("noAccount")}{" "}
             <Link href="/register" className="text-[#3B5C37] font-bold hover:underline">
               Đăng ký miễn phí
             </Link>

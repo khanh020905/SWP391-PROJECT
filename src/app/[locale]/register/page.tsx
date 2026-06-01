@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Mail, Lock, User, AlertTriangle, ArrowRight, Shield, Brain, TrendingUp, BookOpen, Compass, Zap, CheckCircle2, ArrowLeft, RefreshCw } from "lucide-react";
 
 export default function RegisterPage() {
+  const t = useTranslations("register");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,12 +73,12 @@ export default function RegisterPage() {
     setSuccessMsg("");
 
     if (password !== confirmPassword) {
-      setErrorMsg("Mật khẩu xác nhận không trùng khớp.");
+      setErrorMsg(t("error.passwordMismatch"));
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("Mật khẩu phải chứa ít nhất 6 ký tự.");
+      setErrorMsg(t("error.passwordTooShort"));
       return;
     }
 
@@ -151,12 +153,12 @@ export default function RegisterPage() {
       });
       if (error) throw new Error(error.message);
       await supabase.auth.signOut();
-      setSuccessMsg("Email xác nhận mới đã được gửi đến hòm thư của bạn!");
+      setSuccessMsg(t("verify.resendSuccess"));
       startCountdown();
     } catch (err: any) {
       let msg = err.message || "Không thể gửi lại email xác nhận.";
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
-        msg = "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút.";
+        msg = t("verify.rateLimited");
       }
       setErrorMsg(msg);
     } finally {
@@ -472,7 +474,7 @@ export default function RegisterPage() {
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        <span>Đăng ký tài khoản</span>
+                        <span>{t("submitBtn")}</span>
                         <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                       </>
                     )}
