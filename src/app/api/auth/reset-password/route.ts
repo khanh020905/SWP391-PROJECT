@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    const resetLink = data?.properties?.action_link;
-    if (!resetLink) throw new Error("Không thể tạo đường dẫn đặt lại mật khẩu.");
+    const otpCode = data?.properties?.email_otp;
+    if (!otpCode) throw new Error("Không thể tạo mã OTP đặt lại mật khẩu.");
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
@@ -45,13 +45,15 @@ export async function POST(request: NextRequest) {
               <p style="color: #5e6792; font-size: 14px; line-height: 1.6; margin: 0 0 8px;">
                 Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${email}</strong>.
               </p>
-              <p style="color: #5e6792; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-                Nhấn nút bên dưới để tạo mật khẩu mới. Link có hiệu lực trong <strong>1 giờ</strong>.
+              <p style="color: #5e6792; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">
+                Mã OTP khôi phục mật khẩu của bạn là:
               </p>
-              <a href="${resetLink}"
-                style="display: inline-block; background: #3B5C37; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px;">
-                Đặt lại mật khẩu →
-              </a>
+              <div style="font-size: 40px; font-weight: 900; letter-spacing: 12px; color: #3B5C37; background: #f0f4fd; border-radius: 16px; padding: 20px 24px; text-align: center; margin: 0 0 20px; border: 2px dashed #3B5C37;">
+                ${otpCode}
+              </div>
+              <p style="color: #5e6792; font-size: 13px; line-height: 1.6; margin: 0 0 8px;">
+                Mã có hiệu lực trong <strong>5 phút</strong>. Vui lòng nhập mã này vào trang web để tiếp tục.
+              </p>
               <p style="color: #97a0c3; font-size: 12px; margin: 24px 0 0;">
                 Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.
               </p>

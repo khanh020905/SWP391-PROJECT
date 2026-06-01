@@ -142,7 +142,8 @@ export default function ResetPasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setSuccessMsg("Email đặt lại mật khẩu đã được gửi! Vui lòng kiểm tra hòm thư của bạn.");
+      startCountdown();
+      setStep(2);
     } catch (err: any) {
       setErrorMsg(err.message || "Đã xảy ra lỗi khi gửi yêu cầu.");
     } finally {
@@ -166,6 +167,7 @@ export default function ResetPasswordPage() {
       setSuccessMsg("Email đặt lại mật khẩu đã được gửi lại!");
       startCountdown();
       setOtp(["", "", "", "", "", ""]);
+      setExpiryTimerTrigger((prev) => prev + 1);
     } catch (err: any) {
       let msg = err.message || "Không thể gửi lại email.";
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
