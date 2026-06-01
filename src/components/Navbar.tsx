@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { User, LogOut, ShieldAlert, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -11,6 +13,7 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const t = useTranslations("nav");
 
   // Check current session
   useEffect(() => {
@@ -84,18 +87,16 @@ export default function Navbar() {
         isScrolled ? "py-3.5" : "py-5"
       }`}>
         <div className="flex items-center gap-2.5 text-xl font-black text-[#1b3d1e]">
-          <div className="w-8 h-8 rounded-lg bg-[#3B5C37] flex items-center justify-center text-white font-black text-lg shadow-sm">
-            Q
-          </div>
+          <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-12 w-auto object-contain" />
           <span className="tracking-tight">Quali IELTS</span>
         </div>
         <nav className="hidden items-center gap-8 text-sm font-bold text-[#4e5c4c] md:flex">
-          <Link href="/" className="hover:text-[#3B5C37] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#3B5C37] transition-colors">{t("home")}</Link>
           <Link href="/speaking" className="text-[#3B5C37] font-black flex items-center gap-1 transition-all hover:scale-105">
             <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#3B5C37]" />
-            <span>Speaking AI</span>
+            <span>{t("speaking")}</span>
           </Link>
-          <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">Review Đáp án</Link>
+          <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">{t("review")}</Link>
           <a href="#" className="hover:text-[#3B5C37] transition-colors">Cambridge Cams</a>
           <a href="#" className="hover:text-[#3B5C37] transition-colors">Pricing</a>
           <a href="#" className="hover:text-[#3B5C37] transition-colors">About Us</a>
@@ -130,7 +131,7 @@ export default function Navbar() {
               {showDropdown && (
                 <div className="absolute right-0 top-12 w-64 rounded-2xl bg-white/95 border border-slate-100 shadow-[0_16px_48px_rgba(15,23,56,0.1)] backdrop-blur-md p-4 animate-scale-in z-50 text-left">
                   <div className="border-b border-slate-100 pb-3 mb-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">Đang đăng nhập</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">{t("loggedInAs")}</p>
                     <p className="text-xs font-black text-[#0d153a] truncate">
                       {user.user_metadata?.name || "Người dùng QualiCode"}
                     </p>
@@ -146,7 +147,7 @@ export default function Navbar() {
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37] active:scale-[0.98] transition-all cursor-pointer no-underline"
                     >
                       <User className="w-4 h-4 text-[#3B5C37]" />
-                      <span>Hồ sơ cá nhân</span>
+                      <span>{t("profile")}</span>
                     </Link>
 
                     {user.user_metadata?.role === "ADMIN" && (
@@ -156,7 +157,7 @@ export default function Navbar() {
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-[#5e6792] hover:bg-slate-50 hover:text-[#B38F4D] active:scale-[0.98] transition-all cursor-pointer"
                       >
                         <ShieldAlert className="w-4 h-4 text-[#B38F4D]" />
-                        <span>Trang Quản trị Admin</span>
+                        <span>{t("adminPanel")}</span>
                       </Link>
                     )}
 
@@ -165,7 +166,7 @@ export default function Navbar() {
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold text-red-500 hover:bg-red-50 active:scale-[0.98] transition-all cursor-pointer border-none outline-none border-t border-slate-50 mt-1 pt-2"
                     >
                       <LogOut className="w-4 h-4 text-red-500" />
-                      <span>Đăng xuất</span>
+                      <span>{t("logout")}</span>
                     </button>
                   </div>
                 </div>
@@ -173,17 +174,18 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               <Link
                 href="/auth"
                 className="rounded-xl border border-[#c7d1b8] px-5 py-2 text-sm font-semibold hover:bg-white/40 transition-colors cursor-pointer select-none text-[#1b3d1e]"
               >
-                Log in
+                {t("login")}
               </Link>
               <Link
                 href="/auth"
                 className="rounded-xl bg-[#3B5C37] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1f3e1b] transition-colors shadow-sm cursor-pointer select-none"
               >
-                Get Started
+                {t("getStarted")}
               </Link>
             </div>
           )}
