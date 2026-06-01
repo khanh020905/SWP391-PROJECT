@@ -25,7 +25,7 @@ export function OtpInput({ value, onChange, disabled = false }: OtpInputProps) {
     onChange(newValue);
 
     // Auto-focus next input
-    if (digit && index < 5) {
+    if (digit && index < value.length - 1) {
       refs.current[index + 1]?.focus();
     }
   };
@@ -44,16 +44,17 @@ export function OtpInput({ value, onChange, disabled = false }: OtpInputProps) {
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const len = value.length;
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, len);
     if (pastedData.length > 0) {
       const newValue = [...value];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < len; i++) {
         newValue[i] = pastedData[i] || "";
       }
       onChange(newValue);
       // Focus the next empty input or the last one
       const nextEmpty = newValue.findIndex((d) => d === "");
-      refs.current[nextEmpty === -1 ? 5 : nextEmpty]?.focus();
+      refs.current[nextEmpty === -1 ? len - 1 : nextEmpty]?.focus();
     }
   };
 
