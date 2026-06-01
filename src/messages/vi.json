@@ -201,16 +201,29 @@
     "passwordLabel": "Mật khẩu (Tối thiểu 6 ký tự)",
     "confirmPasswordLabel": "Xác nhận Mật khẩu",
     "submitBtn": "Đăng ký tài khoản",
+    "hasAccount": "Đã có tài khoản?",
+    "loginLink": "Đăng nhập ngay",
+    "backBtn": "Quay lại",
     "error": {
       "passwordMismatch": "Mật khẩu xác nhận không trùng khớp.",
-      "passwordTooShort": "Mật khẩu phải chứa ít nhất 6 ký tự."
+      "passwordTooShort": "Mật khẩu phải chứa ít nhất 6 ký tự.",
+      "default": "Đã xảy ra lỗi trong quá trình đăng ký.",
+      "rateLimit": "Tần suất gửi email xác thực quá nhanh. Vui lòng đợi 1-2 phút.",
+      "emailExists": "Địa chỉ email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập.",
+      "resendFailed": "Không thể gửi lại email xác nhận."
     },
     "verify": {
       "title": "Xác nhận Email của bạn",
       "desc": "Vui lòng kiểm tra email của bạn để xác nhận tài khoản.",
       "resendBtn": "Gửi lại email xác nhận",
       "resendSuccess": "Email xác nhận mới đã được gửi đến hòm thư của bạn!",
-      "rateLimited": "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút."
+      "rateLimited": "Tần suất gửi quá nhanh. Vui lòng đợi 1-2 phút.",
+      "subtitle": "Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...",
+      "emailSentTo": "Chúng tôi đã gửi một liên kết xác nhận tài khoản đến địa chỉ:",
+      "instruction": "Vui lòng mở hòm thư và bấm vào liên kết xác nhận để kích hoạt tài khoản.",
+      "autoRedirect": "Sau khi bấm nút xác thực trong email, hệ thống sẽ tự động chuyển hướng bạn đến trang Đăng nhập.",
+      "spamNote": "* Lưu ý: Hãy kiểm tra cả hòm thư Spam hoặc Quảng cáo nếu không nhận được sau 1-2 phút.",
+      "resendWait": "Gửi lại sau {countdown}s"
     }
   },
   "profile": {
@@ -222,7 +235,17 @@
     "statusActive": "Đang hoạt động",
     "bio": "Giới thiệu bản thân",
     "changePassword": "Đổi mật khẩu",
-    "uploadAvatar": "Tải lên ảnh đại diện"
+    "uploadAvatar": "Tải lên ảnh đại diện",
+    "fallback": {
+      "name": "Người dùng",
+      "phone": "Chưa thiết lập",
+      "bio": "Chưa có lời giới thiệu nào. Hãy viết gì đó về bản thân bạn nhé!"
+    },
+    "desc": {
+      "editProfile": "Cập nhật họ tên, số điện thoại và tiểu sử bản thân.",
+      "changePassword": "Thiết lập mật khẩu bảo mật cao để bảo vệ tài khoản.",
+      "uploadAvatar": "Tải lên hình ảnh đại diện mới hoặc gỡ bỏ ảnh hiện tại."
+    }
   },
   "common": {
     "loading": "Đang tải...",

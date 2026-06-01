@@ -201,16 +201,29 @@
     "passwordLabel": "Password (Minimum 6 characters)",
     "confirmPasswordLabel": "Confirm Password",
     "submitBtn": "Create Account",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Log in now",
+    "backBtn": "Go back",
     "error": {
       "passwordMismatch": "Passwords do not match.",
-      "passwordTooShort": "Password must be at least 6 characters."
+      "passwordTooShort": "Password must be at least 6 characters.",
+      "default": "An error occurred during registration.",
+      "rateLimit": "Too many requests. Please wait 1-2 minutes.",
+      "emailExists": "This email is already in use. Please choose another or log in.",
+      "resendFailed": "Unable to resend confirmation email."
     },
     "verify": {
       "title": "Verify your Email",
       "desc": "Please check your email to verify your account.",
       "resendBtn": "Resend confirmation email",
       "resendSuccess": "A new confirmation email has been sent to your inbox!",
-      "rateLimited": "Too many requests. Please wait 1-2 minutes."
+      "rateLimited": "Too many requests. Please wait 1-2 minutes.",
+      "subtitle": "Registration successful! Waiting for you to verify your Email...",
+      "emailSentTo": "We have sent an account confirmation link to:",
+      "instruction": "Please open your inbox and click the confirmation link to activate your account.",
+      "autoRedirect": "After clicking the verify button in the email, the system will automatically redirect you to the Login page.",
+      "spamNote": "* Note: Please check your Spam or Promotions folder if you don't receive it after 1-2 minutes.",
+      "resendWait": "Resend in {countdown}s"
     }
   },
   "profile": {
@@ -222,7 +235,17 @@
     "statusActive": "Active",
     "bio": "About Me",
     "changePassword": "Change Password",
-    "uploadAvatar": "Upload Avatar"
+    "uploadAvatar": "Upload Avatar",
+    "fallback": {
+      "name": "User",
+      "phone": "Not set",
+      "bio": "No introduction yet. Write something about yourself!"
+    },
+    "desc": {
+      "editProfile": "Update your name, phone number, and bio.",
+      "changePassword": "Set a strong password to protect your account.",
+      "uploadAvatar": "Upload a new avatar or remove the current one."
+    }
   },
   "common": {
     "loading": "Loading...",

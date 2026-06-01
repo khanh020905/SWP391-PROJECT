@@ -9,7 +9,7 @@ export default function LanguageSwitcher() {
 
   // Toggle between 'vi' and 'en'
   const nextLocale = locale === "vi" ? "en" : "vi";
-  const displayLabel = locale === "vi" ? "VI" : "EN";
+  const displayLabel = locale === "vi" ? "EN" : "VI";
 
   return (
     <Link

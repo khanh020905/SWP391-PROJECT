@@ -38,7 +38,7 @@ export default function ProfilePage() {
           )}
           <div className="text-center sm:text-left flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-              <h2 className="text-2xl font-black">{user.user_metadata?.name || "Người dùng"}</h2>
+              <h2 className="text-2xl font-black">{user.user_metadata?.name || t("fallback.name")}</h2>
               <span className="text-[10px] font-black tracking-wider text-white bg-[#3B5C37] px-2.5 py-1 rounded-full uppercase">
                 {user.user_metadata?.role || "STUDENT"}
               </span>
@@ -85,7 +85,7 @@ export default function ProfilePage() {
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{t("phone")}</p>
               <p className="text-xs font-bold text-[#0d153a] mt-0.5">
-                {user.user_metadata?.phone || "Chưa thiết lập"}
+                {user.user_metadata?.phone || t("fallback.phone")}
               </p>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
         <div className="border-t border-slate-100 pt-6">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">{t("bio")}</p>
           <p className="text-xs text-[#5e6792] leading-relaxed">
-            {user.user_metadata?.bio || "Chưa có lời giới thiệu nào. Hãy viết gì đó về bản thân bạn nhé!"}
+            {user.user_metadata?.bio || t("fallback.bio")}
           </p>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function ProfilePage() {
             <User className="w-4.5 h-4.5" />
           </div>
           <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("editProfile")}</h4>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1">Cập nhật họ tên, số điện thoại và tiểu sử bản thân.</p>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("desc.editProfile")}</p>
         </Link>
 
         <Link
@@ -132,7 +132,7 @@ export default function ProfilePage() {
             <Key className="w-4.5 h-4.5" />
           </div>
           <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("changePassword")}</h4>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1">Thiết lập mật khẩu bảo mật cao để bảo vệ tài khoản.</p>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("desc.changePassword")}</p>
         </Link>
 
         <Link
@@ -143,7 +143,7 @@ export default function ProfilePage() {
             <Camera className="w-4.5 h-4.5" />
           </div>
           <h4 className="font-extrabold text-[#0d153a] text-xs group-hover:text-[#3B5C37] transition-colors">{t("uploadAvatar")}</h4>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1">Tải lên hình ảnh đại diện mới hoặc gỡ bỏ ảnh hiện tại.</p>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1">{t("desc.uploadAvatar")}</p>
         </Link>
       </div>
     </div>

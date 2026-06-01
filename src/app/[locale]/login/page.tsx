@@ -160,7 +160,7 @@ export default function LoginPage() {
         }, 1200);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Đã xảy ra lỗi khi đăng nhập.");
+      setErrorMsg(err.message || t("error.default"));
       setIsLoading(false);
     }
   };
@@ -230,7 +230,7 @@ export default function LoginPage() {
               {/* Email field */}
               <div className="group relative">
                 <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-2 group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                  Địa chỉ Email
+                  {t("emailLabel")}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
@@ -251,7 +251,7 @@ export default function LoginPage() {
               <div className="group relative">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-[10px] font-black text-[#5e6792] uppercase tracking-wider group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                    Mật khẩu
+                    {t("passwordLabel")}
                   </label>
                   <Link href="/reset-password" className="text-xs font-bold text-[#3B5C37] hover:text-[#e06b00] transition-colors">
                     {t("forgotPassword")}
@@ -299,7 +299,7 @@ export default function LoginPage() {
               <div className="relative flex items-center my-6">
                 <div className="flex-grow border-t border-[#e1e4ed]/70"></div>
                 <span className="flex-shrink mx-4 text-[10px] font-bold text-[#97a0c3] uppercase tracking-wider">
-                  Hoặc đăng nhập bằng
+                  {t("orWith")}
                 </span>
                 <div className="flex-grow border-t border-[#e1e4ed]/70"></div>
               </div>
@@ -326,7 +326,7 @@ export default function LoginPage() {
           <div className="text-xs font-semibold text-[#5e6792] mt-8 md:mt-0 text-center md:text-left">
             {t("noAccount")}{" "}
             <Link href="/register" className="text-[#3B5C37] font-bold hover:underline">
-              Đăng ký miễn phí
+              {t("signupLink")}
             </Link>
           </div>
         </div>

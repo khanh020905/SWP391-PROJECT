@@ -122,11 +122,11 @@ export default function RegisterPage() {
         setIsLoading(false);
       }
     } catch (err: any) {
-      let msg = err.message || "Đã xảy ra lỗi trong quá trình đăng ký.";
+      let msg = err.message || t("error.default");
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
-        msg = "Tần suất gửi email xác thực quá nhanh. Vui lòng đợi 1-2 phút trước khi thử lại.";
+        msg = t("error.rateLimit");
       } else if (msg.includes("already registered") || msg.includes("already exists")) {
-        msg = "Địa chỉ email này đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập ngay.";
+        msg = t("error.emailExists");
       }
       setErrorMsg(msg);
       setIsLoading(false);
@@ -156,7 +156,7 @@ export default function RegisterPage() {
       setSuccessMsg(t("verify.resendSuccess"));
       startCountdown();
     } catch (err: any) {
-      let msg = err.message || "Không thể gửi lại email xác nhận.";
+      let msg = err.message || t("error.resendFailed");
       if (msg.includes("rate limit exceeded") || msg.includes("For security purposes")) {
         msg = t("verify.rateLimited");
       }
@@ -229,10 +229,10 @@ export default function RegisterPage() {
           {/* Top text */}
           <div className="relative z-10 max-w-[320px]">
             <span className="text-[10px] font-black tracking-[0.15em] text-[#3B5C37] uppercase bg-[#3B5C37]/10 px-3.5 py-1.5 rounded-full inline-block">
-              HỌC IELTS BẰNG AI
+              {t("heroTag")}
             </span>
             <h3 className="text-3xl font-black text-[#0d153a] mt-5 leading-tight tracking-tight">
-              Bắt đầu hành trình chinh phục Band điểm mơ ước
+              {t("heroTitle")}
             </h3>
           </div>
 
@@ -346,10 +346,10 @@ export default function RegisterPage() {
             <>
               <div className="my-auto max-w-[420px] w-full">
                 <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-1">
-                  Đăng ký tài khoản mới
+                  {t("title")}
                 </h2>
                 <p className="text-xs font-semibold text-[#5e6792] mb-6">
-                  Điền thông tin bên dưới để trải nghiệm phương pháp học tập AI hiệu quả.
+                  {t("subtitle")}
                 </p>
 
                 {/* Error Message */}
@@ -373,7 +373,7 @@ export default function RegisterPage() {
                   {/* Name field */}
                   <div className="group relative">
                     <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                      Họ và Tên
+                      {t("nameLabel")}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
@@ -393,7 +393,7 @@ export default function RegisterPage() {
                   {/* Email field */}
                   <div className="group relative">
                     <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                      Địa chỉ Email
+                      {t("emailLabel")}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
@@ -413,7 +413,7 @@ export default function RegisterPage() {
                   {/* Password field */}
                   <div className="group relative">
                     <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                      Mật khẩu (Tối thiểu 6 ký tự)
+                      {t("passwordLabel")}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
@@ -440,7 +440,7 @@ export default function RegisterPage() {
                   {/* Confirm Password field */}
                   <div className="group relative">
                     <label className="block text-[10px] font-black text-[#5e6792] uppercase tracking-wider mb-1.5 group-focus-within:text-[#3B5C37] transition-colors duration-200">
-                      Xác nhận Mật khẩu
+                      {t("confirmPasswordLabel")}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#97a0c3] group-focus-within:text-[#3B5C37] transition-colors duration-200">
@@ -484,9 +484,9 @@ export default function RegisterPage() {
 
               {/* Footer of card */}
               <div className="text-xs font-semibold text-[#5e6792] mt-6 md:mt-0 text-center md:text-left">
-                Đã có tài khoản?{" "}
+                {t("hasAccount")}{" "}
                 <Link href="/login" className="text-[#3B5C37] font-bold hover:underline">
-                  Đăng nhập ngay
+                  {t("loginLink")}
                 </Link>
               </div>
             </>
@@ -505,7 +505,7 @@ export default function RegisterPage() {
                   className="flex items-center gap-1.5 text-xs font-bold text-[#5e6792] hover:text-[#3B5C37] transition-colors mb-6 bg-transparent border-none cursor-pointer outline-none"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Quay lại</span>
+                  <span>{t("backBtn")}</span>
                 </button>
 
                 {/* Mail Icon */}
@@ -515,15 +515,15 @@ export default function RegisterPage() {
                 </div>
 
                 <h2 className="text-2xl font-extrabold text-[#0d153a] tracking-tight mb-2 text-center">
-                  Xác nhận Email của bạn
+                  {t("verify.title")}
                 </h2>
                 <p className="text-xs font-semibold text-[#5e6792] mb-2 text-center leading-relaxed">
-                  Đăng ký thành công! Đang chờ bạn xác thực Email từ Gmail...
+                  {t("verify.subtitle")}
                 </p>
 
                 {/* Email display */}
                 <div className="bg-[#f0f4fd] border border-[#e1e4ed]/60 rounded-2xl px-4 py-3 text-center mb-6">
-                  <p className="text-[11px] text-[#5e6792] font-semibold mb-1">Chúng tôi đã gửi một liên kết xác nhận tài khoản đến địa chỉ:</p>
+                  <p className="text-[11px] text-[#5e6792] font-semibold mb-1">{t("verify.emailSentTo")}</p>
                   <p className="text-sm font-black text-[#0d153a] break-all">{email}</p>
                 </div>
 
@@ -534,11 +534,11 @@ export default function RegisterPage() {
                       <Shield className="w-3.5 h-3.5" />
                     </div>
                     <p className="text-[11px] text-[#5e6792] font-semibold leading-relaxed">
-                      Vui lòng mở hòm thư của bạn và bấm vào liên kết xác nhận để kích hoạt tài khoản.
+                      {t("verify.instruction")}
                     </p>
                   </div>
                   <p className="text-[11px] text-[#3B5C37] font-bold leading-relaxed pl-10">
-                    Sau khi bấm nút xác thực trong email, hệ thống sẽ tự động chuyển hướng bạn đến trang Đăng nhập để tiếp tục.
+                    {t("verify.autoRedirect")}
                   </p>
                 </div>
 
@@ -559,7 +559,7 @@ export default function RegisterPage() {
                 {/* Resend */}
                 <div className="text-center">
                   <p className="text-[11px] font-semibold text-[#97a0c3] mb-2">
-                    * Lưu ý: Hãy kiểm tra cả hòm thư <strong>Spam (Thư rác)</strong> hoặc <strong>Quảng cáo</strong> nếu không nhận được sau 1-2 phút.
+                    {t("verify.spamNote")}
                   </p>
                   <button
                     type="button"
@@ -573,9 +573,9 @@ export default function RegisterPage() {
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
                     {countdown > 0 ? (
-                      <span>Gửi lại sau {countdown}s</span>
+                      <span>{t("verify.resendWait", { countdown })}</span>
                     ) : (
-                      <span>Gửi lại email xác nhận</span>
+                      <span>{t("verify.resendBtn")}</span>
                     )}
                   </button>
                 </div>
@@ -583,9 +583,9 @@ export default function RegisterPage() {
 
               {/* Footer */}
               <div className="text-xs font-semibold text-[#5e6792] mt-6 md:mt-0 text-center md:text-left">
-                Đã có tài khoản?{" "}
+                {t("hasAccount")}{" "}
                 <Link href="/login" className="text-[#3B5C37] font-bold hover:underline">
-                  Đăng nhập ngay
+                  {t("loginLink")}
                 </Link>
               </div>
             </>
