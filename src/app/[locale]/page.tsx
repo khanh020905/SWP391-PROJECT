@@ -4,6 +4,7 @@ import React from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 
 const getSkillCards = (t: any) => [
@@ -216,166 +217,136 @@ export default function Home() {
         </div>
       </section>
 
-      <main className="mx-auto w-full max-w-[1160px] px-4 pb-6 pt-3 md:px-8 md:pb-8 md:pt-4">
-        <section className="mb-6 rounded-3xl bg-white p-8 md:p-12 shadow-[0_4px_32px_rgba(20,28,60,0.07)]">
-          <h2 className="text-center text-3xl md:text-4xl font-extrabold text-[#141c41]">
-            {t("cambridge.title")} <span className="text-[#3B5C37]">{t("cambridge.range")}</span>
-          </h2>
-          <p className="mt-3 text-center text-[15px] text-[#5a6282]">{t("cambridge.desc")}</p>
+      <div className="mx-auto w-full max-w-[1480px] px-4 md:px-8 mb-6 mt-4">
+        <section 
+          className="rounded-[40px] py-12 md:py-20 px-4 relative overflow-hidden shadow-[0_4px_32px_rgba(20,28,60,0.07)]"
+          style={{
+            backgroundImage: "url('/assets/cambridge/background.jpeg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+          }}
+        >
+          <div className="relative z-10 w-full mx-auto">
+            {/* Title */}
+            <h2 className="text-center text-3xl md:text-4xl lg:text-5xl font-black text-[#1b3d1e]">
+              {t("cambridge.title")} <span className="text-[#568140]">{t("cambridge.range")}</span>
+            </h2>
+            <p className="mt-3 text-center text-[15px] md:text-[17px] text-[#2d5727] font-semibold tracking-wide">{t("cambridge.desc")}</p>
 
-          {/* Book covers */}
-          <div className="mt-10 flex items-center justify-center gap-3 md:gap-4 flex-wrap">
-            {[
-              { num: "9", color: "#a78bfa" },
-              { num: "10", color: "#818cf8" },
-              { num: "11", color: "#c084fc" },
-              { num: "12", color: "#a78bfa" },
-              { num: "13", color: "#818cf8" },
-            ].map((book) => (
-              <div
-                key={book.num}
-                className="group relative w-[90px] md:w-[115px] aspect-[3/4.2] rounded-lg overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-105 hover:-translate-y-1 shadow-[0_12px_28px_rgba(16,21,60,0.25)]"
-                style={{
-                  background: `linear-gradient(145deg, #111424 0%, #151932 60%, ${book.color}40 100%)`,
-                  border: "1px solid rgba(255,255,255,0.05)"
-                }}
-              >
-                {/* Spine effect */}
-                <div className="absolute left-0 top-0 h-full w-[6px]" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%)" }} />
-
-                {/* Content */}
-                <div className="relative z-10 flex flex-col items-start justify-start h-full pl-3 pr-2 py-3 w-full">
-                  {/* Top: Logo and Shield */}
-                  <div className="flex justify-between w-full items-start mb-1.5">
-                    <div className="flex flex-col">
-                      <span className="text-[5px] md:text-[6px] font-bold tracking-[0.05em] text-white/90 leading-none">CAMBRIDGE</span>
-                      <span className="text-[4px] md:text-[5px] font-medium tracking-wide text-white/70 leading-none mt-0.5">UNIVERSITY PRESS</span>
-                    </div>
-                    {/* Gold Shield Placeholder */}
-                    <div className="w-2.5 h-3 bg-gradient-to-br from-[#f2d06b] to-[#b8860b] rounded-b-sm shadow-sm" />
+            {/* Book Cards Container */}
+            <div className="mt-12 w-full overflow-x-auto pb-8 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex items-center justify-start xl:justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 min-w-max px-4 xl:px-0 mx-auto">
+                {[
+                  { num: "9", src: "/assets/cambridge/cam-9.jpeg" },
+                  { num: "10", src: "/assets/cambridge/cam-10.jpeg" },
+                ].map((book) => (
+                  <div
+                    key={book.num}
+                    className="snap-start group relative w-[170px] sm:w-[200px] md:w-[240px] lg:w-[260px] aspect-[2/3] rounded-2xl md:rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-3 mix-blend-multiply"
+                  >
+                    <img src={book.src} alt={`Cambridge IELTS ${book.num}`} className="w-full h-full object-cover" />
                   </div>
+                ))}
 
-                  <div className="text-[6.5px] md:text-[7.5px] font-medium tracking-[0.1em] text-white/90 mt-1">CAMBRIDGE</div>
-                  <div className="text-[22px] md:text-[26px] font-extrabold text-white leading-none mt-0.5 tracking-tight font-sans">IELTS</div>
+                {/* Dots separator */}
+                <div className="snap-start flex items-center justify-center w-[30px] sm:w-[40px] md:w-[50px] self-center">
+                  <span className="text-3xl md:text-5xl font-black text-[#1b3d1e] tracking-[0.15em] opacity-90 -mt-8">...</span>
+                </div>
 
-                  {/* Number */}
-                  <div className="text-[36px] md:text-[44px] font-normal mt-0.5 leading-none" style={{ color: book.color }}>
-                    {book.num}
-                  </div>
-
-                  {/* Academic */}
-                  <div className="text-[5px] md:text-[6px] font-semibold tracking-[0.1em] text-white/80 mt-auto mb-1">ACADEMIC</div>
-
-                  {/* Bottom right graphic */}
-                  <div className="absolute bottom-2 right-2 w-8 h-8 opacity-50 flex items-end justify-end">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="w-full h-full" style={{ color: book.color }}>
-                      <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
-                      <circle cx="12" cy="12" r="4" />
-                      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-                    </svg>
-                  </div>
+                {/* Book 20 - Orange */}
+                <div
+                  className="snap-start group relative w-[170px] sm:w-[200px] md:w-[240px] lg:w-[260px] aspect-[2/3] rounded-2xl md:rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-3 mix-blend-multiply"
+                >
+                  <img src="/assets/cambridge/cam-20.jpeg" alt="Cambridge IELTS 20" className="w-full h-full object-cover" />
                 </div>
               </div>
-            ))}
-
-            {/* Dots separator */}
-            <div className="flex items-center justify-center w-[30px] md:w-[40px] self-center">
-              <span className="text-xl md:text-2xl font-bold text-[#141c41] tracking-[0.15em]">...</span>
             </div>
 
-            {/* Book 20 - Orange */}
-            <div
-              className="group relative w-[90px] md:w-[115px] aspect-[3/4.2] rounded-lg overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-105 hover:-translate-y-1 shadow-[0_12px_28px_rgba(230,90,16,0.25)]"
-              style={{
-                background: "linear-gradient(145deg, #ff8c42 0%, #f46217 50%, #d63d00 100%)",
-                border: "1px solid rgba(255,255,255,0.1)"
-              }}
-            >
-              <div className="absolute left-0 top-0 h-full w-[6px]" style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.15) 100%)" }} />
-              <div className="relative z-10 flex flex-col items-start justify-start h-full pl-3 pr-2 py-3 w-full">
-                <div className="flex justify-between w-full items-start mb-1.5">
-                  <div className="flex flex-col">
-                    <span className="text-[5px] md:text-[6px] font-bold tracking-[0.05em] text-white/90 leading-none">CAMBRIDGE</span>
-                    <span className="text-[4px] md:text-[5px] font-medium tracking-wide text-white/80 leading-none mt-0.5">UNIVERSITY PRESS</span>
-                  </div>
-                  <div className="w-2.5 h-3 bg-gradient-to-br from-[#f2d06b] to-[#b8860b] rounded-b-sm shadow-sm" />
-                </div>
+            {/* Timeline progress bar */}
+            <div className="mt-14 flex items-center justify-center w-full max-w-[800px] mx-auto px-2 md:px-4">
+              {/* Number 9 circle */}
+              <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#9dae8f] flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md">
+                9
+              </div>
 
-                <div className="text-[6.5px] md:text-[7.5px] font-medium tracking-[0.1em] text-white/90 mt-1">CAMBRIDGE</div>
-                <div className="text-[22px] md:text-[26px] font-extrabold text-white leading-none mt-0.5 tracking-tight font-sans">IELTS</div>
+              {/* Progress line with dots */}
+              <div
+                className="flex-1 h-[6px] mx-2 md:mx-4"
+                style={{
+                  background: "linear-gradient(90deg, #9dae8f 0%, #3B5C37 100%)",
+                  WebkitMaskImage: "radial-gradient(circle, black 3px, transparent 3px), linear-gradient(black, black)",
+                  WebkitMaskSize: "32px 6px, 100% 2px",
+                  WebkitMaskPosition: "center, center",
+                  WebkitMaskRepeat: "repeat-x, no-repeat",
+                }}
+              />
 
-                <div className="text-[36px] md:text-[44px] font-normal mt-0.5 leading-none text-white">
-                  20
-                </div>
+              {/* Number 20 circle */}
+              <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#2c4c2c] flex items-center justify-center text-white text-base md:text-lg font-bold shadow-md">
+                20
+              </div>
+            </div>
 
-                <div className="text-[5px] md:text-[6px] font-semibold tracking-[0.1em] text-white/90 mt-auto mb-1">ACADEMIC</div>
-
-                <div className="absolute bottom-2 right-2 w-8 h-8 opacity-40 flex items-end justify-end">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" className="w-full h-full">
-                    <circle cx="12" cy="12" r="8" strokeDasharray="2 2" />
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+            {/* Feature badges */}
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 md:gap-8 lg:gap-10 bg-white/80 backdrop-blur-md px-6 md:px-10 py-4 md:py-5 rounded-3xl md:rounded-full mx-auto w-max max-w-full shadow-sm border border-white/60">
+              {/* Feature 1 */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-[#e8efe5] flex items-center justify-center shadow-[0_2px_10px_rgba(27,61,30,0.05)]">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-[#568140]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-[#1b3d1e]">{t("cambridge.features.official")}</span>
+                  <span className="text-[10px] md:text-[11px] font-medium text-[#3b5e3b] mt-0.5 max-w-[140px] leading-[1.3]">100% official Cambridge IELTS practice tests.</span>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Timeline progress bar */}
-          <div className="mt-10 flex items-center justify-center w-full max-w-[800px] mx-auto px-2 md:px-4">
-            {/* Number 9 circle */}
-            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#B38F4D] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(124,58,237,0.4)]">
-              9
-            </div>
+              {/* Feature 2 */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-[#e8efe5] flex items-center justify-center shadow-[0_2px_10px_rgba(27,61,30,0.05)]">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-[#568140]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-[#1b3d1e]">{t("cambridge.features.realExam")}</span>
+                  <span className="text-[10px] md:text-[11px] font-medium text-[#3b5e3b] mt-0.5 max-w-[140px] leading-[1.3]">Practice in real exam conditions.</span>
+                </div>
+              </div>
 
-            {/* Progress line with dots */}
-            <div
-              className="flex-1 h-[6px] mx-2 md:mx-4"
-              style={{
-                background: "linear-gradient(90deg, #B38F4D 0%, #3B5C37 100%)",
-                WebkitMaskImage: "radial-gradient(circle, black 2.5px, transparent 2.5px), linear-gradient(black, black)",
-                WebkitMaskSize: "28px 6px, 100% 2px",
-                WebkitMaskPosition: "center, center",
-                WebkitMaskRepeat: "repeat-x, no-repeat",
-              }}
-            />
+              {/* Feature 3 */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-[#e8efe5] flex items-center justify-center shadow-[0_2px_10px_rgba(27,61,30,0.05)]">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-[#568140]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-[#1b3d1e]">{t("cambridge.features.aiEval")}</span>
+                  <span className="text-[10px] md:text-[11px] font-medium text-[#3b5e3b] mt-0.5 max-w-[140px] leading-[1.3]">Get smart AI feedback to improve faster.</span>
+                </div>
+              </div>
 
-            {/* Number 20 circle */}
-            <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#3B5C37] flex items-center justify-center text-white text-sm md:text-base font-bold shadow-[0_4px_12px_rgba(59, 92, 55,0.4)]">
-              20
-            </div>
-          </div>
-
-          {/* Feature badges */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 md:gap-10">
-            <div className="flex items-center gap-2 text-[#4b5472]">
-              <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.official")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[#4b5472]">
-              <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.realExam")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[#4b5472]">
-              <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.aiEval")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[#4b5472]">
-              <svg className="w-5 h-5 text-[#8b90b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-semibold text-[#141c41]">{t("cambridge.features.detailedFeedback")}</span>
+              {/* Feature 4 */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-[#e8efe5] flex items-center justify-center shadow-[0_2px_10px_rgba(27,61,30,0.05)]">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-[#568140]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-[#1b3d1e]">{t("cambridge.features.detailedFeedback")}</span>
+                  <span className="text-[10px] md:text-[11px] font-medium text-[#3b5e3b] mt-0.5 max-w-[140px] leading-[1.3]">Understand your strengths and focus areas.</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
+      </div>
 
+      <main className="mx-auto w-full max-w-[1160px] px-4 pb-6 pt-3 md:px-8 md:pb-8 md:pt-4">
         <section className="mb-6 grid gap-6 md:grid-cols-2 items-center">
           {/* Left side - Text content */}
           <div className="p-6 md:p-8">
@@ -575,90 +546,145 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Why QualiCode */}
-        <section className="mb-6 rounded-3xl bg-[linear-gradient(135deg,#0c1a0e_0%,#1a331c_40%,#2a4d2c_100%)] px-6 py-8 md:px-10 md:py-10 text-white overflow-hidden relative">
-          {/* Decorative blurred circles */}
-          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-[#3B5C37]/10 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-[#4f84ff]/10 blur-3xl" />
-
-          <h3 className="mb-8 text-center text-2xl md:text-3xl font-extrabold relative z-10">
-            {t("features.titlePrefix")} <span className="text-[#B38F4D]">{t("features.titleHighlight")}</span>
-          </h3>
-          <div className="relative z-10 grid grid-cols-2 gap-4 md:gap-0 md:grid-cols-5 md:divide-x md:divide-white/10">
-            {[
-              {
-                title: t("features.items.aiLearning.title"),
-                desc: t("features.items.aiLearning.desc"),
-                icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
-                    {/* Brain icon */}
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c-3.5 0-6.5 1.2-8.5 3.5C13.5 14 12.5 17 13 20c-2 1-3 3-3 5.5 0 3 2 5.5 4.5 6 .5 2.5 2.5 4.5 5.5 4.5" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c3.5 0 6.5 1.2 8.5 3.5 2 2.5 3 5.5 2.5 8.5 2 1 3 3 3 5.5 0 3-2 5.5-4.5 6-.5 2.5-2.5 4.5-5.5 4.5" />
-                    <path strokeLinecap="round" d="M24 8v28M18 16h12M16 22h4M28 22h4M18 28h4M26 28h4" />
-                  </svg>
-                ),
-              },
-              {
-                title: t("features.items.adaptive.title"),
-                desc: t("features.items.adaptive.desc"),
-                icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
-                    {/* Target/bullseye icon */}
-                    <circle cx="24" cy="24" r="18" />
-                    <circle cx="24" cy="24" r="12" />
-                    <circle cx="24" cy="24" r="6" />
-                    <circle cx="24" cy="24" r="2" fill="#B38F4D" />
-                    <path strokeLinecap="round" d="M34 14l-7 7" />
-                    <path strokeLinecap="round" d="M32 10h6v6" />
-                  </svg>
-                ),
-              },
-              {
-                title: t("features.items.cambridge.title"),
-                desc: t("features.items.cambridge.desc"),
-                icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
-                    {/* Book with bookmark icon */}
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8a4 4 0 014 4v22a3 3 0 00-3-3H8V10z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M40 10h-8a4 4 0 00-4 4v22a3 3 0 013-3h9V10z" />
-                    <path strokeLinecap="round" d="M18 18h4M26 18h4M18 24h4M26 24h4" />
-                    <path strokeLinejoin="round" d="M32 10v10l3-2.5 3 2.5V10" fill="none" />
-                  </svg>
-                ),
-              },
-              {
-                title: t("features.items.feedback.title"),
-                desc: t("features.items.feedback.desc"),
-                icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
-                    {/* Chat bubble with lightning */}
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h24a2 2 0 012 2v16a2 2 0 01-2 2H16l-6 6v-6H8a2 2 0 01-2-2V12a2 2 0 012-2z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 16l-3 6h6l-3 6" />
-                    <circle cx="38" cy="18" r="7" />
-                    <path strokeLinecap="round" d="M36 16l2 2 4-4" />
-                  </svg>
-                ),
-              },
-              {
-                title: t("features.items.privacy.title"),
-                desc: t("features.items.privacy.desc"),
-                icon: (
-                  <svg className="w-10 h-10 mx-auto" viewBox="0 0 48 48" fill="none" stroke="#B38F4D" strokeWidth={1.8}>
-                    {/* Shield lock icon */}
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M24 4L8 12v10c0 11 7 20 16 22 9-2 16-11 16-22V12L24 4z" />
-                    <rect x="18" y="22" width="12" height="10" rx="2" strokeLinejoin="round" />
-                    <path strokeLinecap="round" d="M21 22v-4a3 3 0 016 0v4" />
-                    <circle cx="24" cy="27" r="1.5" fill="#B38F4D" />
-                  </svg>
-                ),
-              },
-            ].map((f) => (
-              <div key={f.title} className="group flex flex-col items-center text-center px-3 py-4 md:px-5 transition-all duration-300 hover:scale-[1.03]">
-                <div className="mb-3">{f.icon}</div>
-                <div className="text-[14px] font-bold mb-1">{f.title}</div>
-                <div className="text-[11px] text-white/55 leading-relaxed">{f.desc}</div>
+        {/* Why Quali IELTS */}
+        <section 
+          className="mb-6 rounded-3xl py-10 md:py-14 text-center overflow-hidden relative shadow-[0_4px_32px_rgba(20,28,60,0.07)]"
+          style={{
+            backgroundImage: "url('/assets/why-quali-ielts/background.jpeg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+          }}
+        >
+          <div className="relative z-10 px-4 md:px-8">
+            {/* Title Group */}
+            <div className="flex flex-col items-center justify-center mb-10 md:mb-14">
+              <div className="flex items-center justify-center gap-3 md:gap-4 mb-2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#688457" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 -rotate-12">
+                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#1b3d1e] tracking-tight">
+                  {t("features.titlePrefix")} {t("features.titleHighlight")}
+                </h3>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#688457" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 rotate-12">
+                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
               </div>
-            ))}
+              <p className="text-[#3B5C37] font-bold text-[15px] sm:text-[17px] md:text-[19px]">
+                Everything you need to achieve your IELTS goals.
+              </p>
+            </div>
+
+            {/* Cards Container */}
+            <div className="w-full overflow-x-auto pb-8 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex lg:grid lg:grid-cols-5 gap-4 md:gap-5 min-w-max lg:min-w-0 px-4 lg:px-0 w-full 2xl:max-w-[1600px] mx-auto pt-4">
+                {[
+                  { 
+                    src: "/assets/why-quali-ielts/AI-llearning.jpeg", 
+                    title: t("features.items.aiLearning.title"), 
+                    desc: t("features.items.aiLearning.desc"),
+                    badgeBorderClass: "border-[#d8eed0]", 
+                    iconColorClass: "text-[#4a9d4a]",
+                    icon: (
+                      <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c-3.5 0-6.5 1.2-8.5 3.5C13.5 14 12.5 17 13 20c-2 1-3 3-3 5.5 0 3 2 5.5 4.5 6 .5 2.5 2.5 4.5 5.5 4.5" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M24 8c3.5 0 6.5 1.2 8.5 3.5 2 2.5 3 5.5 2.5 8.5 2 1 3 3 3 5.5 0 3-2 5.5-4.5 6-.5 2.5-2.5 4.5-5.5 4.5" />
+                        <path strokeLinecap="round" d="M24 8v28M18 16h12M16 22h4M28 22h4M18 28h4M26 28h4" />
+                      </svg>
+                    )
+                  },
+                  { 
+                    src: "/assets/why-quali-ielts/adaptive-smart.jpeg", 
+                    title: t("features.items.adaptive.title"), 
+                    desc: t("features.items.adaptive.desc"),
+                    badgeBorderClass: "border-[#fce0ad]", 
+                    iconColorClass: "text-[#e08e2f]",
+                    icon: (
+                      <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <circle cx="24" cy="24" r="18" />
+                        <circle cx="24" cy="24" r="12" />
+                        <circle cx="24" cy="24" r="6" />
+                        <circle cx="24" cy="24" r="2" fill="currentColor" />
+                        <path strokeLinecap="round" d="M34 14l-7 7" />
+                        <path strokeLinecap="round" d="M32 10h6v6" />
+                      </svg>
+                    )
+                  },
+                  { 
+                    src: "/assets/why-quali-ielts/cambridge-sta.jpeg", 
+                    title: t("features.items.cambridge.title"), 
+                    desc: t("features.items.cambridge.desc"),
+                    badgeBorderClass: "border-[#cce8cc]", 
+                    iconColorClass: "text-[#4ca44c]",
+                    icon: (
+                      <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8a4 4 0 014 4v22a3 3 0 00-3-3H8V10z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M40 10h-8a4 4 0 00-4 4v22a3 3 0 013-3h9V10z" />
+                        <path strokeLinecap="round" d="M18 18h4M26 18h4M18 24h4M26 24h4" />
+                        <path strokeLinejoin="round" d="M32 10v10l3-2.5 3 2.5V10" fill="none" />
+                      </svg>
+                    )
+                  },
+                  { 
+                    src: "/assets/why-quali-ielts/real-time-feeback.jpeg", 
+                    title: t("features.items.feedback.title"), 
+                    desc: t("features.items.feedback.desc"),
+                    badgeBorderClass: "border-[#fcd0ce]", 
+                    iconColorClass: "text-[#e86054]",
+                    icon: (
+                      <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h24a2 2 0 012 2v16a2 2 0 01-2 2H16l-6 6v-6H8a2 2 0 01-2-2V12a2 2 0 012-2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 16l-3 6h6l-3 6" />
+                        <circle cx="38" cy="18" r="7" />
+                        <path strokeLinecap="round" d="M36 16l2 2 4-4" />
+                      </svg>
+                    )
+                  },
+                  { 
+                    src: "/assets/why-quali-ielts/privacy.jpeg", 
+                    title: t("features.items.privacy.title"), 
+                    desc: t("features.items.privacy.desc"),
+                    badgeBorderClass: "border-[#c4e9ea]", 
+                    iconColorClass: "text-[#3f9ba1]",
+                    icon: (
+                      <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M24 4L8 12v10c0 11 7 20 16 22 9-2 16-11 16-22V12L24 4z" />
+                        <rect x="18" y="22" width="12" height="10" rx="2" strokeLinejoin="round" />
+                        <path strokeLinecap="round" d="M21 22v-4a3 3 0 016 0v4" />
+                        <circle cx="24" cy="27" r="1.5" fill="currentColor" />
+                      </svg>
+                    )
+                  }
+                ].map((card, idx) => (
+                  <div 
+                    key={idx} 
+                    className="snap-start flex-shrink-0 w-[300px] sm:w-[320px] lg:w-full relative flex flex-col items-center pt-2 px-5 md:px-6 transition-all duration-300 hover:-translate-y-2 group"
+                  >
+                    {/* Background Card Shape */}
+                    <div className="absolute inset-0 top-[35px] rounded-[20px] overflow-hidden shadow-[0_8px_24px_rgba(27,61,30,0.1)] group-hover:shadow-[0_16px_32px_rgba(27,61,30,0.15)] transition-all duration-300 z-0 bg-[#f9faf7]">
+                      <img src={card.src} alt={card.title} className="w-full h-full object-cover object-bottom opacity-95 mix-blend-multiply" />
+                    </div>
+
+                    {/* Circle Badge (Half-outside the card background) */}
+                    <div className={`relative z-10 mt-[0px] w-[70px] h-[70px] rounded-full bg-white border-[4px] ${card.badgeBorderClass} flex items-center justify-center ${card.iconColorClass} shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                      {card.icon}
+                    </div>
+
+                    {/* Text Content */}
+                    <div className="relative z-10 flex flex-col items-center text-center w-full mt-4 px-1">
+                      <h4 className="text-[17px] md:text-[19px] font-extrabold text-[#1b3d1e] mb-2 leading-tight drop-shadow-sm">
+                        {card.title}
+                      </h4>
+                      <p className="text-[13px] md:text-[14px] text-[#2d4a2d] font-semibold leading-relaxed px-1">
+                        {card.desc}
+                      </p>
+                    </div>
+
+                    {/* Invisible Spacer to give the card height for the dinosaur image to show fully */}
+                    <div className="w-full h-[180px] sm:h-[200px] md:h-[220px] relative z-0"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -765,6 +791,7 @@ export default function Home() {
         </section>
       </main>
 
+      <Footer />
     </div>
   );
 }
