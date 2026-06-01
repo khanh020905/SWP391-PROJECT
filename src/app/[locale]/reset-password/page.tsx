@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // OTP state
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", "", "", ""]);
 
   // Detect recovery session on mount
   useEffect(() => {
@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
       if (!res.ok) throw new Error(data.error);
       setSuccessMsg("Email đặt lại mật khẩu đã được gửi lại!");
       startCountdown();
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", "", "", "", "", ""]);
       setExpiryTimerTrigger((prev) => prev + 1);
     } catch (err: any) {
       let msg = err.message || "Không thể gửi lại email.";
@@ -181,8 +181,8 @@ export default function ResetPasswordPage() {
 
   const handleVerifyOTP = async () => {
     const otpCode = otp.join("");
-    if (otpCode.length !== 6) {
-      setErrorMsg("Vui lòng nhập đầy đủ mã OTP 6 số.");
+    if (otpCode.length !== 8) {
+      setErrorMsg("Vui lòng nhập đầy đủ mã OTP 8 số.");
       return;
     }
 
@@ -280,7 +280,7 @@ export default function ResetPasswordPage() {
                   Khôi phục mật khẩu
                 </h2>
                 <p className="text-xs font-semibold text-[#5e6792] mb-8 leading-relaxed">
-                  Nhập địa chỉ Email tài khoản của bạn để nhận mã xác thực OTP 6 số khôi phục mật khẩu.
+                  Nhập địa chỉ Email tài khoản của bạn để nhận mã xác thực OTP 8 số khôi phục mật khẩu.
                 </p>
 
                 {/* Messages */}
@@ -348,7 +348,7 @@ export default function ResetPasswordPage() {
                     setStep(1);
                     setErrorMsg("");
                     setSuccessMsg("");
-                    setOtp(["", "", "", "", "", ""]);
+                    setOtp(["", "", "", "", "", "", "", ""]);
                   }}
                   className="flex items-center gap-1.5 text-xs font-bold text-[#5e6792] hover:text-[#3B5C37] transition-colors mb-6 bg-transparent border-none cursor-pointer outline-none"
                 >
@@ -360,7 +360,7 @@ export default function ResetPasswordPage() {
                   Xác thực OTP
                 </h2>
                 <p className="text-xs font-semibold text-[#5e6792] mb-2 leading-relaxed">
-                  Mã xác thực 6 số khôi phục mật khẩu đã được gửi đến email:
+                  Mã xác thực 8 số khôi phục mật khẩu đã được gửi đến email:
                 </p>
                 <p className="text-xs font-bold text-[#0f1738] mb-6 bg-[#f0f4fd] py-2 px-4 rounded-xl border border-[#e1e4ed]/40 inline-block w-fit break-all">
                   {email}
@@ -427,7 +427,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={handleVerifyOTP}
-                  disabled={isLoading || otp.join("").length !== 6 || expiryCountdown <= 0}
+                  disabled={isLoading || otp.join("").length !== 8 || expiryCountdown <= 0}
                   className="w-full h-13 bg-[#3B5C37] hover:bg-[#ff8e26] text-white font-bold text-xs rounded-2xl shadow-[0_10px_25px_rgba(59, 92, 55,0.25)] hover:shadow-[0_12px_32px_rgba(59, 92, 55,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer border-none outline-none"
                 >
                   {isLoading ? (
