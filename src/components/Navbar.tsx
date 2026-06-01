@@ -90,19 +90,10 @@ export default function Navbar() {
           <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-12 w-auto object-contain" />
           <span className="tracking-tight">Quali IELTS</span>
         </div>
-        <nav className="hidden items-center gap-8 text-sm font-bold text-[#4e5c4c] md:flex">
-          <Link href="/" className="hover:text-[#3B5C37] transition-colors">{t("home")}</Link>
-          <Link href="/speaking" className="text-[#3B5C37] font-black flex items-center gap-1 transition-all hover:scale-105">
-            <Sparkles className="w-3.5 h-3.5 animate-pulse text-[#3B5C37]" />
-            <span>{t("speaking")}</span>
-          </Link>
-          <Link href="/exam/review" className="hover:text-[#3B5C37] transition-colors">{t("review")}</Link>
-          <a href="#" className="hover:text-[#3B5C37] transition-colors">Cambridge Cams</a>
-          <a href="#" className="hover:text-[#3B5C37] transition-colors">Pricing</a>
-          <a href="#" className="hover:text-[#3B5C37] transition-colors">About Us</a>
-        </nav>
+        {/* Nav removed as requested */}
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+          <LanguageSwitcher />
           {loading ? (
             <div className="w-8 h-8 border-2 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
           ) : user ? (
@@ -174,7 +165,6 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <LanguageSwitcher />
               <Link
                 href="/auth"
                 className="rounded-xl border border-[#c7d1b8] px-5 py-2 text-sm font-semibold hover:bg-white/40 transition-colors cursor-pointer select-none text-[#1b3d1e]"

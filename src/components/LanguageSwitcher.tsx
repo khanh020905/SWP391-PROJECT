@@ -9,9 +9,7 @@ export default function LanguageSwitcher() {
 
   // Toggle between 'vi' and 'en'
   const nextLocale = locale === "vi" ? "en" : "vi";
-  const displayLabel = locale === "vi" ? "EN" : "VI"; // as per user spec nav.switchLang, but it's simpler to just show what they switch to or the current one.
-  // Wait, user specifies:
-  // nav.switchLang: EN for Vietnamese (switch to EN), VI for English (switch to VI)
+  const displayLabel = locale === "vi" ? "VI" : "EN";
 
   return (
     <Link
