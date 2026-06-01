@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     async function checkUser() {
       const urlParams = new URLSearchParams(window.location.search);
-      
+
       // Check if arriving from a downgrade/insufficient permissions redirect
       const errorParam = urlParams.get("error");
       if (errorParam === "insufficient_permissions") {
@@ -38,7 +38,6 @@ export default function LoginPage() {
         // Log out immediately to clear auto-sign-in and let them log in manually
         await supabase.auth.signOut();
         setSuccessMsg(t("success.activated"));
-        
         // Clean up URL query parameters/hash so refreshing doesn't show successMsg again
         if (typeof window !== "undefined" && window.history.replaceState) {
           const newUrl = window.location.pathname;
@@ -58,7 +57,7 @@ export default function LoginPage() {
             hasSession = true;
             sessionRole = mockUser.role || "GUEST";
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       if (!hasSession) {
@@ -67,7 +66,7 @@ export default function LoginPage() {
           if (session) {
             hasSession = true;
             let role = session.user.user_metadata?.role;
-            
+
             // Handle new Google OAuth users that do not have a role yet
             if (!role) {
               role = "STUDENT";
@@ -115,6 +114,7 @@ export default function LoginPage() {
           name: "Admin QualiIelts (Bypass)",
           role: "ADMIN"
         }));
+        document.cookie = "sb-custom-auth-token=true; path=/; max-age=86400; SameSite=Lax";
       }
       setSuccessMsg(t("success.loggedIn"));
       setTimeout(() => {
@@ -149,8 +149,11 @@ export default function LoginPage() {
           throw new Error(t("error.accountLocked"));
         }
 
+        if (typeof window !== "undefined") {
+          document.cookie = "sb-custom-auth-token=true; path=/; max-age=86400; SameSite=Lax";
+        }
+
         setSuccessMsg(t("success.loggedIn"));
-        
         setTimeout(() => {
           if (role === "ADMIN") {
             window.location.href = "/admin/users";
@@ -185,17 +188,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f4f5f9] p-4 md:p-6 overflow-hidden relative">
-      
+
       {/* Background soft glowing pastel circles matching the exact image color palette */}
       <div className="absolute top-[-10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-[#ffe8d6] via-[#f5e1ff] to-[#dcf0ff] opacity-75 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-15%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-[#f5e1ff] via-[#e8e2ff] to-[#ffece0] opacity-75 blur-3xl pointer-events-none" />
-      
+
       {/* Container card */}
       <div className="w-full max-w-[1100px] min-h-[640px] grid md:grid-cols-2 rounded-[32px] overflow-hidden bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_24px_64px_rgba(15,23,56,0.08)] relative z-10 animate-fade-in">
-        
+
         {/* Left Side: Premium Login Form */}
         <div className="flex flex-col justify-between p-8 md:p-14 relative">
-          
+
           {/* Logo brand */}
           <div className="flex items-center gap-1.5 text-2xl font-black text-[#0f1738] mb-8 md:mb-0 select-none">
             <span className="text-[#3B5C37] font-black">*</span>
@@ -241,7 +244,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nguyentrantkhietdan@gmail.com"
+                    placeholder="nguyentrankhietdan@gmail.com"
                     className="w-full pl-11 pr-4 py-3 bg-[#f0f4fd] border border-[#e1e4ed]/40 rounded-2xl text-[#0f1738] font-semibold text-xs placeholder-[#97a0c3]/70 focus:bg-white focus:border-[#3B5C37] focus:ring-4 focus:ring-[#3B5C37]/10 transition-all duration-300 outline-none"
                   />
                 </div>
@@ -333,13 +336,13 @@ export default function LoginPage() {
 
         {/* Right Side: Custom Abstract Art Panel using exact color system and orbits from image */}
         <div className="hidden md:flex flex-col justify-between p-12 bg-gradient-to-br from-[#fafaff] via-[#f7ebff] to-[#fff5ec] relative overflow-hidden border-l border-white/50 select-none">
-          
+
           {/* Custom SVG and CSS drawing the orbits and sparks */}
           <div className="absolute inset-0 z-0">
             {/* Background glowing spheres matching image */}
             <div className="absolute top-[45%] left-[55%] -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full bg-gradient-to-tr from-[#ffe8d6] via-[#f3dbff] to-[#d6e4ff] opacity-80 filter blur-3xl animate-[pulse_8s_ease-in-out_infinite]" />
             <div className="absolute top-[32%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-gradient-to-br from-[#ffccd5]/50 to-[#f4f2eb]/50 filter blur-2xl animate-[pulse_6s_ease-in-out_infinite]" />
-            
+
             {/* SVG curves & orbits representing the thin lines in the image */}
             <svg className="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 500 700" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Curved orbit 1 (Orange/Pink gradient) */}
@@ -348,7 +351,7 @@ export default function LoginPage() {
               <path d="M-50,600 C200,680 400,500 480,250 C550,0 450,-150 450,-150" stroke="url(#orbit-purple)" strokeWidth="1" />
               {/* Curved orbit 3 (Green/Teal gradient) */}
               <path d="M-20,680 C250,720 450,550 510,300" stroke="url(#orbit-teal)" strokeWidth="1" />
-              
+
               {/* Star Sparkle SVG Shapes matching the sparkle icons in the background */}
               <g transform="translate(380, 180)">
                 <path d="M0,-12 L3,-3 L12,0 L3,3 L0,12 L-3,3 L-12,0 L-3,-3 Z" fill="#3B5C37" className="animate-pulse" />
@@ -395,7 +398,7 @@ export default function LoginPage() {
           <div className="relative z-10 my-auto flex justify-center py-6">
             <div className="w-[320px] rounded-3xl bg-white border border-white shadow-[0_20px_50px_rgba(25,12,6,0.04)] p-6 relative overflow-hidden transition-transform duration-500 hover:scale-[1.03] group">
               <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-gradient-to-tr from-[#3B5C37]/10 to-[#B38F4D]/10 blur-xl" />
-              
+
               {/* Header inside widget */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <div className="flex items-center gap-2">
@@ -465,7 +468,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-        
+
       </div>
     </div>
   );

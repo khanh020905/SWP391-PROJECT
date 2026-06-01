@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import AuthCookieManager from "@/components/AuthCookieManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col h-full antialiased`}
     >
       <NextIntlClientProvider locale={resolvedParams.locale} messages={messages}>
+        <AuthCookieManager />
         {children}
       </NextIntlClientProvider>
     </div>
