@@ -1,0 +1,408 @@
+"use client";
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  FileText,
+  PenLine,
+  Save,
+  Send,
+} from "lucide-react";
+import {
+  WRITING_STORAGE_KEY,
+  WRITING_TASKS,
+  WRITING_TEST_META,
+} from "@/lib/writingMockData";
+import {
+  buildWritingFeedback,
+  countWords,
+  saveWritingAttempt,
+} from "@/lib/writingStorage";
+import type {
+  WritingPersistedState,
+  WritingTask,
+  WritingTaskType,
+} from "@/types/writing";
+
+const INITIAL_SECONDS = WRITING_TEST_META.durationMinutes * 60;
+
+function formatTime(seconds: number) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
+function loadPersisted(): Partial<WritingPersistedState> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(WRITING_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as WritingPersistedState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function TaskChart({ task }: { task: WritingTask }) {
+  if (!task.dataPoints?.length) return null;
+
+  const years = task.dataPoints[0]?.values.map((value) => value.name) ?? [];
+  const palette = ["#3B5C37", "#2563eb", "#B38F4D", "#7c3aed"];
+
+  return (
+    <div className="mt-5 rounded-xl border border-[#e6eadf] bg-white p-4">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-black text-[#0f1738]">{task.visualTitle}</h3>
+          <p className="mt-1 text-xs font-medium text-[#6b7280]">
+            {task.visualDescription}
+          </p>
+        </div>
+        <span className="rounded-full bg-[#f0f4ed] px-2 py-1 text-[10px] font-black text-[#3B5C37]">
+          %
+        </span>
+      </div>
+
+      <div className="space-y-4">
+        {task.dataPoints.map((series, index) => (
+          <div key={series.label}>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[11px] font-black text-[#374151]">
+                {series.label}
+              </span>
+              <span className="text-[10px] font-bold text-[#8a91a8]">
+                {series.values[0]?.value}% → {series.values.at(-1)?.value}%
+              </span>
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {series.values.map((point) => (
+                <div key={`${series.label}-${point.name}`} className="space-y-1">
+                  <div className="flex h-20 items-end rounded bg-[#f3f5f0] px-1">
+                    <div
+                      className="w-full rounded-t"
+                      style={{
+                        height: `${Math.max(8, point.value)}%`,
+                        backgroundColor: palette[index % palette.length],
+                      }}
+                    />
+                  </div>
+                  <p className="text-center text-[9px] font-bold text-[#6b7280]">
+                    {point.value}
+                    {point.suffix}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid grid-cols-5 gap-1.5 border-t border-[#edf0f5] pt-2">
+        {years.map((year) => (
+          <span key={year} className="text-center text-[10px] font-black text-[#6b7280]">
+            {year}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function WritingTestPage() {
+  const router = useRouter();
+  const [answers, setAnswers] = useState<Record<WritingTaskType, string>>({
+    task1: "",
+    task2: "",
+  });
+  const [activeTaskId, setActiveTaskId] = useState<WritingTaskType>("task1");
+  const [timeRemaining, setTimeRemaining] = useState(INITIAL_SECONDS);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const timerStarted = useRef(false);
+
+  const activeTask = WRITING_TASKS.find((task) => task.id === activeTaskId) ?? WRITING_TASKS[0];
+  const wordCounts = useMemo(
+    () => ({
+      task1: countWords(answers.task1),
+      task2: countWords(answers.task2),
+    }),
+    [answers]
+  );
+  const totalWords = wordCounts.task1 + wordCounts.task2;
+
+  useEffect(() => {
+    const persisted = loadPersisted();
+    if (!persisted) return;
+    queueMicrotask(() => {
+      if (persisted.answers) {
+        setAnswers({
+          task1: persisted.answers.task1 ?? "",
+          task2: persisted.answers.task2 ?? "",
+        });
+      }
+      if (persisted.activeTaskId) setActiveTaskId(persisted.activeTaskId);
+      if (typeof persisted.timeRemaining === "number") {
+        setTimeRemaining(persisted.timeRemaining);
+      }
+      if (persisted.savedAt) setSavedAt(persisted.savedAt);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (timerStarted.current) return;
+    timerStarted.current = true;
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const nextSavedAt = new Date().toISOString();
+    const payload: WritingPersistedState = {
+      answers,
+      activeTaskId,
+      timeRemaining,
+      savedAt: nextSavedAt,
+    };
+    localStorage.setItem(WRITING_STORAGE_KEY, JSON.stringify(payload));
+    setSavedAt(nextSavedAt);
+  }, [answers, activeTaskId, timeRemaining]);
+
+  const submitTest = useCallback(() => {
+    if (isSubmitting) return;
+    const missingTask = WRITING_TASKS.find(
+      (task) => countWords(answers[task.id]) < Math.min(20, task.minimumWords)
+    );
+    const message = missingTask
+      ? `${missingTask.label} còn rất ngắn. Bạn vẫn muốn nộp bài?`
+      : `Nộp bài Writing?\n\nTask 1: ${wordCounts.task1} words\nTask 2: ${wordCounts.task2} words`;
+
+    if (!confirm(message)) return;
+
+    setIsSubmitting(true);
+    const attemptId = `writing_${Date.now()}`;
+    const feedback = buildWritingFeedback(attemptId, answers);
+    saveWritingAttempt({
+      id: attemptId,
+      testId: WRITING_TEST_META.id,
+      answers,
+      wordCounts,
+      timeRemaining,
+      submittedAt: new Date().toISOString(),
+      feedback,
+    });
+    localStorage.removeItem(WRITING_STORAGE_KEY);
+    router.push(`/writing/result?id=${attemptId}`);
+  }, [answers, isSubmitting, router, timeRemaining, wordCounts]);
+
+  useEffect(() => {
+    if (timeRemaining === 0 && !isSubmitting) {
+      submitTest();
+    }
+  }, [isSubmitting, submitTest, timeRemaining]);
+
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden bg-[#eef2ea] text-[#0f1738]">
+      <header className="shrink-0 border-b border-[#dfe6d8] bg-white">
+        <div className="flex h-16 items-center justify-between gap-3 px-4 md:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href="/writing"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#3B5C37] text-white"
+              aria-label="Back to Writing lobby"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black uppercase tracking-wider text-[#3B5C37]">
+                {WRITING_TEST_META.testTitle}
+              </p>
+              <p className="truncate text-sm font-black text-[#0f1738]">
+                {activeTask.label} - {activeTask.title}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="hidden items-center gap-1.5 rounded-lg border border-[#e8ebf3] bg-[#fafbfe] px-3 py-2 text-xs font-bold text-[#5c6488] sm:flex">
+              <Save className="h-3.5 w-3.5 text-[#3B5C37]" />
+              {savedAt
+                ? `Saved ${new Date(savedAt).toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "Autosave"}
+            </div>
+            <div
+              className={`rounded-lg border px-3 py-2 text-sm font-black ${
+                timeRemaining <= 300
+                  ? "border-red-200 bg-red-50 text-red-600"
+                  : "border-[#dfe6d8] bg-[#f8faf6] text-[#3B5C37]"
+              }`}
+            >
+              <Clock className="mr-1 inline h-4 w-4" />
+              {formatTime(timeRemaining)}
+            </div>
+            <button
+              type="button"
+              onClick={submitTest}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#3B5C37] px-3 py-2 text-xs font-black text-white transition hover:bg-[#2f4a2b] disabled:cursor-wait disabled:opacity-70 md:px-4"
+            >
+              <Send className="h-3.5 w-3.5" />
+              Submit
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex shrink-0 gap-2 border-b border-[#dfe6d8] bg-white px-4 py-3 md:px-6">
+        {WRITING_TASKS.map((task) => {
+          const isActive = task.id === activeTaskId;
+          const count = wordCounts[task.id];
+          const ready = count >= task.minimumWords;
+
+          return (
+            <button
+              key={task.id}
+              type="button"
+              onClick={() => setActiveTaskId(task.id)}
+              className={`rounded-lg border px-3 py-2 text-left transition ${
+                isActive
+                  ? "border-[#3B5C37] bg-[#f0f4ed] text-[#1f3e1b]"
+                  : "border-[#e8ebf3] bg-white text-[#5c6488] hover:border-[#c7d1b8]"
+              }`}
+            >
+              <span className="block text-[10px] font-black uppercase tracking-wider">
+                {task.label}
+              </span>
+              <span className="mt-0.5 flex items-center gap-1 text-[11px] font-bold">
+                {count}/{task.minimumWords} words
+                {ready && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+        <section className="min-h-0 overflow-y-auto border-b border-[#dfe6d8] bg-[#f8faf6] p-5 md:w-[46%] md:border-b-0 md:border-r md:p-6 lg:w-[43%]">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
+                {activeTask.label}
+              </p>
+              <h1 className="mt-1 text-xl font-black text-[#0f1738]">
+                {activeTask.title}
+              </h1>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-[#3B5C37]">
+              {activeTask.recommendedMinutes} min
+            </span>
+          </div>
+
+          <p className="rounded-xl border border-[#e6eadf] bg-white p-4 text-sm font-semibold leading-7 text-[#374151]">
+            {activeTask.prompt}
+          </p>
+
+          {activeTask.bullets && (
+            <ul className="mt-4 space-y-2 rounded-xl border border-[#e6eadf] bg-white p-4 text-sm text-[#374151]">
+              {activeTask.bullets.map((bullet) => (
+                <li key={bullet} className="flex gap-2">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B5C37]" />
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <TaskChart task={activeTask} />
+
+          <div className="mt-5 rounded-xl border border-[#e6eadf] bg-white p-4">
+            <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#5c6488]">
+              <FileText className="h-4 w-4 text-[#3B5C37]" />
+              Assessment focus
+            </h2>
+            <div className="mt-3 grid gap-2">
+              {activeTask.assessmentFocus.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-lg bg-[#f7f9f5] px-3 py-2 text-xs font-semibold text-[#4b5563]"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="flex min-h-0 flex-1 flex-col bg-white">
+          <div className="shrink-0 border-b border-[#eef1f6] px-5 py-4 md:px-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
+                  Answer sheet
+                </p>
+                <h2 className="mt-1 text-base font-black text-[#0f1738]">
+                  Write your response for {activeTask.label}
+                </h2>
+              </div>
+              <div className="text-right">
+                <p
+                  className={`text-lg font-black ${
+                    wordCounts[activeTask.id] >= activeTask.minimumWords
+                      ? "text-emerald-600"
+                      : "text-[#3B5C37]"
+                  }`}
+                >
+                  {wordCounts[activeTask.id]}
+                </p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-[#8a91a8]">
+                  words
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <textarea
+            value={answers[activeTaskId]}
+            onChange={(event) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [activeTaskId]: event.target.value,
+              }))
+            }
+            spellCheck={false}
+            placeholder={
+              activeTask.id === "task1"
+                ? "Write your Task 1 report here. Include an overview and key comparisons..."
+                : "Write your Task 2 essay here. Discuss both views and give your own opinion..."
+            }
+            className="min-h-0 flex-1 resize-none bg-white px-5 py-5 text-[15px] leading-8 text-[#111827] outline-none placeholder:text-[#a3aab8] md:px-6"
+          />
+
+          <div className="shrink-0 border-t border-[#eef1f6] bg-[#fafbfe] px-5 py-3 md:px-6">
+            <div className="flex flex-col gap-2 text-xs font-semibold text-[#5c6488] sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Total words: <strong>{totalWords}</strong>
+              </span>
+              <span>
+                Task 1 minimum 150 • Task 2 minimum 250 • You can move between
+                tasks at any time.
+              </span>
+              <span className="inline-flex items-center gap-1 text-[#3B5C37]">
+                <PenLine className="h-3.5 w-3.5" />
+                CBT mode
+              </span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}

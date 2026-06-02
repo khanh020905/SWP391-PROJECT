@@ -1,0 +1,61 @@
+{
+  "streaks": {
+    "usr_2": {
+      "userId": "usr_2",
+      "currentStreak": 5,
+      "longestStreak": 12,
+      "lastStudyDate": "2026-06-01",
+      "lastStudyTimestamp": "2026-06-01T07:18:53.218Z"
+    },
+    "usr_4": {
+      "userId": "usr_4",
+      "currentStreak": 0,
+      "longestStreak": 4,
+      "lastStudyDate": "2026-05-30",
+      "lastStudyTimestamp": "2026-05-30T07:18:53.218Z"
+    },
+    "usr_5": {
+      "userId": "usr_5",
+      "currentStreak": 3,
+      "longestStreak": 3,
+      "lastStudyDate": "2026-06-02",
+      "lastStudyTimestamp": "2026-06-02T07:18:53.218Z"
+    }
+  },
+  "studyLogs": [
+    {
+      "id": "log_init_1",
+      "userId": "usr_2",
+      "date": "2026-06-01",
+      "timestamp": "2026-06-01T07:18:53.218Z",
+      "activity": "Luyện đề Speaking - Study & Hometown (Part 1)"
+    },
+    {
+      "id": "log_init_2",
+      "userId": "usr_5",
+      "date": "2026-06-02",
+      "timestamp": "2026-06-02T07:18:53.218Z",
+      "activity": "Luyện tập IELTS Speaking Room"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notify_init_1",
+      "userId": "usr_2",
+      "title": "Duy trì streak học tập! 🔥",
+      "content": "Chúc mừng bạn đã đạt chuỗi 5 ngày học liên tiếp. Hãy tiếp tục luyện tập hôm nay để nâng band điểm IELTS nhé!",
+      "type": "STUDY_REMINDER",
+      "status": "UNREAD",
+      "createdAt": "2026-06-02T05:18:53.218Z"
+    },
+    {
+      "id": "notify_init_2",
+      "userId": "usr_4",
+      "title": "Cảnh báo sắp mất chuỗi học tập! ⚠️",
+      "content": "Đã 3 ngày bạn chưa luyện tập IELTS. Hãy làm ngay một bài nói Speaking ngắn hôm nay để kích hoạt lại streak nhé!",
+      "type": "STREAK_WARNING",
+      "status": "UNREAD",
+      "createdAt": "2026-06-02T01:18:53.218Z"
+    }
+  ]
+}

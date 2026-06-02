@@ -8,7 +8,6 @@ import {
   Edit3, CheckCircle, Home,
   ChevronRight, Info
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 // Types for IELTS Speaking questions
 interface Question {
@@ -800,27 +799,11 @@ function SpeakingTestRoomContent() {
         answers: submittedAnswers
       };
 
-       // Read history, push new one, write back
+      // Read history, push new one, write back
       const history = localStorage.getItem("ielts-speaking-attempts");
       const list = history ? JSON.parse(history) : [];
       list.unshift(newAttempt);
       localStorage.setItem("ielts-speaking-attempts", JSON.stringify(list));
-
-      // Ghi nhận hoạt động học tập lên hệ thống để cập nhật Streak & tạo log
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          fetch("/api/student/study-log", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify({
-              activity: `Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: ${currentExam.title} (Đạt điểm AI: ${roundedBand.toFixed(1)})`
-            })
-          }).catch(e => console.error("Không thể ghi nhận study log:", e));
-        }
-      });
 
       // Redirection to the feedback dashboard
       router.push(`/speaking/feedback?id=${attemptId}`);
