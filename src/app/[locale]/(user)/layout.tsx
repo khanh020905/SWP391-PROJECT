@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame } from "lucide-react";
+import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles } from "lucide-react";
 
 export default function UserAreaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -56,8 +56,17 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   useEffect(() => {
     if (user) {
       fetchProgressData();
+      
+      // Reactive updates when student completes exercises or logs minutes
+      window.addEventListener("visibilitychange", fetchProgressData);
+      window.addEventListener("progress-updated", fetchProgressData);
+      
       const interval = setInterval(fetchProgressData, 20000);
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("visibilitychange", fetchProgressData);
+        window.removeEventListener("progress-updated", fetchProgressData);
+      };
     }
   }, [user]);
 
@@ -131,6 +140,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   const menuItems = [
     { label: "Hồ sơ cá nhân", href: "/profile", icon: User },
     { label: "Chỉnh sửa hồ sơ", href: "/profile/edit", icon: User },
+    { label: "Lộ trình học AI", href: "/roadmap", icon: Sparkles },
     { label: "Đổi ảnh đại diện", href: "/settings/avatar", icon: Camera },
     { label: "Đổi mật khẩu", href: "/settings/password", icon: Key },
   ];

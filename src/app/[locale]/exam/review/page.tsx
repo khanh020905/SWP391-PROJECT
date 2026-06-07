@@ -276,6 +276,213 @@ function ExamReviewContent() {
   // Database / Network status indicator
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
+  // Vocabulary & Selection States
+  const [savedWords, setSavedWords] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
+  const [lookupWord, setLookupWord] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupEntries, setLookupEntries] = useState<any[]>([]);
+  
+  const [vocabNote, setVocabNote] = useState("");
+  const [selectedCollectionId, setSelectedCollectionId] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  // Fetch saved vocabulary and collections
+  const fetchUserVocabulary = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      const headers: any = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      else headers["x-mock-user-id"] = "usr_2";
+
+      const vocabRes = await fetch("/api/student/vocabulary", { headers });
+      if (vocabRes.ok) {
+        const d = await vocabRes.json();
+        setSavedWords(d.vocabularies || []);
+      }
+
+      const colRes = await fetch("/api/student/vocabulary/collections", { headers });
+      if (colRes.ok) {
+        const d = await colRes.json();
+        setCollections(d.collections || []);
+      }
+    } catch (e) {
+      console.error("Error fetching vocab data:", e);
+    }
+  };
+
+  const handleTriggerLookup = async (word: string) => {
+    if (!word) return;
+    const cleanWord = word.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "");
+    if (!cleanWord) return;
+    
+    setLookupWord(cleanWord);
+    setLookupLoading(true);
+    setIsDrawerOpen(true);
+    setSaveStatus(null);
+    setVocabNote("");
+    setSelectedCollectionId("");
+    setIsFavorite(false);
+
+    try {
+      const res = await fetch(`/api/student/vocabulary/lookup?word=${encodeURIComponent(cleanWord)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLookupEntries(data.entries || []);
+        
+        const saved = savedWords.find(v => v.word.toLowerCase() === cleanWord.toLowerCase());
+        if (saved) {
+          setVocabNote(saved.notes || "");
+          setSelectedCollectionId(saved.collectionId || "");
+          setIsFavorite(saved.isFavorite);
+        }
+      }
+    } catch (e) {
+      console.error("Error looking up word:", e);
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
+  const playPronunciation = (word: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = "en-US";
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleTextSelection = (event: React.MouseEvent) => {
+    const selection = window.getSelection();
+    const text = selection ? selection.toString().trim() : "";
+    
+    if (text && text.length > 0 && text.split(/\s+/).length <= 4) {
+      setSelectedText(text);
+      
+      const range = selection?.getRangeAt(0);
+      const rect = range?.getBoundingClientRect();
+      if (rect) {
+        setSelectionCoords({
+          x: rect.left + window.scrollX + rect.width / 2,
+          y: rect.top + window.scrollY - 40
+        });
+      }
+    } else {
+      setSelectedText("");
+      setSelectionCoords(null);
+    }
+  };
+
+  const handleSaveVocabulary = async (entry: any) => {
+    setSaveStatus("saving");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      else headers["x-mock-user-id"] = "usr_2";
+
+      const res = await fetch("/api/student/vocabulary", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          word: entry.word,
+          partOfSpeech: entry.partOfSpeech,
+          definition: entry.definition,
+          translation: entry.translation,
+          exampleSentence: entry.exampleSentence,
+          ipa: entry.ipaUk || entry.ipaUs,
+          collectionId: selectedCollectionId || null,
+          isFavorite: isFavorite,
+          notes: vocabNote
+        })
+      });
+
+      if (res.ok) {
+        await fetchUserVocabulary();
+        setSaveStatus("success");
+        setTimeout(() => setSaveStatus(null), 3000);
+      } else {
+        setSaveStatus("error");
+      }
+    } catch (e) {
+      console.error("Lỗi khi lưu từ vựng:", e);
+      setSaveStatus("error");
+    }
+  };
+
+  const renderTextWithHighlights = (text: string, wordsToHighlight: string[], onWordClick: (word: string) => void) => {
+    if (!wordsToHighlight || wordsToHighlight.length === 0 || !text) return text;
+    
+    const sortedWords = [...new Set(wordsToHighlight)]
+      .filter(w => w && w.length > 1)
+      .sort((a, b) => b.length - a.length);
+      
+    if (sortedWords.length === 0) return text;
+    
+    const escapedWords = sortedWords.map(w => w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    
+    try {
+      const pattern = new RegExp(`\\b(${escapedWords.join("|")})\\b`, "gi");
+      const parts = text.split(pattern);
+      if (parts.length === 1) return text;
+      
+      return (
+        <>
+          {parts.map((part, index) => {
+            if (index % 2 !== 0) {
+              return (
+                <span 
+                  key={index} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWordClick(part);
+                  }}
+                  className="bg-amber-100/90 text-slate-800 font-extrabold px-1 rounded border-b border-amber-300 cursor-pointer hover:bg-amber-200 transition-colors"
+                  title="Click để tra từ Cambridge"
+                >
+                  {part}
+                </span>
+              );
+            }
+            return part;
+          })}
+        </>
+      );
+    } catch (e) {
+      return text;
+    }
+  };
+
+  // Selection listener
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest(".selection-lookup-btn")) return;
+      
+      const selection = window.getSelection();
+      if (!selection || selection.toString().trim() === "") {
+        setSelectedText("");
+        setSelectionCoords(null);
+      }
+    };
+    document.addEventListener("mousedown", handleDocumentClick);
+    return () => document.removeEventListener("mousedown", handleDocumentClick);
+  }, []);
+
+  // Fetch vocabulary on user mount
+  useEffect(() => {
+    if (user) {
+      fetchUserVocabulary();
+    }
+  }, [user]);
+
   // Check auth and setup state
   useEffect(() => {
     async function checkUser() {
@@ -712,8 +919,11 @@ function ExamReviewContent() {
                           {paragraph.number} {isParagraphHighlighted && "— Manh mối chứa đáp án"}
                         </span>
                         
-                        <p className="font-medium">
-                          {paragraph.text}
+                        <p 
+                          className="font-medium"
+                          onMouseUp={handleTextSelection}
+                        >
+                          {renderTextWithHighlights(paragraph.text, savedWords.map(w => w.word), handleTriggerLookup)}
                         </p>
                       </div>
                     );
@@ -839,8 +1049,11 @@ function ExamReviewContent() {
                           <strong className="text-slate-800 font-extrabold block mb-0.5">
                             {line.speaker}:
                           </strong>
-                          <p className="text-slate-600 leading-relaxed font-medium">
-                            {line.text}
+                          <p 
+                            className="text-slate-600 leading-relaxed font-medium"
+                            onMouseUp={handleTextSelection}
+                          >
+                            {renderTextWithHighlights(line.text, savedWords.map(w => w.word), handleTriggerLookup)}
                           </p>
                         </div>
                       </div>
@@ -1056,7 +1269,9 @@ function ExamReviewContent() {
                                 {q.explanation.vocabulary.map((vocab, vidx) => (
                                   <div 
                                     key={vidx} 
-                                    className="flex items-center justify-between gap-4 p-2 bg-white rounded-lg border border-slate-100/80 shadow-[0_2px_8px_rgba(0,0,0,0.01)] text-[11px]"
+                                    onClick={() => handleTriggerLookup(vocab.word)}
+                                    className="flex items-center justify-between gap-4 p-2 bg-white rounded-lg border border-slate-100/80 shadow-[0_2px_8px_rgba(0,0,0,0.01)] text-[11px] cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-all"
+                                    title="Click để tra từ Cambridge"
                                   >
                                     <div>
                                       <strong className="text-slate-800 font-extrabold">{vocab.word}</strong>
@@ -1108,6 +1323,227 @@ function ExamReviewContent() {
 
       </main>
 
+      {/* Floating Cambridge lookup bubble */}
+      {selectionCoords && selectedText && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTriggerLookup(selectedText);
+            setSelectedText("");
+            setSelectionCoords(null);
+          }}
+          style={{
+            position: "absolute",
+            left: `${selectionCoords.x}px`,
+            top: `${selectionCoords.y}px`,
+            transform: "translateX(-50%)",
+          }}
+          className="selection-lookup-btn z-50 flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-xl shadow-lg border border-slate-700 text-[10px] font-black cursor-pointer hover:bg-[#3B5C37] transition-all"
+        >
+          <Search className="w-3.5 h-3.5 text-[#B38F4D]" />
+          <span>Tra từ Cambridge 🔍</span>
+        </button>
+      )}
+
+      {/* Cambridge Dictionary sliding drawer */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsDrawerOpen(false)}
+          />
+          
+          <div className="relative w-full max-w-md bg-white h-full shadow-[0_0_50px_rgba(0,0,0,0.15)] flex flex-col z-10 border-l border-slate-100">
+            {/* Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] flex items-center justify-center text-white font-black text-sm">
+                  C
+                </div>
+                <div>
+                  <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Từ điển học thuật</h3>
+                  <h2 className="text-xs font-black text-[#0d153a] mt-1">Cambridge Dictionary</h2>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setIsDrawerOpen(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent outline-none cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {lookupLoading ? (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                  <div className="w-10 h-10 border-4 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin mb-4" />
+                  <p className="text-xs font-bold text-slate-400">Đang tìm kiếm trong Cambridge...</p>
+                </div>
+              ) : lookupEntries.length === 0 ? (
+                <div className="text-center py-12">
+                  <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-xs font-extrabold text-slate-500">Không tìm thấy định nghĩa</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Vui lòng thử từ khác hoặc kiểm tra lại kết nối mạng.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Word Header */}
+                  <div className="pb-5 border-b border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <h1 className="text-2xl font-black text-[#0d153a] tracking-tight truncate max-w-[280px]">{lookupWord}</h1>
+                      
+                      <button 
+                        onClick={() => setIsFavorite(!isFavorite)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${
+                          isFavorite 
+                            ? "bg-amber-50 border-amber-200 text-amber-500 shadow-sm" 
+                            : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100"
+                        }`}
+                        title={isFavorite ? "Bỏ yêu thích" : "Yêu thích"}
+                      >
+                        <svg 
+                          className={`w-4 h-4 ${isFavorite ? "fill-amber-500 text-amber-500" : "text-slate-400"}`}
+                          fill={isFavorite ? "currentColor" : "none"} 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor" 
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.242.588 1.81l-3.97 2.883a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.883a1 1 0 00-1.18 0l-3.97 2.883c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.98 8.72c-.773-.569-.373-1.81.588-1.81h4.907a1 1 0 00.95-.69l1.519-4.674z" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 mt-3">
+                      {lookupEntries[0].ipaUk && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
+                          <span className="font-sans font-black text-[9px] uppercase px-1 bg-rose-50 text-rose-600 rounded">UK</span>
+                          <span>{lookupEntries[0].ipaUk}</span>
+                        </div>
+                      )}
+                      {lookupEntries[0].ipaUs && lookupEntries[0].ipaUs !== lookupEntries[0].ipaUk && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono border-l border-slate-200 pl-3">
+                          <span className="font-sans font-black text-[9px] uppercase px-1 bg-sky-50 text-sky-600 rounded">US</span>
+                          <span>{lookupEntries[0].ipaUs}</span>
+                        </div>
+                      )}
+                      
+                      <button 
+                        onClick={() => playPronunciation(lookupWord)}
+                        className="w-7 h-7 rounded-lg bg-[#3B5C37]/10 hover:bg-[#3B5C37]/20 text-[#3B5C37] flex items-center justify-center transition-colors border-none cursor-pointer outline-none"
+                        title="Nghe phát âm"
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Definitions List */}
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Định nghĩa & Bản dịch</h4>
+                    
+                    {lookupEntries.map((entry, idx) => (
+                      <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded">
+                            {entry.partOfSpeech}
+                          </span>
+                          {entry.level && (
+                            <span className="text-[9px] font-black text-[#B38F4D] bg-[#B38F4D]/10 px-2 py-0.5 rounded">
+                              {entry.level}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 leading-relaxed">
+                            {entry.definition}
+                          </p>
+                          <p className="text-xs font-black text-[#3B5C37] mt-1.5">
+                            {entry.translation}
+                          </p>
+                        </div>
+                        
+                        {entry.exampleSentence && (
+                          <div className="border-t border-slate-200/50 pt-2.5 mt-2.5">
+                            <span className="text-[9px] font-bold text-slate-400 block mb-1">VÍ DỤ</span>
+                            <p className="text-xs text-slate-600 font-medium font-serif leading-relaxed italic">
+                              &ldquo;{entry.exampleSentence}&rdquo;
+                            </p>
+                            {entry.exampleTranslation && (
+                              <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-1">
+                                {entry.exampleTranslation}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        <button
+                          onClick={() => handleSaveVocabulary(entry)}
+                          className="w-full mt-3 py-2 bg-[#3B5C37] hover:bg-[#2d472a] text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none"
+                        >
+                          <span>Lưu định nghĩa này</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Save Form settings */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tùy chọn Lưu trữ</h4>
+                    
+                    {/* Collections dropdown */}
+                    <div>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                        Bộ sưu tập (Bộ từ)
+                      </label>
+                      <select 
+                        value={selectedCollectionId}
+                        onChange={(e) => setSelectedCollectionId(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-[#3B5C37] focus:bg-white transition-all cursor-pointer"
+                      >
+                        <option value="">-- Chưa phân loại --</option>
+                        {collections.map(col => (
+                          <option key={col.id} value={col.id}>{col.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Notes */}
+                    <div>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                        Ghi chú cá nhân
+                      </label>
+                      <textarea
+                        value={vocabNote}
+                        onChange={(e) => setVocabNote(e.target.value)}
+                        placeholder="Ghi chú ý nghĩa, cách dùng hoặc collocation đi kèm..."
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium placeholder-slate-400 outline-none focus:border-[#3B5C37] focus:bg-white transition-all h-20 resize-none"
+                      />
+                    </div>
+                    
+                    {/* Toast Status */}
+                    {saveStatus === "saving" && (
+                      <p className="text-[11px] font-bold text-slate-500 animate-pulse">Đang lưu từ vựng...</p>
+                    )}
+                    {saveStatus === "success" && (
+                      <p className="text-[11px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center">
+                        ✓ Đã cập nhật vào bộ sưu tập cá nhân!
+                      </p>
+                    )}
+                    {saveStatus === "error" && (
+                      <p className="text-[11px] font-black text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center">
+                        ❌ Đã xảy ra lỗi khi lưu từ vựng.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
