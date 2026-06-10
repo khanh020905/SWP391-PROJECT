@@ -15,6 +15,8 @@ import {
   Play,
   Sparkles,
   TrendingUp,
+  Dices,
+  Target,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
@@ -136,6 +138,7 @@ export default function SpeakingDashboard() {
   const [attempts, setAttempts] = useState<SpeakingAttempt[]>([]);
   const [selectedMode, setSelectedMode] = useState<SpeakingMode>("mock");
   const [selectedTopic, setSelectedTopic] = useState("study");
+  const [view, setView] = useState<"select" | "dashboard">("select");
 
   useEffect(() => {
     let mounted = true;
@@ -166,6 +169,72 @@ export default function SpeakingDashboard() {
     const total = attempts.reduce((sum, attempt) => sum + bandValue(attempt), 0);
     return total / attempts.length;
   }, [attempts]);
+
+  if (view === "select") {
+    return (
+      <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738] flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pt-28 pb-20">
+          <div className="text-center mb-12">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c7d1b8] bg-[#ebefe0]/85 px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#3B5C37] mb-6">
+              <Sparkles className="h-4 w-4" />
+              Chọn chế độ luyện tập
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-[#1b3d1e] tracking-tight leading-[1.1]">
+              Hôm nay bạn muốn học thế nào?
+            </h1>
+            <p className="mt-5 text-[#4e5c4c] font-medium max-w-lg mx-auto md:text-lg">
+              Luyện tập theo sát đề thi thực tế để đo band điểm, hoặc thử thách phản xạ với chế độ bốc thăm chủ đề ngẫu nhiên.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6 w-full max-w-[900px]">
+            {/* Standard Mode Card */}
+            <button 
+              onClick={() => setView("dashboard")} 
+              className="group relative flex flex-col rounded-[32px] bg-white p-8 text-left border-2 border-[#e4e8dc] hover:border-[#3B5C37] shadow-sm hover:shadow-[0_24px_54px_rgba(59,92,55,0.12)] transition-all duration-300 active:scale-[0.98] outline-none"
+            >
+              <div className="h-16 w-16 bg-[#edf3e8] text-[#3B5C37] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Target className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-black text-[#1b3d1e] mb-3">Luyện thi tiêu chuẩn</h2>
+              <p className="text-sm font-medium text-[#4e5c4c] leading-relaxed mb-8 flex-1">
+                Chọn Part 1, 2, 3 hoặc full mock test theo kho chủ đề IELTS. Được chấm điểm và nhận feedback chi tiết bởi AI Examiner.
+              </p>
+              <div className="flex items-center gap-2 text-[#3B5C37] font-bold text-sm w-full">
+                <span>Vào phòng thi</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+
+            {/* Roulette Mode Card */}
+            <Link 
+              href="/speaking/roulette" 
+              className="group relative flex flex-col rounded-[32px] bg-gradient-to-br from-[#16352a] to-[#204a3b] p-8 text-left border-2 border-[#2a503f] hover:border-[#437d63] shadow-sm hover:shadow-[0_24px_54px_rgba(22,53,42,0.25)] transition-all duration-300 active:scale-[0.98] outline-none no-underline overflow-hidden"
+            >
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+              
+              <div className="relative h-16 w-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                <Dices className="h-8 w-8" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white mb-3 flex items-center gap-2">
+                Speaking Roulette <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] uppercase tracking-wider font-bold">New</span>
+              </h2>
+              <p className="relative text-sm font-medium text-white/70 leading-relaxed mb-8 flex-1">
+                Vòng quay ngẫu nhiên các chủ đề và thẻ bài thú vị. Tăng cường khả năng phản xạ và tư duy nhanh bằng một trải nghiệm học tập mới lạ!
+              </p>
+              <div className="relative flex items-center gap-2 text-white font-bold text-sm w-full">
+                <span>Quay ngay</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738]">
