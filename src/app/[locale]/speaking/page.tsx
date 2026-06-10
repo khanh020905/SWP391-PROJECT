@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Dices,
   Target,
+  Headphones,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
@@ -188,7 +189,7 @@ export default function SpeakingDashboard() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-6 w-full max-w-[900px]">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-[1200px]">
             {/* Standard Mode Card */}
             <button 
               onClick={() => setView("dashboard")} 
@@ -229,9 +230,32 @@ export default function SpeakingDashboard() {
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
+
+            {/* Shadowing & Dictation Card */}
+            <Link 
+              href="/speaking/shadowing" 
+              className="group relative flex flex-col rounded-[32px] bg-gradient-to-br from-[#0f1738] to-[#1a2552] p-8 text-left border-2 border-[#1a2552] hover:border-[#2a3a78] shadow-sm hover:shadow-[0_24px_54px_rgba(15,23,56,0.25)] transition-all duration-300 active:scale-[0.98] outline-none no-underline overflow-hidden"
+            >
+              {/* Decorative elements */}
+              <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#4a65e0]/20 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#4a65e0]/10 to-transparent" />
+              
+              <div className="relative h-16 w-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                <Headphones className="h-8 w-8" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white mb-3 flex items-center gap-2">
+                Shadowing & Dictation <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] uppercase tracking-wider font-bold">Hot</span>
+              </h2>
+              <p className="relative text-sm font-medium text-white/70 leading-relaxed mb-8 flex-1">
+                Luyện kỹ năng nghe chép chính tả và nói đuổi qua các video bài diễn thuyết. Nâng cao phát âm và phản xạ một cách tự nhiên.
+              </p>
+              <div className="relative flex items-center gap-2 text-white font-bold text-sm w-full">
+                <span>Luyện tập ngay</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -502,8 +526,6 @@ export default function SpeakingDashboard() {
           </aside>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
