@@ -8,8 +8,10 @@ import {
   ArrowLeft, Play, Pause, Mic, SkipBack, SkipForward,
   Settings, CheckCircle2, RotateCcw, Volume2,
   ExternalLink, Subtitles, ListStart, 
-  Eye, Type, XCircle, Search
+  Eye, Type, XCircle, Search, Plus, Check
 } from "lucide-react";
+import { useSaveVocab } from "@/hooks/useSaveVocab";
+import { Link } from "@/i18n/navigation";
 
 // Types
 interface Subtitle {
@@ -95,6 +97,39 @@ export default function ShadowingPlayerPage() {
     audio?: string;
   } | null>(null);
   const [dictCompleted, setDictCompleted] = useState<Record<number, boolean>>({});
+
+  const { collections, isSaved: isVocabSaved, saveWord, isLoading: isVocabLoading } = useSaveVocab();
+  const [selectedCollection, setSelectedCollection] = useState<string>('');
+  const [isSavingVocab, setIsSavingVocab] = useState(false);
+  const [vocabToast, setVocabToast] = useState<{ message: string; type: 'success' | 'error' | 'warning', showLink?: boolean } | null>(null);
+
+  const showVocabToast = (message: string, type: 'success' | 'error' | 'warning', showLink = false) => {
+    setVocabToast({ message, type, showLink });
+    setTimeout(() => setVocabToast(null), 4000);
+  };
+
+  const handleSaveVocab = async () => {
+    if (!wordDetails || !wordDetails.word) return;
+
+    setIsSavingVocab(true);
+    const result = await saveWord({
+      word: wordDetails.word,
+      ipa: wordDetails.ipa,
+      definition: wordDetails.definition || '',
+      translation: wordDetails.translation || '',
+      exampleSentence: wordDetails.example,
+      partOfSpeech: 'noun'
+    }, selectedCollection || null);
+    setIsSavingVocab(false);
+
+    if (result === 'saved') {
+      showVocabToast(`Đã lưu '${wordDetails.word}' vào sổ từ vựng`, 'success', true);
+    } else if (result === 'duplicate') {
+      showVocabToast('Từ này đã có trong sổ từ vựng', 'warning', true);
+    } else {
+      showVocabToast('Lỗi khi lưu từ vựng', 'error');
+    }
+  };
 
   const parsedDictation = React.useMemo(() => {
     const text = subtitles[currentIdx]?.text || "";
@@ -1170,8 +1205,65 @@ return (
               )}
             </div>
           )}
+
+          {/* VOCAB SAVE PANEL */}
+          {wordDetails.definition !== "Loading..." && (
+            <div className="mt-4 pt-3 border-t border-gray-700">
+              {isVocabSaved(wordDetails.word) ? (
+                <div className="flex items-center justify-center gap-2 text-green-500 font-bold py-2 bg-green-500/10 rounded-lg">
+                  <Check size={16} /> Đã có trong sổ
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-gray-400 font-medium">Lưu vào collection:</label>
+                    <select 
+                      className="w-full bg-[#111] border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 outline-none focus:border-blue-500 transition-colors"
+                      value={selectedCollection}
+                      onChange={e => setSelectedCollection(e.target.value)}
+                      disabled={isVocabLoading}
+                    >
+                      <option value="">-- Mặc định (Tất cả) --</option>
+                      {collections.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button 
+                    onClick={handleSaveVocab}
+                    disabled={isSavingVocab}
+                    className="w-full py-2 rounded-lg font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {isSavingVocab ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    ) : (
+                      <><Plus size={16} /> Lưu vào sổ từ vựng</>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
+
+      {/* Local Toast */}
+      {vocabToast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl shadow-lg z-[10000] flex items-center gap-3 animate-in slide-in-from-bottom-5 text-sm font-medium border
+          ${vocabToast.type === 'success' ? 'bg-green-900/90 text-green-100 border-green-800' : 
+            vocabToast.type === 'warning' ? 'bg-yellow-900/90 text-yellow-100 border-yellow-800' : 
+            'bg-red-900/90 text-red-100 border-red-800'}
+        `}>
+          {vocabToast.type === 'success' ? <Check size={16} className="text-green-400" /> : <CheckCircle2 size={16} className="text-yellow-400" />}
+          <span>{vocabToast.message}</span>
+          {vocabToast.showLink && (
+            <Link href="/vocab-grammar" className="ml-2 text-white hover:underline flex items-center gap-0.5 whitespace-nowrap bg-white/10 px-2 py-1 rounded-md transition-colors">
+              Xem sổ ➔
+            </Link>
+          )}
+        </div>
+      )}
+
 
     </div>
   );
