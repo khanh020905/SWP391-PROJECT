@@ -167,6 +167,7 @@ export default function Navbar() {
           <span className="tracking-tight">Quali IELTS</span>
         </Link>
 
+
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           <LanguageSwitcher />
