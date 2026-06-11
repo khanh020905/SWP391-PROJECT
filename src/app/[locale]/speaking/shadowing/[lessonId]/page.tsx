@@ -61,6 +61,19 @@ export default function ShadowingPlayerPage() {
   // Modals state
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [savedProgressIdx, setSavedProgressIdx] = useState(0);
+  const [savedResults, setSavedResults] = useState<Record<number, any>>({});
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.warn(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   // --- NEW UI STATES ---
   const [mode, setMode] = useState<"shadowing" | "dictation">("shadowing");
@@ -73,7 +86,14 @@ export default function ShadowingPlayerPage() {
   const [wrongLetterIdx, setWrongLetterIdx] = useState(-1);
   const [revealedHints, setRevealedHints] = useState<Record<number, number>>({});
   const [showDictationAnswer, setShowDictationAnswer] = useState(false);
-  const [translatedWord, setTranslatedWord] = useState<{word: string, translation: string} | null>(null);
+  const [wordDetails, setWordDetails] = useState<{
+    word: string;
+    translation?: string;
+    ipa?: string;
+    definition?: string;
+    example?: string;
+    audio?: string;
+  } | null>(null);
   const [dictCompleted, setDictCompleted] = useState<Record<number, boolean>>({});
 
   const parsedDictation = React.useMemo(() => {
@@ -109,23 +129,58 @@ export default function ShadowingPlayerPage() {
   }, [subtitles, currentIdx]);
 
   const handleWordClick = async (word: string) => {
-    if (!showWordClick) return;
     try {
       const cleanWord = word.replace(/[^\w]/g, '');
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanWord)}&langpair=en|vi`);
-      const data = await res.json();
-      if (data.responseData?.translatedText) {
-        setTranslatedWord({ word: cleanWord, translation: data.responseData.translatedText });
-        setTimeout(() => setTranslatedWord(null), 3000);
+      if (!cleanWord) return;
+      
+      setWordDetails({ word: cleanWord, definition: "Loading..." });
+
+      const [dictRes, transRes] = await Promise.all([
+        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`).catch(() => null),
+        fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanWord)}&langpair=en|vi`).catch(() => null)
+      ]);
+
+      let ipa = "", definition = "", example = "", audio = "";
+      let translation = "";
+
+      if (dictRes && dictRes.ok) {
+        const dictData = await dictRes.json();
+        if (dictData && dictData.length > 0) {
+          const entry = dictData[0];
+          ipa = entry.phonetic || (entry.phonetics && entry.phonetics.find((p: any) => p.text)?.text) || "";
+          audio = (entry.phonetics && entry.phonetics.find((p: any) => p.audio)?.audio) || "";
+          const meaning = entry.meanings?.[0];
+          if (meaning) {
+            const def = meaning.definitions?.[0];
+            if (def) {
+              definition = def.definition;
+              example = def.example || "";
+            }
+          }
+        }
       }
+
+      if (transRes && transRes.ok) {
+        const transData = await transRes.json();
+        if (transData.responseData?.translatedText) {
+          translation = transData.responseData.translatedText;
+        }
+      }
+
+      setWordDetails({ word: cleanWord, translation, ipa, definition, example, audio });
     } catch (e) {
-      console.warn("Word translation failed", e);
+      console.warn("Word details fetch failed", e);
+      setWordDetails(null);
     }
   };
 
   const handleDictWordClick = (wordObj: any, wordIndex: number) => {
     if (!wordObj || wordObj.isSpace || wordObj.chars.length === 0) return;
     
+    // Trigger the dictionary translation popup
+    const wordStr = wordObj.chars.map((c: any) => c.raw).join('');
+    handleWordClick(wordStr);
+
     // Find first and last valid letter indices in this word
     const letterChars = wordObj.chars.filter((c: any) => c.isLetter);
     if (letterChars.length === 0) return;
@@ -191,6 +246,12 @@ export default function ShadowingPlayerPage() {
   useEffect(() => {
     loadData();
     initSpeechRecognition();
+    if (lessonId) {
+      try {
+        const results = JSON.parse(localStorage.getItem(`shadowing_results_${lessonId}`) || '{}');
+        setSavedResults(results);
+      } catch (e) {}
+    }
   }, [lessonId]);
 
   const initSpeechRecognition = () => {
@@ -375,6 +436,7 @@ export default function ShadowingPlayerPage() {
       const sub = subtitles[currentIdx + 1];
       if (playerRef.current && sub) {
         playerRef.current.seekTo(sub.start_time);
+        playerRef.current.playVideo();
       }
     }
   };
@@ -385,6 +447,7 @@ export default function ShadowingPlayerPage() {
       const sub = subtitles[currentIdx - 1];
       if (playerRef.current && sub) {
         playerRef.current.seekTo(sub.start_time);
+        playerRef.current.playVideo();
       }
     }
   };
@@ -393,6 +456,7 @@ export default function ShadowingPlayerPage() {
     const sub = subtitles[currentIdx];
     if (playerRef.current && sub) {
       playerRef.current.seekTo(sub.start_time);
+      playerRef.current.playVideo();
     }
   };
 
@@ -463,9 +527,10 @@ export default function ShadowingPlayerPage() {
     
     setRecordingResult(result);
     if (lessonId) {
-      const savedResults = JSON.parse(localStorage.getItem(`shadowing_results_${lessonId}`) || '{}');
-      savedResults[currentIdx] = result;
-      localStorage.setItem(`shadowing_results_${lessonId}`, JSON.stringify(savedResults));
+      const results = JSON.parse(localStorage.getItem(`shadowing_results_${lessonId}`) || '{}');
+      results[currentIdx] = result;
+      localStorage.setItem(`shadowing_results_${lessonId}`, JSON.stringify(results));
+      setSavedResults(results);
     }
   };
 
@@ -615,8 +680,7 @@ export default function ShadowingPlayerPage() {
   vDataId: video?.id,
   vDataYoutubeId: video?.youtube_id,
   subLength: subtitles.length,
-  localDataExists: video?.youtube_id ? !!localStorage.getItem(`custom_lesson_${video.youtube_id}`) : false,
-  dbError
+  localDataExists: video?.youtube_id ? !!localStorage.getItem(`custom_lesson_${video.youtube_id}`) : false
 }, null, 2)}
            </pre>
            <button onClick={() => router.back()} className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700">Quay lại</button>
@@ -651,7 +715,7 @@ return (
           </button>
         </div>
 
-        <div className="tb-right">
+        <div className="tb-right" style={{ display: 'flex', gap: '8px' }}>
           <button className="theme-toggle" id="themeToggle" title="Sáng / Tối" aria-label="Chuyển sáng tối" onClick={() => {
             document.querySelector('.shadowing-app')?.classList.toggle('night');
           }}>
@@ -669,6 +733,14 @@ return (
             <span className="t-icon t-moon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"></path>
+              </svg>
+            </span>
+          </button>
+          
+          <button className="theme-toggle flex items-center justify-center text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" id="fullScreenToggle" title="Toàn màn hình" aria-label="Toàn màn hình" onClick={toggleFullScreen}>
+            <span style={{ display: 'grid', placeItems: 'center', position: 'absolute', width: '24px', height: '24px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
               </svg>
             </span>
           </button>
@@ -740,12 +812,18 @@ return (
                   const isActive = idx === currentIdx;
                   const shouldHideText = mode === 'dictation' && !dictCompleted[idx] && !showDictationAnswer;
                   const displayText = shouldHideText ? '••••••••••' : sub.text;
+                  const score = savedResults[idx]?.score;
 
                   return isActive ? (
                     <div key={sub.id} className="sitem active">
                       <div className="achead">
                         <div className="radio"><span className="ic"></span></div>
                         <span className="snum">#{idx + 1}</span>
+                        {score !== undefined && (
+                          <span className={`ml-2 text-[11px] font-bold px-2 py-0.5 rounded-md ${score > 80 ? 'bg-green-500/20 text-green-400' : score > 50 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                            {score}%
+                          </span>
+                        )}
                         <span className="badge-learn">ĐANG HỌC</span>
                         <div className="ac-actions">
                           <button className="icon-btn" onClick={replayCurrent}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
@@ -757,11 +835,21 @@ return (
                     <div key={sub.id} className={`sitem ${dictCompleted[idx] ? 'revealed' : ''}`} onClick={() => {
                       if (mode === 'dictation') return;
                       setCurrentIdx(idx);
-                      if (playerRef.current) playerRef.current.seekTo(sub.start_time);
+                      if (playerRef.current) {
+                        playerRef.current.seekTo(sub.start_time);
+                        playerRef.current.playVideo();
+                      }
                     }}>
                       <div className="radio"></div>
                       <div>
-                        <div className="snum">#{idx + 1}</div>
+                        <div className="flex items-center">
+                          <div className="snum">#{idx + 1}</div>
+                          {score !== undefined && (
+                            <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${score > 80 ? 'bg-green-500/20 text-green-400' : score > 50 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                              {score}%
+                            </span>
+                          )}
+                        </div>
                         <div className="stext">{displayText}</div>
                       </div>
                     </div>
@@ -802,14 +890,6 @@ return (
                   Dịch nghĩa
                 </button>
               </div>
-              
-              {/* Target Text Area */}
-              {translatedWord && (
-                <div className="absolute top-0 right-8 bg-gray-800 text-white text-sm font-bold px-3 py-1.5 rounded-lg z-10 shadow-lg whitespace-nowrap">
-                  {translatedWord.translation}
-                </div>
-              )}
-              
               <p className="sentence" id="sentence">
                 {subtitles[currentIdx]?.text.split(/\s+/).map((word, i) => {
                   let isCorrect = undefined;
@@ -865,10 +945,6 @@ return (
             </button>
 
             {/* WORD BLOCKS */}
-            <div className="repeat-lbl">
-              <svg className="deco" width="20" height="20" viewBox="0 0 24 24" aria-hidden={true}><circle cx="12" cy="5" r="3.4" fill="#EC6EA8"></circle><circle cx="19" cy="12" r="3.4" fill="#EC6EA8"></circle><circle cx="12" cy="19" r="3.4" fill="#EC6EA8"></circle><circle cx="5" cy="12" r="3.4" fill="#EC6EA8"></circle><circle cx="12" cy="12" r="3.2" fill="#E9B53A"></circle></svg>
-              Nghe và lặp lại câu trên
-            </div>
             <div className="wblocks" id="wblocks">
               {subtitles[currentIdx]?.text.replace(/[.,]/g, '').split(' ').map((w, i) => (
                 <div key={i} className="wb" onClick={(e) => e.currentTarget.classList.toggle('revealed')}>
@@ -952,7 +1028,12 @@ return (
 
               {showDictationAnswer && (
                 <div className="mb-6 p-4 bg-[var(--olive-soft)] text-[var(--olive-700)] rounded-xl text-lg font-bold border border-[var(--olive-300)]">
-                  Đáp án: {subtitles[currentIdx]?.text}
+                  <span className="text-gray-500 font-bold mr-2">Đáp án:</span>
+                  {subtitles[currentIdx]?.text.split(/\s+/).map((word, i) => (
+                    <span key={i} onClick={() => handleWordClick(word)} className="cursor-pointer hover:text-green-700 transition-colors">
+                      {word}{" "}
+                    </span>
+                  ))}
                 </div>
               )}
               
@@ -1028,6 +1109,7 @@ return (
                   const sub = subtitles[savedProgressIdx];
                   if (playerRef.current && sub) {
                     playerRef.current.seekTo(sub.start_time);
+                    playerRef.current.playVideo();
                   }
                 }}
                 className="flex-1 px-4 py-3.5 bg-[#7a8f5a] hover:bg-[#687a4c] text-white rounded-xl font-bold transition-colors"
@@ -1036,6 +1118,58 @@ return (
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Target Text Area Popup (Globally Available) */}
+      {wordDetails && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-5 py-5 rounded-2xl z-[9999] shadow-[0_10px_40px_rgba(0,0,0,0.5)] max-w-sm w-[90vw] border border-gray-700 pointer-events-auto">
+          <button onClick={(e) => { e.stopPropagation(); setWordDetails(null); }} className="absolute top-3 right-3 text-gray-400 hover:text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+          <div className="flex items-center mb-3 pr-6">
+            <span className="font-black text-xl text-[#E9B53A]">{wordDetails.word}</span>
+            <button onClick={(e) => { 
+              e.stopPropagation(); 
+              if (wordDetails.audio) {
+                new Audio(wordDetails.audio).play(); 
+              } else {
+                const utterance = new SpeechSynthesisUtterance(wordDetails.word);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+              }
+            }} className="ml-2 text-blue-400 hover:text-blue-300 bg-blue-400/10 p-1.5 rounded-full transition-colors" title="Nghe phát âm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07l1.41 1.41a7 7 0 0 0 0-9.9l-1.41 1.42zM19.07 4.93a10 10 0 0 1 0 14.14l1.41 1.41a12 12 0 0 0 0-16.97l-1.41 1.42z"/></svg>
+            </button>
+            {wordDetails.ipa && <span className="text-gray-400 font-mono text-sm ml-3">{wordDetails.ipa}</span>}
+          </div>
+          {wordDetails.definition === "Loading..." ? (
+              <div className="text-gray-400 italic">Đang tải...</div>
+          ) : (
+            <div className="flex flex-col gap-2 mt-2 text-left">
+              {wordDetails.definition && (
+                <div className="text-gray-200 leading-snug whitespace-normal text-[15px]">
+                  <span className="font-bold text-gray-400 text-xs uppercase mr-1">Def:</span>
+                  {wordDetails.definition}
+                </div>
+              )}
+              {wordDetails.example && (
+                <div className="text-gray-400 italic leading-snug mt-1 whitespace-normal text-[14px]">
+                  <span className="font-bold text-gray-500 text-xs uppercase mr-1">Ex:</span>
+                  "{wordDetails.example}"
+                </div>
+              )}
+              {wordDetails.translation && (
+                <div className="text-green-400 font-bold mt-1 whitespace-normal text-[15px]">
+                  <span className="text-gray-400 text-xs uppercase mr-1">Vi:</span>
+                  {wordDetails.translation}
+                </div>
+              )}
+              {(!wordDetails.definition && !wordDetails.translation) && (
+                <div className="text-gray-400 italic">Không tìm thấy dữ liệu.</div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
