@@ -13,15 +13,24 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { READING_TEST_META, ALL_PASSAGES } from "@/lib/readingMockData";
+import { fetchReadingPassages } from "@/services/readingService";
+import { READING_TEST_META } from "@/lib/readingMockData"; // fallback/meta title
 import type { UserRole } from "@/types/reading";
 
 export default function ReadingLobbyPage() {
   const [userRole, setUserRole] = useState<UserRole>("UNKNOWN");
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passages, setPassages] = useState<any[]>([]);
 
   useEffect(() => {
+    fetchReadingPassages()
+      .then((data) => {
+        const valid = data ? data.filter((p: any) => p.questions && p.questions.length > 0) : [];
+        setPassages(valid);
+      })
+      .catch((err) => console.error("Error loading passages:", err));
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const role = session.user.user_metadata?.role;
@@ -95,7 +104,7 @@ export default function ReadingLobbyPage() {
     },
   ];
 
-  const totalQuestions = ALL_PASSAGES.reduce((sum, p) => sum + p.questions.length, 0);
+  const totalQuestions = passages.reduce((sum, p) => sum + (p.questions?.length || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738] font-sans">
@@ -219,58 +228,66 @@ export default function ReadingLobbyPage() {
         {/* 3 Passages preview */}
         <h2 className="text-xl font-black text-[#1b3d1e] mb-4">Nội dung 3 Passages</h2>
         <div className="grid gap-4 sm:grid-cols-3 mb-10">
-          {ALL_PASSAGES.map((passage, idx) => {
-            const pc = passageColors[idx];
-            const qCount = passage.questions.length;
-            const types = [...new Set(passage.questions.map((q) => q.type))];
-            const typeLabels: Record<string, string> = {
-              tfng: "T/F/NG",
-              mcq: "Multiple Choice",
-              matching: "Matching",
-              fill: "Fill in Blank",
-            };
-            return (
-              <div
-                key={passage.id}
-                className={`relative overflow-hidden rounded-3xl border-[3px] ${pc.border} border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] bg-white hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 group`}
-              >
-                {/* Color top strip */}
-                <div className={`h-2 bg-gradient-to-r ${pc.bg}`} />
+          {passages.length === 0 ? (
+            <div className="col-span-3 py-10 text-center font-bold text-gray-500 bg-white rounded-3xl border border-gray-200 shadow-sm">
+              Chưa có đề thi
+            </div>
+          ) : (
+            passages.map((passage, idx) => {
+              const pc = passageColors[idx % passageColors.length];
+              const qCount = passage.questions?.length || 0;
+              const types = passage.question_types || (passage.questions ? [...new Set(passage.questions.map((q: any) => q.type))] : []);
+              const typeLabels: Record<string, string> = {
+                tfng: "T/F/NG",
+                true_false: "T/F/NG",
+                mcq: "Multiple Choice",
+                multiple_choice: "Multiple Choice",
+                matching: "Matching",
+                fill: "Fill in Blank",
+              };
+              return (
+                <div
+                  key={passage.id}
+                  className={`relative overflow-hidden rounded-3xl border-[3px] ${pc.border} border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] bg-white hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 group`}
+                >
+                  {/* Color top strip */}
+                  <div className={`h-2 bg-gradient-to-r ${pc.bg}`} />
 
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${pc.badge}`}>
-                      {pc.label}
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${pc.badge}`}>
+                        {pc.label}
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pc.diffColor}`}>
+                        {passage.band_level ? `Band ${passage.band_level}` : pc.diff}
+                      </span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pc.diffColor}`}>
-                      {pc.diff}
-                    </span>
-                  </div>
 
-                  <h3 className="font-extrabold text-[#1b3d1e] text-base leading-tight mb-2">
-                    {passage.title}
-                  </h3>
+                    <h3 className="font-extrabold text-[#1b3d1e] text-base leading-tight mb-2">
+                      {passage.title}
+                    </h3>
 
-                  <p className="text-[11px] text-gray-500 leading-relaxed mb-3 line-clamp-2">
-                    {passage.subtitle}
-                  </p>
+                    <p className="text-[11px] text-gray-500 leading-relaxed mb-3 line-clamp-2">
+                      {passage.subtitle || (passage.content_html ? passage.content_html.replace(/<[^>]*>/g, '').substring(0, 100) + '...' : "")}
+                    </p>
 
-                  <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-gray-600">
-                      {qCount} câu hỏi
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {types.slice(0, 3).map((t) => (
-                        <span key={t} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                          {typeLabels[t] || t}
-                        </span>
-                      ))}
+                    <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-gray-600">
+                        {qCount} câu hỏi
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {types.slice(0, 3).map((t: string) => (
+                          <span key={t} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                            {typeLabels[t] || t}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         {/* Question types */}

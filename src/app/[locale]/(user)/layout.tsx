@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles } from "lucide-react";
+import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles, ClipboardCheck } from "lucide-react";
 
 export default function UserAreaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -140,6 +140,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   const menuItems = [
     { label: "Hồ sơ cá nhân", href: "/profile", icon: User },
     { label: "Chỉnh sửa hồ sơ", href: "/profile/edit", icon: User },
+    { label: "Kiểm tra năng lực", href: "/roadmap/diagnostic-test", icon: ClipboardCheck },
     { label: "Lộ trình học AI", href: "/roadmap", icon: Sparkles },
     { label: "Đổi ảnh đại diện", href: "/settings/avatar", icon: Camera },
     { label: "Đổi mật khẩu", href: "/settings/password", icon: Key },

@@ -56,7 +56,21 @@ export interface WritingTaskFeedback {
   estimatedBand: number;
   strengths: string[];
   improvements: string[];
+  criteria?: {
+    ta_tr: { score: number; explanationVi: string };
+    cc: { score: number; explanationVi: string };
+    lr: { score: number; explanationVi: string };
+    gra: { score: number; explanationVi: string };
+  };
+  grammarCorrections?: {
+    original: string;
+    correction: string;
+    reasonVi: string;
+    context?: string;
+  }[];
+  modelAnswer?: string;
 }
+
 
 export interface WritingFeedbackResult {
   attemptId: string;

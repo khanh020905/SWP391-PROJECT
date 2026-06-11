@@ -11,15 +11,38 @@ import {
   History,
   PenLine,
 } from "lucide-react";
+import { fetchWritingTasks } from "@/services/writingService";
 import { WRITING_TASKS, WRITING_TEST_META } from "@/lib/writingMockData";
 import { getWritingAttempts } from "@/lib/writingStorage";
 import type { WritingAttemptPayload } from "@/types/writing";
 
 export default function WritingLobbyPage() {
   const [attempts, setAttempts] = useState<WritingAttemptPayload[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     setAttempts(getWritingAttempts().slice(0, 4));
+    
+    fetchWritingTasks()
+      .then((data) => {
+        if (data && data.length > 0) {
+          const mapped = data.map((t: any) => ({
+            id: t.id,
+            label: t.task_type === "task1" ? "Writing Task 1" : "Writing Task 2",
+            title: t.title,
+            prompt: t.description || t.prompt || "",
+            recommendedMinutes: t.task_type === "task1" ? 20 : 40,
+            minimumWords: t.task_type === "task1" ? 150 : 250,
+          }));
+          setTasks(mapped);
+        } else {
+          setTasks(WRITING_TASKS);
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading writing tasks:", err);
+        setTasks(WRITING_TASKS);
+      });
   }, []);
 
   return (
@@ -93,27 +116,33 @@ export default function WritingLobbyPage() {
               Cấu trúc bài thi
             </h2>
             <div className="mt-5 space-y-4">
-              {WRITING_TASKS.map((task) => (
-                <div key={task.id} className="rounded-xl border border-[#edf0f5] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
-                        {task.label}
-                      </p>
-                      <h3 className="mt-1 text-sm font-black text-[#0f1738]">
-                        {task.title}
-                      </h3>
-                    </div>
-                    <span className="rounded-full bg-[#f0f4ed] px-2 py-1 text-[10px] font-black text-[#3B5C37]">
-                      {task.recommendedMinutes}m
-                    </span>
-                  </div>
-                  <p className="mt-3 text-xs leading-6 text-[#5c6488]">{task.prompt}</p>
-                  <p className="mt-3 text-[11px] font-bold text-[#5c6488]">
-                    Minimum: {task.minimumWords} words
-                  </p>
+              {tasks.length === 0 ? (
+                <div className="py-6 text-center font-bold text-gray-500">
+                  Chưa có đề thi
                 </div>
-              ))}
+              ) : (
+                tasks.map((task) => (
+                  <div key={task.id} className="rounded-xl border border-[#edf0f5] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
+                          {task.label}
+                        </p>
+                        <h3 className="mt-1 text-sm font-black text-[#0f1738]">
+                          {task.title}
+                        </h3>
+                      </div>
+                      <span className="rounded-full bg-[#f0f4ed] px-2 py-1 text-[10px] font-black text-[#3B5C37]">
+                        {task.recommendedMinutes}m
+                      </span>
+                    </div>
+                    <p className="mt-3 text-xs leading-6 text-[#5c6488]">{task.prompt}</p>
+                    <p className="mt-3 text-[11px] font-bold text-[#5c6488]">
+                      Minimum: {task.minimumWords} words
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </aside>
         </section>

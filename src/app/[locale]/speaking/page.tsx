@@ -23,6 +23,8 @@ import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { fetchSpeakingTopics } from "@/services/speakingService";
+import type { ElementType } from "react";
 
 type SpeakingMode = "mock" | "part1" | "part2" | "part3";
 
@@ -140,9 +142,47 @@ export default function SpeakingDashboard() {
   const [selectedMode, setSelectedMode] = useState<SpeakingMode>("mock");
   const [selectedTopic, setSelectedTopic] = useState("study");
   const [view, setView] = useState<"select" | "dashboard">("select");
+  const [topics, setTopics] = useState<any[]>(TOPICS);
 
   useEffect(() => {
     let mounted = true;
+
+    fetchSpeakingTopics().then(data => {
+      if (mounted && data && data.length > 0) {
+        const mapped = data.map((t: any, idx: number) => {
+          let part2Prompt = t.part2Prompt || "";
+          let part3Focus = t.part3Focus || "";
+          
+          if (t.questions) {
+            const q = typeof t.questions === 'string' ? JSON.parse(t.questions) : t.questions;
+            if (t.part === 2 && q.cue_card) {
+              part2Prompt = q.cue_card;
+            }
+          }
+
+          const tones = [
+            "bg-[#edf3e8] text-[#3B5C37] border-[#d8e4ce]",
+            "bg-[#f4efe5] text-[#8a682e] border-[#e7dac1]",
+            "bg-[#eef2f0] text-[#43675d] border-[#d8e2de]"
+          ];
+
+          return {
+            id: t.id || String(t.topic || "").toLowerCase(),
+            title: t.topic || t.title || "Speaking Topic",
+            viTitle: t.topic || t.title || "Chủ đề Speaking",
+            desc: t.description || `Luyện nói chủ đề ${t.topic || t.title} Part ${t.part || 1}`,
+            part2Prompt: part2Prompt || "Describe a subject you enjoyed studying in high school.",
+            part3Focus: part3Focus || "The future of education and changes in rural communities.",
+            difficulty: t.part === 1 ? "Dễ" : t.part === 2 ? "Trung bình" : "Khó",
+            icon: BookOpen,
+            tone: tones[(t.part || 1) - 1] || tones[idx % tones.length]
+          };
+        });
+        setTopics(mapped);
+      }
+    }).catch(err => {
+      console.warn("Failed to load speaking topics from DB:", err);
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) setUser(session?.user ?? null);
@@ -163,7 +203,7 @@ export default function SpeakingDashboard() {
   }, []);
 
   const selectedTopicInfo =
-    TOPICS.find((topic) => topic.id === selectedTopic) ?? TOPICS[0];
+    topics.find((topic) => topic.id === selectedTopic) ?? topics[0] ?? TOPICS[0];
   const recentAttempts = attempts.slice(0, 5);
   const averageBand = useMemo(() => {
     if (!attempts.length) return 0;
@@ -391,7 +431,7 @@ export default function SpeakingDashboard() {
             </div>
 
             <div className="grid gap-4">
-              {TOPICS.map((topic) => {
+              {topics.map((topic) => {
                 const Icon = topic.icon;
                 const active = selectedTopic === topic.id;
 

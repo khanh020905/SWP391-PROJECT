@@ -17,6 +17,7 @@ import {
   WRITING_TASKS,
   WRITING_TEST_META,
 } from "@/lib/writingMockData";
+import { fetchWritingTasks } from "@/services/writingService";
 import {
   buildWritingFeedback,
   countWords,
@@ -121,9 +122,11 @@ export default function WritingTestPage() {
   const [timeRemaining, setTimeRemaining] = useState(INITIAL_SECONDS);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const timerStarted = useRef(false);
 
-  const activeTask = WRITING_TASKS.find((task) => task.id === activeTaskId) ?? WRITING_TASKS[0];
+  const activeTask = tasks.find((task) => task.id === activeTaskId) ?? tasks[0] ?? WRITING_TASKS[0];
   const wordCounts = useMemo(
     () => ({
       task1: countWords(answers.task1),
@@ -134,6 +137,32 @@ export default function WritingTestPage() {
   const totalWords = wordCounts.task1 + wordCounts.task2;
 
   useEffect(() => {
+    fetchWritingTasks().then(data => {
+      if (data && data.length > 0) {
+        const mapped = data.map((t: any) => ({
+          id: t.task_type === 'task1' ? 'task1' : 'task2',
+          label: t.task_type === 'task1' ? 'Writing Task 1' : 'Writing Task 2',
+          title: t.title,
+          prompt: t.description || t.prompt || "",
+          recommendedMinutes: t.task_type === 'task1' ? 20 : 40,
+          minimumWords: t.task_type === 'task1' ? 150 : 250,
+          bullets: t.bullets || [],
+          assessmentFocus: t.assessment_focus || ["Range of vocabulary and grammar", "Cohesion and coherence", "Task response"],
+          visualTitle: t.visual_title || t.title,
+          visualDescription: t.visual_description || "",
+          dataPoints: t.data_points || []
+        }));
+        setTasks(mapped);
+      } else {
+        setTasks(WRITING_TASKS);
+      }
+      setIsLoading(false);
+    }).catch(err => {
+      console.error("Error loading writing tasks:", err);
+      setTasks(WRITING_TASKS);
+      setIsLoading(false);
+    });
+
     const persisted = loadPersisted();
     if (!persisted) return;
     queueMicrotask(() => {
@@ -152,6 +181,7 @@ export default function WritingTestPage() {
   }, []);
 
   useEffect(() => {
+    if (isLoading) return;
     if (timerStarted.current) return;
     timerStarted.current = true;
     const interval = setInterval(() => {
@@ -159,9 +189,10 @@ export default function WritingTestPage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isLoading]);
 
   useEffect(() => {
+    if (isLoading) return;
     const nextSavedAt = new Date().toISOString();
     const payload: WritingPersistedState = {
       answers,
@@ -171,12 +202,14 @@ export default function WritingTestPage() {
     };
     localStorage.setItem(WRITING_STORAGE_KEY, JSON.stringify(payload));
     setSavedAt(nextSavedAt);
-  }, [answers, activeTaskId, timeRemaining]);
+  }, [answers, activeTaskId, timeRemaining, isLoading]);
 
   const submitTest = useCallback(() => {
     if (isSubmitting) return;
-    const missingTask = WRITING_TASKS.find(
-      (task) => countWords(answers[task.id]) < Math.min(20, task.minimumWords)
+    const missingTask = tasks.find(
+      (task) => countWords(answers[task.id as WritingTaskType]) < Math.min(20, task.minimumWords)
+    ) || WRITING_TASKS.find(
+      (task) => countWords(answers[task.id as WritingTaskType]) < Math.min(20, task.minimumWords)
     );
     const message = missingTask
       ? `${missingTask.label} còn rất ngắn. Bạn vẫn muốn nộp bài?`
@@ -198,13 +231,23 @@ export default function WritingTestPage() {
     });
     localStorage.removeItem(WRITING_STORAGE_KEY);
     router.push(`/writing/result?id=${attemptId}`);
-  }, [answers, isSubmitting, router, timeRemaining, wordCounts]);
+  }, [answers, isSubmitting, router, timeRemaining, wordCounts, tasks]);
 
   useEffect(() => {
     if (timeRemaining === 0 && !isSubmitting) {
       submitTest();
     }
   }, [isSubmitting, submitTest, timeRemaining]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-[#eef2ea]">
+        <div className="text-center font-bold text-[#3B5C37] animate-pulse">
+          Đang tải đề thi Writing từ hệ thống...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-[#eef2ea] text-[#0f1738]">
@@ -262,9 +305,9 @@ export default function WritingTestPage() {
       </header>
 
       <div className="flex shrink-0 gap-2 border-b border-[#dfe6d8] bg-white px-4 py-3 md:px-6">
-        {WRITING_TASKS.map((task) => {
+        {tasks.map((task) => {
           const isActive = task.id === activeTaskId;
-          const count = wordCounts[task.id];
+          const count = wordCounts[task.id as keyof typeof wordCounts];
           const ready = count >= task.minimumWords;
 
           return (
@@ -312,7 +355,7 @@ export default function WritingTestPage() {
 
           {activeTask.bullets && (
             <ul className="mt-4 space-y-2 rounded-xl border border-[#e6eadf] bg-white p-4 text-sm text-[#374151]">
-              {activeTask.bullets.map((bullet) => (
+              {activeTask.bullets.map((bullet: string) => (
                 <li key={bullet} className="flex gap-2">
                   <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#3B5C37]" />
                   <span>{bullet}</span>
@@ -329,7 +372,7 @@ export default function WritingTestPage() {
               Assessment focus
             </h2>
             <div className="mt-3 grid gap-2">
-              {activeTask.assessmentFocus.map((item) => (
+              {activeTask.assessmentFocus.map((item: string) => (
                 <div
                   key={item}
                   className="rounded-lg bg-[#f7f9f5] px-3 py-2 text-xs font-semibold text-[#4b5563]"
@@ -355,12 +398,12 @@ export default function WritingTestPage() {
               <div className="text-right">
                 <p
                   className={`text-lg font-black ${
-                    wordCounts[activeTask.id] >= activeTask.minimumWords
+                    wordCounts[activeTask.id as keyof typeof wordCounts] >= activeTask.minimumWords
                       ? "text-emerald-600"
                       : "text-[#3B5C37]"
                   }`}
                 >
-                  {wordCounts[activeTask.id]}
+                  {wordCounts[activeTask.id as keyof typeof wordCounts]}
                 </p>
                 <p className="text-[10px] font-black uppercase tracking-wider text-[#8a91a8]">
                   words
