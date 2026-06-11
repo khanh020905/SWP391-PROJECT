@@ -5,7 +5,18 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 
-const PUBLISHERS = [
+interface Publisher {
+  id: string;
+  name: string;
+  logoText: string;
+  logoFont: string;
+  image: string;
+  customStyle?: React.CSSProperties;
+  logoPrefix?: React.ReactNode;
+  badge?: string;
+}
+
+const PUBLISHERS: Publisher[] = [
   {
     id: "the-atlantic",
     name: "The Atlantic",
