@@ -162,10 +162,10 @@ export default function Navbar() {
       <header className={`mx-auto flex w-full max-w-[1160px] items-center justify-between px-9 transition-all duration-300 ease-in-out ${
         isScrolled ? "py-3.5" : "py-5"
       }`}>
-        <div className="flex items-center gap-2.5 text-xl font-black text-[#1b3d1e]">
+        <Link href="/" className="flex items-center gap-2.5 text-xl font-black text-[#1b3d1e] cursor-pointer hover:opacity-90 transition-opacity">
           <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-12 w-auto object-contain" />
           <span className="tracking-tight">Quali IELTS</span>
-        </div>
+        </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-bold text-[#4e5c4c] md:flex">
           <Link href="/" className="hover:text-[#3B5C37] transition-colors">Home</Link>

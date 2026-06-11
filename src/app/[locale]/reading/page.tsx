@@ -22,6 +22,7 @@ export default function ReadingLobbyPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [passages, setPassages] = useState<any[]>([]);
+  const [view, setView] = useState<"select" | "dashboard">("select");
 
   useEffect(() => {
     fetchReadingPassages()
@@ -106,6 +107,100 @@ export default function ReadingLobbyPage() {
 
   const totalQuestions = passages.reduce((sum, p) => sum + (p.questions?.length || 0), 0);
 
+  if (view === "select") {
+    return (
+      <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738] font-sans flex flex-col">
+        {/* Header */}
+        <header className="border-b border-gray-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-30">
+          <div className="mx-auto flex max-w-[1160px] items-center justify-between px-6 py-4">
+            <Link href="/" className="flex items-center gap-1.5 text-lg font-extrabold text-[#11193f]">
+              <span className="text-[#3B5C37]">*</span> QualiCode
+            </Link>
+            <nav className="hidden items-center gap-8 text-sm font-medium text-[#404965] md:flex">
+              <Link href="/" className="hover:text-[#3B5C37] transition-colors">Trang chủ</Link>
+              <Link href="/reading" className="text-[#3B5C37] font-bold">Luyện Reading</Link>
+              <Link href="/speaking" className="hover:text-[#3B5C37] transition-colors">Luyện Speaking</Link>
+            </nav>
+            <div className="flex items-center gap-3">
+              {!loading && userRole === "GUEST" && (
+                <Link
+                  href="/auth"
+                  className="rounded-xl border border-[#e7e9f1] px-5 py-2 text-sm font-semibold hover:bg-slate-100 transition-colors text-[#0f1738]"
+                >
+                  Đăng nhập
+                </Link>
+              )}
+              {!loading && userRole !== "UNKNOWN" && userRole !== "GUEST" && (
+                <span className="text-sm font-semibold text-[#3B5C37]">
+                  Xin chào, {userName || userRole}
+                </span>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-20">
+          <div className="text-center mb-12">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c7d1b8] bg-[#ebefe0]/85 px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#3B5C37] mb-6">
+              <BookOpen className="h-4 w-4" />
+              IELTS Reading & Vocabulary
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-[#1b3d1e] tracking-tight leading-[1.1]">
+              Hôm nay bạn muốn luyện đọc thế nào?
+            </h1>
+            <p className="mt-5 text-[#4e5c4c] font-medium max-w-lg mx-auto md:text-lg">
+              Luyện đề thi tiêu chuẩn sát với IELTS thật hoặc trau dồi từ vựng thông qua các bài báo song ngữ uy tín.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6 w-full max-w-[1000px]">
+            {/* Standard Mode Card */}
+            <button 
+              onClick={() => setView("dashboard")} 
+              className="group relative flex flex-col rounded-[32px] bg-white p-8 text-left border-2 border-[#e4e8dc] hover:border-[#3B5C37] shadow-sm hover:shadow-[0_24px_54px_rgba(59,92,55,0.12)] transition-all duration-300 active:scale-[0.98] outline-none"
+            >
+              <div className="h-16 w-16 bg-[#edf3e8] text-[#3B5C37] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <h2 className="text-2xl font-black text-[#1b3d1e] mb-3">Luyện thi tiêu chuẩn</h2>
+              <p className="text-sm font-medium text-[#4e5c4c] leading-relaxed mb-8 flex-1">
+                Làm bài đọc 3 passages với thời gian 60 phút. Rèn luyện kỹ năng giải các dạng câu hỏi thường gặp trong kỳ thi thật.
+              </p>
+              <div className="flex items-center gap-2 text-[#3B5C37] font-bold text-sm w-full">
+                <span>Vào phòng thi</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+
+            {/* Bilingual Reading Card */}
+            <Link 
+              href="/reading/bilingual" 
+              className="group relative flex flex-col rounded-[32px] bg-[#6c7c4c] p-8 text-left border-2 border-[#5c6c3c] hover:border-[#4c5c2c] shadow-sm hover:shadow-[0_24px_54px_rgba(108,124,76,0.3)] transition-all duration-300 active:scale-[0.98] outline-none no-underline overflow-hidden"
+            >
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/10 to-transparent" />
+              
+              <div className="relative h-16 w-16 bg-white/20 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                <BookOpen className="h-8 w-8" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white mb-3 flex items-center gap-2">
+                Đọc Báo Song Ngữ <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] uppercase tracking-wider font-bold">New</span>
+              </h2>
+              <p className="relative text-sm font-medium text-white/80 leading-relaxed mb-8 flex-1">
+                Tuyển tập bài báo uy tín từ The Atlantic, NYT, Economist... Có giải nghĩa chi tiết giúp hấp thụ từ vựng học thuật tự nhiên nhất.
+              </p>
+              <div className="relative flex items-center gap-2 text-white font-bold text-sm w-full">
+                <span>Đọc ngay</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738] font-sans">
       {/* Header */}
@@ -138,6 +233,11 @@ export default function ReadingLobbyPage() {
       </header>
 
       <main className="mx-auto max-w-[1160px] px-6 pb-16 pt-10">
+        <div className="mb-6 flex">
+          <button onClick={() => setView("select")} className="text-sm font-bold text-[#3B5C37] hover:underline flex items-center gap-1">
+            <ChevronRight className="w-4 h-4 rotate-180" /> Quay lại
+          </button>
+        </div>
 
         {/* Hero banner */}
         <section className="relative rounded-3xl overflow-hidden mb-10 bg-gradient-to-r from-[#1b3d1e] via-[#2d5727] to-[#3B5C37] text-white p-8 md:p-12 shadow-[0_16px_40px_rgba(27,61,30,0.2)] border border-white/5">
