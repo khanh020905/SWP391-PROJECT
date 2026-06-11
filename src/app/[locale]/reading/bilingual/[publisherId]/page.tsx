@@ -8,7 +8,8 @@ import { ArrowLeft, Sparkles, Newspaper, Mail, CheckCircle2, AlertCircle, X, Plu
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useSaveVocab } from "@/hooks/useSaveVocab";
+import VocabSavePopup from "@/components/VocabSavePopup";
 interface Article {
   id: string;
   sourceId: string;
@@ -386,11 +387,15 @@ function SongNguBaoPageInner({ defaultPublisherId }: { defaultPublisherId: strin
   const [urlSuggestInput, setUrlSuggestInput] = useState("");
   const [urlSuggestDone, setUrlSuggestDone] = useState(false);
 
-  // Folder picker for vocab save
+  // Folder picker for vocab save (legacy)
   const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [folderPickerPos, setFolderPickerPos] = useState({ x: 0, y: 0 });
   const [pendingVocab, setPendingVocab] = useState<{ word: string; definition: string; sentence?: string } | null>(null);
+
+  // New Vocab Notebook state
+  const { isSaved } = useSaveVocab();
+  const [vocabPopupData, setVocabPopupData] = useState<{ word: string, translation: string, sentence: string, x: number, y: number } | null>(null);
 
   // Draggable split divider
   const [splitFraction, setSplitFraction] = useState(0.5);
@@ -1181,11 +1186,14 @@ function SongNguBaoPageInner({ defaultPublisherId }: { defaultPublisherId: strin
                           let inner = (
                             <span
                               id={`tok-${tok.id}`}
-                              className={`cursor-pointer rounded px-0.5 transition-colors duration-100 ${
+                              className={`cursor-pointer rounded px-0.5 transition-colors duration-100 relative ${
                                 isActive ? "bg-[#a3cf62]/40 text-[#1e3a06] underline decoration-[#6b7c3a]/60" : readerDark ? "text-slate-200" : "text-slate-700"
                               } ${isManual ? "border-b border-dashed border-[#a3cf62]" : ""}`}
                             >
                               {tok.t}
+                              {isSaved(tok.t.replace(/[.,!?;:'"()[\]{}]/g, '')) && (
+                                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[#6b7c3a] text-[9px] font-black select-none pointer-events-none">✓</span>
+                              )}
                             </span>
                           );
                           
@@ -1315,6 +1323,17 @@ function SongNguBaoPageInner({ defaultPublisherId }: { defaultPublisherId: strin
                             >
                               <Volume2 size={12} />
                             </button>
+                            <button
+                              className={`pointer-events-auto w-6 h-6 flex items-center justify-center rounded-full transition-colors ${isSaved(gloss.word) ? 'bg-green-500/20 text-green-400' : 'bg-white/10 hover:bg-white/25 text-white/80 hover:text-white'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setVocabPopupData({ word: gloss.word, translation: gloss.text, sentence: gloss.sentence || '', x: rect.left, y: rect.top });
+                              }}
+                              title="Lưu vào sổ từ vựng"
+                            >
+                              <Bookmark size={12} className={isSaved(gloss.word) ? 'fill-current' : ''} />
+                            </button>
                           </div>
                         </div>
                         <div className="text-right flex-1">
@@ -1330,55 +1349,6 @@ function SongNguBaoPageInner({ defaultPublisherId }: { defaultPublisherId: strin
                           <X size={11} />
                         </button>
                       </div>
-                      {gloss.word && (
-                        <div className="flex flex-col gap-2 w-full mt-2">
-                          {gloss.duplicate ? (
-                            <>
-                              <p className="text-[10px] text-amber-300 font-bold text-center leading-snug">Từ này đã có trong sổ!</p>
-                              <div className="flex gap-1.5 w-full">
-                                <button
-                                  className="pointer-events-auto flex-1 bg-[#a3cf62] hover:bg-[#b8df74] text-[#1e3006] text-[10px] font-black uppercase tracking-wider rounded-lg px-2 py-1.5 flex items-center justify-center gap-1 transition-colors"
-                                  onClick={(e) => { e.stopPropagation(); handleForceVocab(); }}
-                                >
-                                  <Plus size={10} />Thêm lại
-                                </button>
-                                <button
-                                  className="pointer-events-auto flex-1 bg-white/20 hover:bg-white/30 text-white text-[10px] font-black uppercase tracking-wider rounded-lg px-2 py-1.5 flex items-center justify-center transition-colors"
-                                  onClick={(e) => { e.stopPropagation(); setGloss(g => g ? { ...g, duplicate: false } : null); setPendingDuplicateVocab(null); }}
-                                >
-                                  Thôi
-                                </button>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                className={`pointer-events-auto w-full ${gloss.error ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#a3cf62] hover:bg-[#b8df74] text-[#1e3006]'} text-[11px] font-black uppercase tracking-wider rounded-lg px-3 py-1.5 flex items-center justify-center gap-1.5 transition-colors`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!gloss.saved && !gloss.error) {
-                                    handleSaveVocab(gloss.word, gloss.text, null, gloss.sentence);
-                                  }
-                                }}
-                              >
-                                {gloss.error ? <><X size={11} />Lỗi lưu!</> : gloss.saved ? <><Check size={11} />Đã lưu</> : <><Plus size={11} />Lưu từ</>}
-                              </button>
-                              <button
-                                className="pointer-events-auto text-[10px] text-white/50 hover:text-white/80 transition-colors text-center underline decoration-white/30 hover:decoration-white/80"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const r = e.currentTarget.getBoundingClientRect();
-                                  setFolderPickerPos({ x: r.left + r.width / 2, y: r.top });
-                                  setPendingVocab({ word: gloss.word, definition: gloss.text, sentence: gloss.sentence });
-                                  setShowFolderPicker(true);
-                                }}
-                              >
-                                Chọn thư mục
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
                     </div>
                   ) : (
                     /* Compact hover pill */
@@ -1438,6 +1408,17 @@ function SongNguBaoPageInner({ defaultPublisherId }: { defaultPublisherId: strin
                   </div>
                 </div>
               </>
+            )}
+
+            {/* VocabSavePopup */}
+            {vocabPopupData && (
+              <VocabSavePopup
+                word={vocabPopupData.word}
+                translation={vocabPopupData.translation}
+                example={vocabPopupData.sentence}
+                position={{ x: vocabPopupData.x, y: vocabPopupData.y }}
+                onClose={() => setVocabPopupData(null)}
+              />
             )}
           </motion.div>
         ) : !selectedCard ? (
