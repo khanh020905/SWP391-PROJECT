@@ -69,7 +69,7 @@ export default function AddToNotebookButton({ word, definition, example, pos, so
 
   if (variant === 'icon') {
     return (
-      <button onClick={() => handleSave()} disabled={loading || saved} className={\`p-2 rounded-full hover:bg-slate-100 transition-colors \${saved ? 'text-green-500' : 'text-slate-400'} \${className}\`}>
+      <button onClick={() => handleSave()} disabled={loading || saved} className={`p-2 rounded-full hover:bg-slate-100 transition-colors ${saved ? 'text-green-500' : 'text-slate-400'} ${className}`}>
         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : saved ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
       </button>
     );
@@ -80,7 +80,7 @@ export default function AddToNotebookButton({ word, definition, example, pos, so
       <button 
         onClick={() => variant === 'dropdown' ? setOpenDropdown(!openDropdown) : handleSave()}
         disabled={loading || saved}
-        className={\`flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-70 \${className}\`}
+        className={`flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-70 ${className}`}
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4 text-green-400" /> : <Plus className="w-4 h-4" />}
         <span>{saved ? 'Đã lưu' : 'Lưu vào sổ tay'}</span>
