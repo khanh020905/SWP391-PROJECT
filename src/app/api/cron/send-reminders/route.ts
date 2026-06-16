@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== \`Bearer \${process.env.CRON_SECRET || 'dev_cron_secret'}\`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET || 'dev_cron_secret'}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,15 +40,15 @@ export async function POST(request: NextRequest) {
           await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || "noreply@luyenielts.site",
             to: profile.email,
-            subject: \`Bạn có \${count} từ vựng cần ôn tập hôm nay! 📚\`,
-            html: \`
+            subject: `Bạn có ${count} từ vựng cần ôn tập hôm nay! 📚`,
+            html: `
               <div style="font-family: sans-serif; padding: 20px;">
                 <h2>Đã đến lúc ôn tập từ vựng!</h2>
-                <p>Chào bạn, hiện tại bạn đang có <strong>\${count}</strong> từ vựng đến hạn ôn tập trong Sổ từ vựng.</p>
+                <p>Chào bạn, hiện tại bạn đang có <strong>${count}</strong> từ vựng đến hạn ôn tập trong Sổ từ vựng.</p>
                 <p>Việc ôn tập đúng thời điểm sẽ giúp bạn nhớ từ vựng lâu hơn rất nhiều theo phương pháp Lặp lại ngắt quãng (Spaced Repetition).</p>
                 <a href="https://luyenielts.site/dashboard" style="display: inline-block; padding: 10px 20px; background: #5D6B2D; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 10px;">Ôn tập ngay</a>
               </div>
-            \`
+            `
           });
           emailsSent++;
         }
