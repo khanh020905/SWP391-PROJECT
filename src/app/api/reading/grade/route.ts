@@ -7,16 +7,30 @@ import { buildReadingExplanationVi } from "@/lib/readingExplainEngine";
 const GEMINI_MODEL = "gemini-1.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-function bandFromRaw(correct: number, total: number): number {
-  const ratio = correct / total;
-  if (ratio >= 0.9) return 9;
-  if (ratio >= 0.8) return 8;
-  if (ratio >= 0.7) return 7.5;
-  if (ratio >= 0.6) return 7;
-  if (ratio >= 0.5) return 6.5;
-  if (ratio >= 0.4) return 6;
-  if (ratio >= 0.3) return 5.5;
-  return 5;
+function bandFromRaw(correct: number, total: number, testType: 'academic' | 'general' = 'academic'): number {
+  // Quy đổi về thang 40 câu chuẩn Cambridge
+  const scaled = Math.round((correct / total) * 40);
+
+  const academicTable: [number, number][] = [
+    [39, 9.0], [37, 8.5], [35, 8.0], [33, 7.5],
+    [30, 7.0], [27, 6.5], [23, 6.0], [19, 5.5],
+    [15, 5.0], [13, 4.5], [10, 4.0], [8, 3.5],
+    [6, 3.0], [4, 2.5], [0, 2.0]
+  ];
+
+  const generalTable: [number, number][] = [
+    [40, 9.0], [39, 8.5], [37, 8.0], [36, 7.5],
+    [34, 7.0], [32, 6.5], [30, 6.0], [27, 5.5],
+    [23, 5.0], [19, 4.5], [15, 4.0], [12, 3.5],
+    [9, 3.0], [6, 2.5], [0, 2.0]
+  ];
+
+  const table = testType === 'general' ? generalTable : academicTable;
+
+  for (const [minCorrect, band] of table) {
+    if (scaled >= minCorrect) return band;
+  }
+  return 2.0;
 }
 
 function parseGeminiJson(text: string): Partial<ReadingGradeResult> | null {

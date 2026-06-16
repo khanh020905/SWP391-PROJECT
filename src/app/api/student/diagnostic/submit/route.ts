@@ -33,6 +33,44 @@ function parseClaudeJson(text: string) {
   }
 }
 
+function bandFromRaw(correct: number, total: number, testType: 'academic' | 'general' = 'academic'): number {
+  const scaled = Math.round((correct / total) * 40);
+
+  const academicTable: [number, number][] = [
+    [39, 9.0], [37, 8.5], [35, 8.0], [33, 7.5],
+    [30, 7.0], [27, 6.5], [23, 6.0], [19, 5.5],
+    [15, 5.0], [13, 4.5], [10, 4.0], [8, 3.5],
+    [6, 3.0], [4, 2.5], [0, 2.0]
+  ];
+
+  const generalTable: [number, number][] = [
+    [40, 9.0], [39, 8.5], [37, 8.0], [36, 7.5],
+    [34, 7.0], [32, 6.5], [30, 6.0], [27, 5.5],
+    [23, 5.0], [19, 4.5], [15, 4.0], [12, 3.5],
+    [9, 3.0], [6, 2.5], [0, 2.0]
+  ];
+
+  const table = testType === 'general' ? generalTable : academicTable;
+
+  for (const [minCorrect, band] of table) {
+    if (scaled >= minCorrect) return band;
+  }
+  return 2.0;
+}
+
+function bandFromListening(correct: number): number {
+  const table: [number, number][] = [
+    [39, 9.0], [37, 8.5], [35, 8.0], [32, 7.5],
+    [30, 7.0], [26, 6.5], [23, 6.0], [18, 5.5],
+    [16, 5.0], [13, 4.5], [10, 4.0], [8, 3.5],
+    [6, 3.0], [4, 2.5], [0, 2.0]
+  ];
+  for (const [minCorrect, band] of table) {
+    if (correct >= minCorrect) return band;
+  }
+  return 2.0;
+}
+
 // Fallback logic to generate realistic grading in case Anthropic API fails or is not set up
 function generateFallbackResult(answers: any, userId: string) {
   // Simple check on objective answers
@@ -63,8 +101,9 @@ function generateFallbackResult(answers: any, userId: string) {
   if ((answers.r2 || "").trim().toUpperCase() === "B") rCorrect += 1;
 
   // Band calculations
-  const lBand = Math.min(9.0, 3.5 + lCorrect * 1.0);
-  const rBand = Math.min(9.0, 3.5 + rCorrect * 1.0);
+  const rTotal = 4;
+  const lBand = bandFromListening(lCorrect); // Listening dùng bảng riêng
+  const rBand = bandFromRaw(rCorrect, rTotal, 'academic'); // Reading dùng hàm trên
 
   // Estimating writing & speaking bands based on word length / completeness
   const w1Len = (answers.w1 || "").trim().split(/\s+/).filter(Boolean).length;
