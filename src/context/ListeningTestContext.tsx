@@ -392,49 +392,60 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
       setResult(graded);
 
       const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || "00000000-0000-0000-0000-000000000001"; // Mock default if not logged in
+      
+      if (session?.user) {
+        const userId = session.user.id;
 
-      // 1. Save to user_submissions
-      const { data: submission, error: subErr } = await supabase
-        .from("user_submissions")
-        .insert({
-          user_id: userId,
-          exam_id: selectedTest.id,
-          score: graded.bandScore,
-          answers: {
-            userAnswers: graded.answers,
-            correctAnswers: graded.correctAnswers,
-            rawScore: graded.score,
-            totalQuestions: graded.totalQuestions,
-            sectionResults: graded.sectionResults,
-          },
-          started_at: startedAtRef.current.toISOString(),
-          completed_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        // 1. Save to user_submissions
+        const { data: submission, error: subErr } = await supabase
+          .from("user_submissions")
+          .insert({
+            user_id: userId,
+            exam_id: selectedTest.id,
+            score: graded.bandScore,
+            answers: {
+              userAnswers: graded.answers,
+              correctAnswers: graded.correctAnswers,
+              rawScore: graded.score,
+              totalQuestions: graded.totalQuestions,
+              sectionResults: graded.sectionResults,
+            },
+            started_at: startedAtRef.current.toISOString(),
+            completed_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
 
-      if (subErr) throw subErr;
+        if (subErr) {
+          console.error("Error saving user submission:", subErr);
+        } else {
+          // 2. Also save to practice_history for dashboard display
+          const { error: histErr } = await supabase.from("practice_history").insert({
+            user_id: userId,
+            category: "listening",
+            test_id: selectedTest.test_id,
+            test_name: selectedTest.test_name,
+            score: graded.bandScore,
+            total: graded.totalQuestions,
+            metadata: {
+              raw_score: graded.score,
+              section_results: graded.sectionResults,
+              submission_id: submission?.id || null,
+            },
+          });
 
-      // 2. Also save to practice_history for dashboard display
-      await supabase.from("practice_history").insert({
-        user_id: userId,
-        category: "listening",
-        test_id: selectedTest.test_id,
-        test_name: selectedTest.test_name,
-        score: graded.bandScore,
-        total: graded.totalQuestions,
-        metadata: {
-          raw_score: graded.score,
-          section_results: graded.sectionResults,
-          submission_id: submission?.id || null,
-        },
-      });
+          if (histErr) {
+            console.error("Error saving practice history:", histErr);
+          }
+        }
+      } else {
+        console.log("Guest session: skipping database submission save.");
+      }
 
       setShowResult(true);
     } catch (err: any) {
-      console.error("Error submitting listening test:", err);
-      alert(err.message || "Failed to submit test. Please try again.");
+      console.error("Error during listening test submission process:", err);
+      alert(err.message || "An error occurred during submission. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
