@@ -29,7 +29,7 @@ interface Folder {
   word_count?: number;
 }
 
-async function getAuthHeaders() {
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token || '';
   return token
