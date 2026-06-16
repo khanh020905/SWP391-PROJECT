@@ -4,6 +4,7 @@ import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import AuthCookieManager from "@/components/AuthCookieManager";
+import ChatWidgetWrapper from "@/components/chatbot/ChatWidgetWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +61,7 @@ export default async function LocaleLayout({
       <NextIntlClientProvider locale={resolvedParams.locale} messages={messages}>
         <AuthCookieManager />
         {children}
+        <ChatWidgetWrapper />
       </NextIntlClientProvider>
     </div>
   );
