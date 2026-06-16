@@ -57,15 +57,35 @@ export async function POST(request: NextRequest) {
       finalDuration = `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
+    let authorName = "";
+
     try {
       const oembedRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`);
       if (oembedRes.ok) {
         const oembedData = await oembedRes.json();
         if (oembedData.title) finalTitle = oembedData.title;
         if (oembedData.thumbnail_url) finalThumbnail = oembedData.thumbnail_url;
+        if (oembedData.author_name) authorName = oembedData.author_name;
       }
     } catch (e) {
       console.warn("Failed to fetch oEmbed data", e);
+    }
+
+    let finalCategory = "Custom";
+    const lowercaseTitle = finalTitle.toLowerCase();
+    const lowercaseAuthor = authorName.toLowerCase();
+    if (
+      lowercaseTitle.includes("ted") || 
+      lowercaseAuthor.includes("ted") || 
+      lowercaseTitle.includes("sumo") || 
+      lowercaseTitle.includes("catnip") || 
+      lowercaseTitle.includes("best ideas") || 
+      lowercaseTitle.includes("toys") || 
+      lowercaseTitle.includes("venice") || 
+      lowercaseTitle.includes("bitten") || 
+      lowercaseTitle.includes("masquerade")
+    ) {
+      finalCategory = "TED-Ed";
     }
 
     // Step 1: Insert into shadowing_videos
@@ -75,7 +95,7 @@ export async function POST(request: NextRequest) {
         youtube_id: videoId,
         title: finalTitle,
         thumbnail_url: finalThumbnail,
-        category: "Custom",
+        category: finalCategory,
         level: "Custom",
         duration: finalDuration,
         segments: segments.length,

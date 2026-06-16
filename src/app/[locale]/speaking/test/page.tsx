@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense, useCallback, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { 
   Sparkles, Mic, MicOff, Square,
   Edit3, CheckCircle, Home,
@@ -886,6 +886,17 @@ function SpeakingTestRoomContent() {
 
     }, 2500);
   };
+
+  if (isLoadingExam || !currentExam) {
+    return (
+      <div className="min-h-screen bg-[#0b0f19] flex flex-col items-center justify-center p-6 text-center text-white">
+        <div className="relative w-16 h-16 mb-4 mx-auto">
+          <div className="absolute inset-0 rounded-full border-4 border-violet-500/20 border-t-[#ff7a00] animate-spin" />
+        </div>
+        <p className="text-sm font-black text-slate-400">Đang tải chủ đề thi Speaking...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#0b0f19] text-[#e2e8f0] min-h-screen font-sans flex flex-col relative overflow-hidden">

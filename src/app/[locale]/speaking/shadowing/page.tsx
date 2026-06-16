@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
 import { 
   Headphones, LayoutGrid, Mic, Video, BookOpen, Music, PlaySquare, 
   User, Globe, Circle, CheckCircle2, Percent, Upload, Play,
   FileText, ArrowLeft, Clock, X, Loader2, Link as LinkIcon, Info
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 interface VideoLesson {
@@ -122,6 +121,9 @@ export default function ShadowingMockupPage() {
   }, []);
 
   const filteredVideos = videos.filter(v => {
+    const isTed = v.category === "TED-Ed" || (v.title || "").toLowerCase().includes("ted");
+    if (isTed) return false;
+
     if (activeCategory !== "all" && v.category !== activeCategory) return false;
     if (activeLevel !== "all" && !v.level?.startsWith(activeLevel)) return false;
     if (activeOwner === "mine" && v.user_id !== currentUser?.id) return false;
@@ -198,12 +200,27 @@ export default function ShadowingMockupPage() {
         finalDuration = `${mins}:${secs.toString().padStart(2, '0')}`;
       }
 
+      let finalCategory = "Custom";
+      const lowercaseTitle = (previewData?.title || "").toLowerCase();
+      if (
+        lowercaseTitle.includes("ted") || 
+        lowercaseTitle.includes("sumo") || 
+        lowercaseTitle.includes("catnip") || 
+        lowercaseTitle.includes("best ideas") || 
+        lowercaseTitle.includes("toys") || 
+        lowercaseTitle.includes("venice") || 
+        lowercaseTitle.includes("bitten") || 
+        lowercaseTitle.includes("masquerade")
+      ) {
+        finalCategory = "TED-Ed";
+      }
+
       // Add to local storage fallback
       const meta = {
         youtube_id: videoId,
         title: previewData?.title || `Custom Video`,
         thumbnail_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-        category: "Custom",
+        category: finalCategory,
         level: "Custom",
         duration: finalDuration,
         segments: previewData?.segments?.length || 0,
@@ -280,10 +297,10 @@ export default function ShadowingMockupPage() {
               <Mic className="h-5 w-5" />
               IELTS Speaking <span className="text-lg leading-none ml-auto">🔥</span>
             </button>
-            <button onClick={() => setActiveCategory("TED-Ed")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${activeCategory === "TED-Ed" ? "bg-[#f0f3ea] text-[#3B5C37]" : "text-gray-500 hover:bg-gray-50"}`}>
-              <Video className="h-5 w-5" />
-              TED-Ed
-            </button>
+            <Link href="/speaking/ted" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm text-gray-500 hover:bg-[#fff1f0] hover:text-[#E62B1E] transition-colors group">
+              <Video className="h-5 w-5 group-hover:text-[#E62B1E]" />
+              TED-Ed <span className="text-[9px] font-black bg-[#E62B1E]/10 text-[#E62B1E] px-1.5 py-0.5 rounded ml-auto">Dedicated</span>
+            </Link>
             <button onClick={() => setActiveCategory("Real Easy English")} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-colors ${activeCategory === "Real Easy English" ? "bg-[#f0f3ea] text-[#3B5C37]" : "text-gray-500 hover:bg-gray-50"}`}>
               <BookOpen className="h-5 w-5" />
               Real Easy English

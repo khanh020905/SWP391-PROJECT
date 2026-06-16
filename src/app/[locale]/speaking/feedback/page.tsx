@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { 
   Award, Calendar, ArrowLeft, ShieldAlert, Sparkles, User, 
   LogOut, Mic, Volume2, CheckCircle2, AlertCircle, ChevronRight,
