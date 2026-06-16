@@ -94,8 +94,6 @@ export default function PersonalNotebookPage() {
         personalFolderCount={folders.length}
         personalTotal={totalWords}
         personalFolders={personalFolders}
-        inkColor="#1F1F1F"
-        titleColor="#a8ae8c"
         openImportModal={() => setShowImportModal(true)}
         createNewFolder={handleCreateNewFolder}
         
