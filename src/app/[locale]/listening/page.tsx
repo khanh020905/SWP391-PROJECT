@@ -107,6 +107,7 @@ function ListeningTestListContent() {
 
   const [historyScores, setHistoryScores] = useState<Record<string, { score: number; date: string }>>({});
   const [sessionUser, setSessionUser] = useState<any>(null);
+  const [historyList, setHistoryList] = useState<any[]>([]);
 
   // Fetch test list
   useEffect(() => {
@@ -122,7 +123,16 @@ function ListeningTestListContent() {
 
       const { data, error } = await supabase
         .from("user_submissions")
-        .select("exam_id, score, completed_at")
+        .select(`
+          id,
+          exam_id,
+          score,
+          completed_at,
+          answers,
+          exams (
+            title
+          )
+        `)
         .eq("user_id", session.user.id)
         .order("completed_at", { ascending: false });
 
@@ -131,8 +141,17 @@ function ListeningTestListContent() {
         return;
       }
 
+      // Filter out only listening submissions (those having answers.sectionResults or exams.title containing 'Listening')
+      const listeningSubs = (data || []).filter((row: any) => {
+        const isListeningTitle = row.exams?.title?.toLowerCase().includes("listening");
+        const hasSectionResults = !!row.answers?.sectionResults;
+        return isListeningTitle || hasSectionResults;
+      });
+
+      setHistoryList(listeningSubs);
+
       const scoreMap: Record<string, { score: number; date: string }> = {};
-      data.forEach((row: any) => {
+      listeningSubs.forEach((row: any) => {
         if (!scoreMap[row.exam_id]) {
           scoreMap[row.exam_id] = {
             score: row.score,
@@ -197,6 +216,63 @@ function ListeningTestListContent() {
             Làm bài thi nghe IELTS Cambridge đầy đủ — nghe audio một lần, tự điền câu trả lời và nhận kết quả chi tiết như thi thật.
           </p>
         </section>
+
+        {/* Lịch sử làm bài gần đây */}
+        {historyList.length > 0 && (
+          <section className="mb-12 bg-white rounded-3xl border border-slate-150 p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-6">
+              <History className="w-5 h-5 text-[#3B5C37]" />
+              <h2 className="text-lg font-black text-slate-800 tracking-tight">
+                Lịch sử luyện tập gần đây
+              </h2>
+            </div>
+            
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {historyList.slice(0, 3).map((item) => {
+                const dateStr = new Date(item.completed_at).toLocaleString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric"
+                });
+                
+                const rawScore = item.answers?.rawScore ?? item.answers?.correctCount ?? 0;
+                const totalQuestions = item.answers?.totalQuestions ?? 40;
+                const testName = item.exams?.title || "IELTS Listening Practice Test";
+
+                return (
+                  <div 
+                    key={item.id} 
+                    className="flex flex-col justify-between p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-all shadow-sm"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          {dateStr}
+                        </span>
+                        <div className="bg-gradient-to-r from-[#3B5C37] to-[#B38F4D] px-2.5 py-1 rounded-lg text-xs font-black text-white shadow-sm">
+                          {parseFloat(item.score).toFixed(1)} Band
+                        </div>
+                      </div>
+                      
+                      <h4 className="text-xs font-black text-slate-700 tracking-tight line-clamp-2 mb-2">
+                        {testName}
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 border-t border-slate-200/50 pt-2.5 mt-2">
+                      <span>Độ chính xác:</span>
+                      <span className="text-[#3B5C37] font-black">
+                        {rawScore} / {totalQuestions} câu ({Math.round((rawScore / totalQuestions) * 100)}%)
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Cambridge Volumes */}
         <div className="space-y-12">
