@@ -399,13 +399,15 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
           ? window.crypto.randomUUID() 
           : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
 
-        // 1. Save to user_submissions
-        const { error: subErr } = await supabase
-          .from("user_submissions")
-          .insert({
-            id: submissionId,
-            user_id: userId,
-            exam_id: selectedTest.id,
+        const res = await fetch("/api/listening/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token || ""}`
+          },
+          body: JSON.stringify({
+            submissionId,
+            examId: selectedTest.id,
             score: graded.bandScore,
             answers: {
               userAnswers: graded.answers,
@@ -414,41 +416,19 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
               totalQuestions: graded.totalQuestions,
               sectionResults: graded.sectionResults,
             },
-            started_at: startedAtRef.current.toISOString(),
-            completed_at: new Date().toISOString(),
-          });
+            startedAt: startedAtRef.current.toISOString(),
+            completedAt: new Date().toISOString(),
+            testId: selectedTest.test_id,
+            testName: selectedTest.test_name,
+            totalQuestions: graded.totalQuestions,
+            rawScore: graded.score,
+            sectionResults: graded.sectionResults
+          })
+        });
 
-        if (subErr) {
-          console.error("Error saving user submission:", {
-            message: subErr.message,
-            code: subErr.code,
-            details: subErr.details,
-            hint: subErr.hint
-          });
-        } else {
-          // 2. Also save to practice_history for dashboard display
-          const { error: histErr } = await supabase.from("practice_history").insert({
-            user_id: userId,
-            category: "listening",
-            test_id: selectedTest.test_id,
-            test_name: selectedTest.test_name,
-            score: graded.bandScore,
-            total: graded.totalQuestions,
-            metadata: {
-              raw_score: graded.score,
-              section_results: graded.sectionResults,
-              submission_id: submissionId,
-            },
-          });
-
-          if (histErr) {
-            console.error("Error saving practice history:", {
-              message: histErr.message,
-              code: histErr.code,
-              details: histErr.details,
-              hint: histErr.hint
-            });
-          }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.error("Error saving user submission:", errData.error || "Unknown error");
         }
       } else {
         console.log("Guest session: skipping database submission save.");
