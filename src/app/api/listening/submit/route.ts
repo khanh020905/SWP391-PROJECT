@@ -2,7 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 async function getAuthenticatedUser(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace("Bearer ", "");
+  const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+  let token = null;
+
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else {
+    // Check cookies for sb-*-auth-token
+    const cookies = request.cookies.getAll();
+    const authCookie = cookies.find(c => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+    if (authCookie) {
+      try {
+        const parsed = JSON.parse(authCookie.value);
+        if (Array.isArray(parsed)) {
+          token = parsed[0];
+        } else if (parsed && typeof parsed === "object" && parsed.access_token) {
+          token = parsed.access_token;
+        } else {
+          token = authCookie.value;
+        }
+      } catch {
+        token = authCookie.value;
+      }
+    }
+  }
+
   if (!token) return null;
 
   try {

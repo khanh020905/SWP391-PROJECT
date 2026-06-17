@@ -428,7 +428,7 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          console.error("Error saving user submission:", errData.error || "Unknown error");
+          throw new Error(errData.error || "Không thể lưu kết quả bài làm vào hệ thống.");
         }
       } else {
         console.log("Guest session: skipping database submission save.");
