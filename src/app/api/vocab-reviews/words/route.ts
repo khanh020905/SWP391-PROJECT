@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   
   const { data, error } = await supabaseAdmin
     .from('topic_word_reviews')
-    .select('word, ease_factor, interval_days, review_count, next_review_at, last_reviewed_at')
+    .select('word, ease_factor, interval_days, review_count, next_review_at, last_reviewed_at, status')
     .eq('user_id', user.id)
     .eq('set_ref', set_ref);
     
@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
       interval_days: srsResult.intervalDays,
       review_count: srsResult.reviewCount,
       next_review_at: srsResult.nextReviewAt.toISOString(),
-      last_reviewed_at: new Date().toISOString()
+      last_reviewed_at: new Date().toISOString(),
+      status: rating === 'easy' ? 'known' : 'unknown'
     }, { onConflict: 'user_id, set_ref, word' })
     .select()
     .single();

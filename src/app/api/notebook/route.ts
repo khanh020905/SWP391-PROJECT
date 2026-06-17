@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (folderId) query = query.eq('folder_id', folderId);
+  if (folderId) {
+    if (folderId === 'general') query = query.is('folder_id', null);
+    else query = query.eq('folder_id', folderId);
+  }
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -47,6 +50,7 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { word, definition, example, pos, folder_id, force, source, category } = body;
+  const actualFolderId = folder_id === 'general' ? null : folder_id;
   if (!word) return NextResponse.json({ error: "word is required" }, { status: 400 });
 
   const lowerWord = String(word).toLowerCase().trim();
@@ -56,7 +60,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('user_notebook')
       .upsert(
-        { user_id: user.id, word: lowerWord, definition: definition || null, example: example || null, pos: pos || null, folder_id: folder_id || null, source: source || null, category: category || null },
+        { user_id: user.id, word: lowerWord, definition: definition || null, example: example || null, pos: pos || null, folder_id: actualFolderId || null, source: source || null, category: category || null },
         { onConflict: 'user_id,word' }
       )
       .select()
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
   // Normal insert — let DB raise unique violation
   const { data, error } = await supabaseAdmin
     .from('user_notebook')
-    .insert({ user_id: user.id, word: lowerWord, definition: definition || null, example: example || null, pos: pos || null, folder_id: folder_id || null, source: source || null, category: category || null })
+    .insert({ user_id: user.id, word: lowerWord, definition: definition || null, example: example || null, pos: pos || null, folder_id: actualFolderId || null, source: source || null, category: category || null })
     .select()
     .single();
 
@@ -90,7 +94,7 @@ export async function PATCH(request: NextRequest) {
   
   const { data, error } = await supabaseAdmin
     .from('user_notebook')
-    .update({ definition, example, pos, folder_id })
+    .update({ definition, example, pos, folder_id: folder_id === 'general' ? null : folder_id })
     .eq('id', id)
     .eq('user_id', user.id)
     .select()

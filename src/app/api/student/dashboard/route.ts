@@ -80,12 +80,12 @@ export async function GET(request: NextRequest) {
     .eq('user_id', user.id)
     .eq('category', 'vocabulary');
 
-  const vocabStats: Record<string, { avgScore: number, maxScore: number, attempts: number }> = {};
+  const vocabStats: Record<string, { avgScore: number, sumScore: number, maxScore: number, attempts: number }> = {};
   if (vocabHistory) {
     vocabHistory.forEach(row => {
       const setIdx = row.metadata?.setIdx;
       if (setIdx !== undefined) {
-        if (!vocabStats[setIdx]) vocabStats[setIdx] = { sumScore: 0, attempts: 0, maxScore: 0 };
+        if (!vocabStats[setIdx]) vocabStats[setIdx] = { sumScore: 0, attempts: 0, maxScore: 0, avgScore: 0 };
         // Giả sử score là số câu đúng, rating trên thang 5.0 => (score/total)*5.0
         const rating = row.total ? (row.score / row.total) * 5.0 : 0;
         vocabStats[setIdx].sumScore += rating;

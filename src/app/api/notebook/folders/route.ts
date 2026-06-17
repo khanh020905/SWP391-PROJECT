@@ -40,6 +40,22 @@ export async function GET(request: NextRequest) {
     word_count: f.user_notebook?.[0]?.count || 0
   }));
 
+  const { count: generalCount } = await supabaseAdmin
+    .from('user_notebook')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .is('folder_id', null);
+
+  if (generalCount && generalCount > 0) {
+    mappedData.unshift({
+      id: 'general',
+      user_id: user.id,
+      name: 'Tủ từ chung (Không phân loại)',
+      created_at: new Date().toISOString(),
+      word_count: generalCount
+    });
+  }
+
   return NextResponse.json({ data: mappedData });
 }
 

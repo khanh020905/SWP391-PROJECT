@@ -4,39 +4,39 @@
       "userId": "usr_2",
       "currentStreak": 5,
       "longestStreak": 12,
-      "lastStudyDate": "2026-06-15",
-      "lastStudyTimestamp": "2026-06-15T07:03:53.907Z",
+      "lastStudyDate": "2026-06-16",
+      "lastStudyTimestamp": "2026-06-16T01:56:54.647Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 35,
-      "lastGoalMetDate": "2026-06-15",
+      "lastGoalMetDate": "2026-06-16",
       "history": {
-        "2026-06-15": 35
+        "2026-06-16": 35
       }
     },
     "usr_4": {
       "userId": "usr_4",
       "currentStreak": 0,
       "longestStreak": 4,
-      "lastStudyDate": "2026-06-13",
-      "lastStudyTimestamp": "2026-06-13T07:03:53.908Z",
+      "lastStudyDate": "2026-06-14",
+      "lastStudyTimestamp": "2026-06-14T01:56:54.647Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {
-        "2026-06-13": 0
+        "2026-06-14": 0
       }
     },
     "usr_5": {
       "userId": "usr_5",
       "currentStreak": 3,
       "longestStreak": 3,
-      "lastStudyDate": "2026-06-16",
-      "lastStudyTimestamp": "2026-06-16T07:03:53.908Z",
+      "lastStudyDate": "2026-06-17",
+      "lastStudyTimestamp": "2026-06-17T01:56:54.647Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 45,
-      "lastGoalMetDate": "2026-06-16",
+      "lastGoalMetDate": "2026-06-17",
       "history": {
-        "2026-06-16": 45
+        "2026-06-17": 45
       }
     },
     "79122168-7431-406e-b54b-ccfdd9401789": {
@@ -55,15 +55,15 @@
     {
       "id": "log_init_1",
       "userId": "usr_2",
-      "date": "2026-06-15",
-      "timestamp": "2026-06-15T07:03:53.908Z",
+      "date": "2026-06-16",
+      "timestamp": "2026-06-16T01:56:54.647Z",
       "activity": "Luyện đề Speaking - Study & Hometown (Part 1)"
     },
     {
       "id": "log_init_2",
       "userId": "usr_5",
-      "date": "2026-06-16",
-      "timestamp": "2026-06-16T07:03:53.908Z",
+      "date": "2026-06-17",
+      "timestamp": "2026-06-17T01:56:54.647Z",
       "activity": "Luyện tập IELTS Speaking Room"
     }
   ],
@@ -75,7 +75,7 @@
       "content": "Chúc mừng bạn đã đạt chuỗi 5 ngày học liên tiếp. Hãy tiếp tục luyện tập hôm nay để nâng band điểm IELTS nhé!",
       "type": "STUDY_REMINDER",
       "status": "UNREAD",
-      "createdAt": "2026-06-16T05:03:53.908Z"
+      "createdAt": "2026-06-16T23:56:54.647Z"
     },
     {
       "id": "notify_init_2",
@@ -84,7 +84,7 @@
       "content": "Đã 3 ngày bạn chưa luyện tập IELTS. Hãy làm ngay một bài nói Speaking ngắn hôm nay để kích hoạt lại streak nhé!",
       "type": "STREAK_WARNING",
       "status": "UNREAD",
-      "createdAt": "2026-06-16T01:03:53.908Z"
+      "createdAt": "2026-06-16T19:56:54.647Z"
     }
   ],
   "vocabularies": [],
