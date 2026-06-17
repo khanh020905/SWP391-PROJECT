@@ -245,10 +245,15 @@ function ListeningTestListContent() {
                       </div>
 
                       {/* Large Test Title */}
-                      <div className="relative z-10 my-auto">
+                      <div className="relative z-10 my-auto flex flex-col gap-1.5">
                         <h3 className="text-4xl font-black text-white tracking-wide drop-shadow-sm uppercase">
                           TEST {test.testNum}
                         </h3>
+                        {test.isActive && activeDbTest && historyScores[activeDbTest.id] && (
+                          <div className="self-start bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-white border border-white/10">
+                            Kết quả gần nhất: <span className="text-yellow-300 font-black">{historyScores[activeDbTest.id].score} Band</span> ({historyScores[activeDbTest.id].date})
+                          </div>
+                        )}
                       </div>
 
                       <div className="relative z-10 space-y-4">
