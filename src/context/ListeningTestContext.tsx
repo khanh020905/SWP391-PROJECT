@@ -144,18 +144,23 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
   const initAudio = (src: string) => {
     if (typeof window === "undefined") return;
     
+    let fullSrc = src;
+    const lowerSrc = src.toLowerCase();
+    if (lowerSrc.startsWith("/audio/tasks/")) {
+      const projectRef = "kaoybbpezkkmufzbhxru";
+      const fileName = src.substring("/audio/tasks/".length);
+      fullSrc = `https://${projectRef}.supabase.co/storage/v1/object/public/audio/Tasks/${fileName}`;
+    }
+
+    // Reuse audio element if it's already playing the same source
+    if (audioRef.current && (audioRef.current.src === fullSrc || audioRef.current.src === window.location.origin + fullSrc)) {
+      return;
+    }
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
       audioRef.current = null;
-    }
-
-    let fullSrc = src;
-    const lowerSrc = src.toLowerCase();
-    if (lowerSrc.startsWith("/audio/tasks/") || lowerSrc.startsWith("/audio/tasks/")) {
-      const projectRef = "kaoybbpezkkmufzbhxru";
-      const fileName = src.substring("/audio/tasks/".length);
-      fullSrc = `https://${projectRef}.supabase.co/storage/v1/object/public/audio/Tasks/${fileName}`;
     }
 
     const audio = new Audio(fullSrc);
@@ -257,51 +262,122 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
     startedAtRef.current = new Date();
     
     try {
-      const { data, error: fetchErr } = await supabase
-        .from("listening_tasks")
-        .select("*")
-        .order("lesson_id", { ascending: true });
+      if (testId === "a1b2c3d4-0002-0002-0002-000000000002") {
+        const { data, error: fetchErr } = await supabase
+          .from("listening_tasks")
+          .select("*")
+          .order("lesson_id", { ascending: true });
 
-      if (fetchErr) throw fetchErr;
+        if (fetchErr) throw fetchErr;
 
-      if (data && data.length > 0) {
-        const sectionsData = data.map((row: any) => {
-          const questions = (row.challenges || []).map((q: any, i: number) => ({
-            id: q.id || `lq_${row.lesson_id}_${i}`,
-            type: q.type || "fill",
-            text: q.text || "",
-            options: q.options || [],
-            correct_answer: q.answer || "",
-            answers: q.answers || (q.answer ? [q.answer] : []),
-          }));
+        if (data && data.length > 0) {
+          const sectionsData = data.map((row: any) => {
+            const questions = (row.challenges || []).map((q: any, i: number) => ({
+              id: q.id || `lq_${row.lesson_id}_${i}`,
+              type: q.type || "fill",
+              text: q.text || "",
+              options: q.options || [],
+              correct_answer: q.answer || "",
+              answers: q.answers || (q.answer ? [q.answer] : []),
+            }));
 
-          return {
-            section: row.lesson_id,
-            title: row.lesson_name,
-            audio_src: row.audio_src,
-            audio_description: row.metadata?.topic || "",
-            questions: questions
+            return {
+              section: row.lesson_id,
+              title: row.lesson_name,
+              audio_src: row.audio_src,
+              audio_description: row.metadata?.topic || "",
+              questions: questions
+            };
+          });
+
+          const singleTest = {
+            id: "a1b2c3d4-0002-0002-0002-000000000002",
+            test_id: "a1b2c3d4-0002-0002-0002-000000000002",
+            test_name: "IELTS Listening Practice Test",
+            volume: "Standard",
+            test_number: 1,
+            has_audio: true,
+            is_visible: true,
+            sections: sectionsData
           };
-        });
 
-        const singleTest = {
-          id: "a1b2c3d4-0002-0002-0002-000000000002",
-          test_id: "a1b2c3d4-0002-0002-0002-000000000002",
-          test_name: "IELTS Listening Practice Test",
-          volume: "Standard",
-          test_number: 1,
-          has_audio: true,
-          is_visible: true,
-          sections: sectionsData
-        };
+          setSelectedTest(singleTest);
+          const normalized = normalizeListeningTest(singleTest);
+          setSections(normalized);
+          setCurrentSectionIndex(0);
 
-        setSelectedTest(singleTest);
-        const normalized = normalizeListeningTest(singleTest);
-        setSections(normalized);
-        setCurrentSectionIndex(0);
+          if (sectionsData[0]?.audio_src) {
+            initAudio(sectionsData[0].audio_src);
+          }
+        }
+      } else {
+        // Load real listening test from database
+        const { data: exam, error: examErr } = await supabase
+          .from("exams")
+          .select("*")
+          .eq("id", testId)
+          .single();
 
-        if (sectionsData[0]?.audio_src) {
-          initAudio(sectionsData[0].audio_src);
+        if (examErr || !exam) {
+          throw new Error(examErr?.message || "Exam not found");
+        }
+
+        const { data: dbSections, error: sectionsErr } = await supabase
+          .from("exam_sections")
+          .select("*")
+          .eq("exam_id", testId)
+          .order("section_no", { ascending: true });
+
+        if (sectionsErr) {
+          throw new Error(sectionsErr.message);
+        }
+
+        if (dbSections && dbSections.length > 0) {
+          const sectionsData = dbSections.map((row: any) => {
+            const answersObj = row.answers || {};
+            const sortedKeys = Object.keys(answersObj).sort((a, b) => parseInt(a) - parseInt(b));
+            const questions = sortedKeys.map((key) => {
+              const correctAns = answersObj[key];
+              return {
+                id: `q_${testId}_${row.section_no}_${key}`,
+                type: "fill",
+                text: `(${key})`,
+                options: [],
+                correct_answer: correctAns,
+                answers: [correctAns],
+              };
+            });
+
+            return {
+              section: row.section_no,
+              title: row.title || `Section ${row.section_no}`,
+              audio_src: exam.audio_url || "",
+              audio_description: row.content || "",
+              questions: questions
+            };
+          });
+
+          const realTest = {
+            id: exam.id,
+            test_id: exam.id,
+            test_name: exam.title,
+            volume: exam.cambridge_no ? `Cambridge ${exam.cambridge_no}` : "Standard",
+            test_number: exam.test_no || 1,
+            has_audio: !!exam.audio_url,
+            is_visible: true,
+            sections: sectionsData
+          };
+
+          setSelectedTest(realTest);
+          const normalized = normalizeListeningTest(realTest);
+          setSections(normalized);
+          setCurrentSectionIndex(0);
+
+          if (exam.audio_url) {
+            initAudio(exam.audio_url);
+          }
+        } else {
+          throw new Error("No sections found for this listening exam");
         }
       }
     } catch (err: any) {
