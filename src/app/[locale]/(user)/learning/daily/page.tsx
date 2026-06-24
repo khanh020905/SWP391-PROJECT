@@ -16,7 +16,7 @@ interface StudentStreakDetail {
   history: Record<string, number>;
 }
 
-export default function RoadmapPage() {
+export default function DailyTasksPage() {
   const { user } = useAuth();
   const [streak, setStreak] = useState<StudentStreakDetail | null>(null);
 
@@ -49,7 +49,7 @@ export default function RoadmapPage() {
         streak={streak} 
         avatarUrl={user?.user_metadata?.avatar_url || ''} 
         role={user?.user_metadata?.role || 'STUDENT'} 
-        initialView="roadmap"
+        initialView="daily"
       />
     </div>
   );

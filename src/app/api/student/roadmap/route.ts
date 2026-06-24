@@ -179,7 +179,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const roadmap = await getStudentRoadmap(user.id);
+    const { data: pathData, error: pathError } = await supabaseAdmin
+      .from("learning_paths")
+      .select("*, study_plans(*)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (pathError) {
+      console.error("❌ Error fetching learning path:", pathError);
+      return NextResponse.json({ error: pathError.message }, { status: 500 });
+    }
+
+    if (!pathData) {
+      return NextResponse.json({ success: true, roadmap: null });
+    }
+
+    const roadmap = pathData.ai_suggestion;
+    if (roadmap) {
+      roadmap.status = pathData.accepted ? "ACTIVE" : "PROPOSED";
+    }
+
     return NextResponse.json({ success: true, roadmap });
   } catch (error: any) {
     console.error("❌ Lỗi API GET /api/student/roadmap:", error);
@@ -207,7 +228,8 @@ export async function POST(request: NextRequest) {
         targetBand = 6.5,
         dailyHours = 2.0,
         targetDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        focusSkills = ["Listening", "Reading", "Writing", "Speaking"]
+        focusSkills = ["Listening", "Reading", "Writing", "Speaking"],
+        diagnosticId = null
       } = body;
 
       const roadmap = generateMockRoadmap(
@@ -219,19 +241,88 @@ export async function POST(request: NextRequest) {
         focusSkills
       );
 
-      await saveStudentRoadmap(user.id, roadmap);
-      return NextResponse.json({ success: true, roadmap });
+      // Save to learning_paths
+      const { data: pathData, error: pathError } = await supabaseAdmin
+        .from("learning_paths")
+        .insert({
+          user_id: user.id,
+          diagnostic_id: diagnosticId || null,
+          ai_suggestion: roadmap,
+          accepted: false
+        })
+        .select("id")
+        .single();
+
+      if (pathError) {
+        console.error("Error saving learning path:", pathError);
+        return NextResponse.json({ error: "Không thể lưu lộ trình" }, { status: 500 });
+      }
+
+      // Create study_plans for first 7 days
+      const today = new Date();
+      const studyPlanRows = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        return {
+          user_id: user.id,
+          path_id: pathData.id,
+          date: date.toISOString().split("T")[0],
+          tasks: roadmap.phases?.[0]?.tasks || [],
+          completed_count: 0
+        };
+      });
+
+      const { error: spError } = await supabaseAdmin.from("study_plans").insert(studyPlanRows);
+      if (spError) {
+        console.error("Error saving study plans:", spError);
+      }
+
+      return NextResponse.json({
+        success: true,
+        pathId: pathData.id,
+        roadmap
+      });
     }
 
     if (action === "ACTIVATE") {
-      const roadmap = await getStudentRoadmap(user.id);
-      if (!roadmap) {
+      const { data: pathData, error: fetchError } = await supabaseAdmin
+        .from("learning_paths")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError || !pathData) {
         return NextResponse.json({ error: "Roadmap not found" }, { status: 404 });
       }
 
+      const { error: updateError } = await supabaseAdmin
+        .from("learning_paths")
+        .update({ accepted: true })
+        .eq("id", pathData.id);
+
+      if (updateError) {
+        console.error("Error activating learning path:", updateError);
+        return NextResponse.json({ error: "Không thể kích hoạt lộ trình" }, { status: 500 });
+      }
+
+      // Generate daily task sets server-to-server
+      try {
+        const origin = request.nextUrl.origin;
+        const generateUrl = `${origin}/api/student/learning-path/${pathData.id}/generate-daily-tasks`;
+        await fetch(generateUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+      } catch (err) {
+        console.error("Error triggering generate-daily-tasks:", err);
+      }
+
+      const roadmap = pathData.ai_suggestion;
       roadmap.status = "ACTIVE";
-      roadmap.updatedAt = new Date().toISOString();
-      await saveStudentRoadmap(user.id, roadmap);
 
       // Create notification
       await addNotification(
@@ -250,17 +341,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "phaseId and taskId are required" }, { status: 400 });
       }
 
-      const roadmap = await getStudentRoadmap(user.id);
-      if (!roadmap) {
+      const { data: pathData, error: pathErr } = await supabaseAdmin
+        .from("learning_paths")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (pathErr || !pathData) {
         return NextResponse.json({ error: "Roadmap not found" }, { status: 404 });
       }
 
-      const phase = roadmap.phases.find(p => p.id === phaseId);
+      const roadmap = pathData.ai_suggestion;
+      const phase = roadmap.phases?.find((p: any) => p.id === phaseId);
       if (!phase) {
         return NextResponse.json({ error: "Phase not found" }, { status: 404 });
       }
 
-      const task = phase.tasks.find(t => t.id === taskId);
+      const task = phase.tasks?.find((t: any) => t.id === taskId);
       if (!task) {
         return NextResponse.json({ error: "Task not found" }, { status: 404 });
       }
@@ -269,9 +368,43 @@ export async function POST(request: NextRequest) {
       task.completed = !!completed;
       roadmap.updatedAt = new Date().toISOString();
 
-      await saveStudentRoadmap(user.id, roadmap);
+      const { error: updatePathErr } = await supabaseAdmin
+        .from("learning_paths")
+        .update({ ai_suggestion: roadmap })
+        .eq("id", pathData.id);
 
-      // If task is newly completed, log study activity to boost streak and add study log
+      if (updatePathErr) {
+        console.error("Error updating learning path task:", updatePathErr);
+        return NextResponse.json({ error: "Không thể cập nhật tiến độ" }, { status: 500 });
+      }
+
+      // Find and update study plan for today's date if it exists
+      const todayStr = new Date().toISOString().split("T")[0];
+      const { data: plan } = await supabaseAdmin
+        .from("study_plans")
+        .select("*")
+        .eq("path_id", pathData.id)
+        .eq("date", todayStr)
+        .maybeSingle();
+
+      if (plan && plan.tasks) {
+        const updatedTasks = plan.tasks.map((t: any) => {
+          if (t.id === taskId) {
+            return { ...t, completed: !!completed };
+          }
+          return t;
+        });
+
+        await supabaseAdmin
+          .from("study_plans")
+          .update({
+            tasks: updatedTasks,
+            completed_count: updatedTasks.filter((t: any) => t.completed).length
+          })
+          .eq("id", plan.id);
+      }
+
+      // If task is newly completed, log study activity to boost streak
       if (task.completed && !wasCompleted) {
         await logStudyActivity(
           user.id,
@@ -279,11 +412,45 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      roadmap.status = pathData.accepted ? "ACTIVE" : "PROPOSED";
       return NextResponse.json({ success: true, roadmap });
     }
 
+    if (action === "COMPLETE") {
+      const { error } = await supabaseAdmin
+        .from("learning_paths")
+        .update({ status: "COMPLETED" })
+        .eq("id", body.pathId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error completing roadmap:", error);
+        return NextResponse.json({ error: "Không thể cập nhật trạng thái" }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
     if (action === "DELETE") {
-      await deleteStudentRoadmap(user.id);
+      const { error: deletePlansError } = await supabaseAdmin
+        .from("study_plans")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (deletePlansError) {
+        console.error("Error resetting study plans:", deletePlansError);
+      }
+
+      const { error: deleteError } = await supabaseAdmin
+        .from("learning_paths")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (deleteError) {
+        console.error("Error resetting roadmap:", deleteError);
+        return NextResponse.json({ error: "Không thể xóa lộ trình" }, { status: 500 });
+      }
+
       return NextResponse.json({ success: true, message: "Roadmap reset successfully" });
     }
 
