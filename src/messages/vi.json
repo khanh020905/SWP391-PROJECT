@@ -256,5 +256,31 @@
       "admin": "Admin",
       "student": "Học viên"
     }
+  },
+  "admin": {
+    "sidebar": {
+      "brand": "QualiCode Admin",
+      "overview": "Tổng quan",
+      "users": "Quản lý User",
+      "exams": "Quản lý Đề Thi",
+      "payments": "Quản lý Thanh toán",
+      "activityLogs": "Lịch sử hoạt động",
+      "settings": "Cấu hình hệ thống",
+      "viewHome": "Xem trang chủ",
+      "logout": "Đăng xuất Admin",
+      "authenticating": "Đang xác thực quyền Admin..."
+    },
+    "header": {
+      "title": "Trang quản trị",
+      "breadcrumbs": {
+        "overview": "Tổng quan",
+        "users": "Quản lý người dùng",
+        "exams": "Quản lý đề thi",
+        "payments": "Quản lý thanh toán",
+        "activityLogs": "Lịch sử hoạt động",
+        "settings": "Cấu hình hệ thống"
+      },
+      "mainSystem": "Hệ thống chính"
+    }
   }
 }

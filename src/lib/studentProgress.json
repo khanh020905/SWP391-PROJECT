@@ -52,6 +52,18 @@
         "2026-06-18": 0,
         "2026-06-19": 0
       }
+    },
+    "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9": {
+      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": null,
+      "lastStudyTimestamp": null,
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 0,
+      "lastGoalMetDate": null,
+      "history": {}
+    }
     }
   },
   "studyLogs": [

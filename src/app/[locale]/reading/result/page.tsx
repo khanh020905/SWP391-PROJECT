@@ -20,6 +20,7 @@ import {
   updateReadingAttempt,
 } from "@/lib/readingStorage";
 import type { ReadingAttemptPayload, ReadingGradeResult } from "@/types/readingGrade";
+import { supabase } from "@/lib/supabaseClient";
 
 function ResultContent() {
   const searchParams = useSearchParams();
@@ -55,9 +56,22 @@ function ResultContent() {
 
     const gradeAttempt = async () => {
       try {
+        let session = null;
+        try {
+          const sessionRes = await supabase.auth.getSession();
+          session = sessionRes.data.session;
+        } catch (e) {
+          console.warn("[Reading Result] Failed to retrieve Supabase session:", e);
+        }
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (session) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+
         const res = await fetch("/api/reading/grade", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(saved),
         });
 
@@ -70,10 +84,77 @@ function ResultContent() {
         const result = data.grade as ReadingGradeResult;
         setGrade(result);
         setGradeSource(data.source === "gemini" ? "gemini" : "fallback");
+        
+        // Update local storage attempt status and grade
         updateReadingAttempt(attemptId, {
           grade: result,
           status: "graded",
         });
+
+        // Save progress to Supabase user_submissions and practice_history
+        if (session?.user) {
+          try {
+            const userId = session.user.id;
+            const submissionId = typeof window !== "undefined" && window.crypto?.randomUUID 
+              ? window.crypto.randomUUID() 
+              : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
+
+            // 1. Save to user_submissions
+            const { error: subErr } = await supabase.from("user_submissions").insert({
+              id: submissionId,
+              user_id: userId,
+              exam_id: READING_TEST_META.id,
+              score: result.bandScore,
+              answers: {
+                userAnswers: saved.answers,
+                feedback: result,
+              },
+              started_at: saved.submittedAt || new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+            });
+
+            if (subErr) {
+              console.error("❌ Lỗi khi lưu kết quả Reading vào user_submissions:", subErr);
+            } else {
+              console.log("✅ Lưu kết quả Reading vào user_submissions thành công!");
+            }
+
+            // 2. Save to practice_history for dashboard display
+            const { error: histErr } = await supabase.from("practice_history").insert({
+              user_id: userId,
+              category: "reading",
+              test_id: READING_TEST_META.id,
+              test_name: READING_TEST_META.testTitle,
+              score: result.rawScore,
+              total: result.totalQuestions,
+              metadata: {
+                raw_score: result.rawScore,
+                band_level: result.bandScore,
+                submission_id: submissionId,
+              },
+            });
+
+            if (histErr) {
+              console.error("❌ Lỗi khi lưu kết quả Reading vào practice_history:", histErr);
+            } else {
+              console.log("✅ Lưu kết quả Reading vào practice_history thành công!");
+            }
+
+            // 3. Register learning activity to study log API
+            await fetch("/api/student/study-log", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify({
+                activity: `Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: ${result.rawScore}/${result.totalQuestions} câu đúng (Band: ${result.bandScore})`
+              })
+            }).catch(e => console.error("❌ Không thể ghi nhận study log:", e));
+          } catch (dbErr) {
+            console.error("❌ Lỗi khi thực hiện lưu kết quả lên Supabase:", dbErr);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Lỗi khi chấm bài");
         updateReadingAttempt(attemptId, { status: "error" });

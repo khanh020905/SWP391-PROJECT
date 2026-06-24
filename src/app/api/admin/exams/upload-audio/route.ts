@@ -27,18 +27,20 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "File audio không được vượt quá 200MB" }, { status: 400 });
     }
 
-    // Generate unique filename
+    // Generate storage path under 'admin/<filename-no-ext>/<filename>_<timestamp>.<ext>' in 'audio' bucket
     const timestamp = Date.now();
+    const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     const ext = file.name.split(".").pop() || "mp3";
-    const fileName = `cambridge_exam_${timestamp}.${ext}`;
+    const folderName = originalName.trim();
+    const storagePath = `admin/${folderName}/${originalName}_${timestamp}.${ext}`;
 
     // Convert File to ArrayBuffer then Uint8Array for Supabase upload
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = new Uint8Array(arrayBuffer);
 
     const { error: uploadError } = await supabaseAdmin.storage
-      .from("exam-audio")
-      .upload(fileName, fileBuffer, {
+      .from("audio")
+      .upload(storagePath, fileBuffer, {
         contentType: file.type || "audio/mpeg",
         upsert: false,
       });
@@ -50,13 +52,13 @@ export async function POST(request: NextRequest) {
 
     // Get public URL
     const { data: urlData } = supabaseAdmin.storage
-      .from("exam-audio")
-      .getPublicUrl(fileName);
+      .from("audio")
+      .getPublicUrl(storagePath);
 
     return Response.json({
       success: true,
       url: urlData.publicUrl,
-      fileName,
+      fileName: storagePath,
     });
   } catch (err) {
     console.error("POST /api/admin/exams/upload-audio error:", err);

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/authFetch";
 import { supabase } from "@/lib/supabase";
+import { useLocale } from "next-intl";
 import {
   Search,
   UserPlus,
@@ -43,6 +44,88 @@ interface PaginationType {
 }
 
 export default function AdminUsersPage() {
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    toastUpgrade: (name: string) => isEn ? `Successfully upgraded account of '${name}' to Student!` : `Đã nâng cấp tài khoản '${name}' lên Học viên (STUDENT) thành công!`,
+    toastUpgradeError: isEn ? "An error occurred while upgrading permissions." : "Đã xảy ra lỗi khi nâng cấp quyền.",
+    toastLocked: (name: string) => isEn ? `Successfully locked account of '${name}'!` : `Đã khóa thành công tài khoản của '${name}'!`,
+    toastUnlocked: (name: string) => isEn ? `Successfully unlocked account of '${name}'!` : `Đã mở khóa thành công tài khoản của '${name}'!`,
+    toastLockError: isEn ? "Unable to lock account." : "Không thể khóa tài khoản.",
+    toastConnError: isEn ? "Connection error. Please try again." : "Lỗi kết nối. Không thể thực hiện lúc này.",
+    toastDeleted: (name: string) => isEn ? `Permanently deleted account of '${name}' from system!` : `Đã xóa vĩnh viễn tài khoản của '${name}' khỏi hệ thống!`,
+    toastDeleteError: isEn ? "Unable to delete user." : "Không thể xóa người dùng.",
+    toastDeleteConnError: isEn ? "Connection error. Unable to delete user." : "Lỗi kết nối. Không thể thực hiện xóa người dùng.",
+    toastRefreshed: isEn ? "User list updated." : "Đã cập nhật danh sách người dùng.",
+    kpiUsers: isEn ? "Users" : "Người dùng",
+    kpiActive: isEn ? "Active" : "Hoạt động",
+    kpiLocked: isEn ? "Locked" : "Bị khóa",
+    kpiStructure: isEn ? "Role Structure" : "Cơ cấu Vai Trò",
+    title: isEn ? "User List" : "Danh sách người dùng",
+    loadingList: isEn ? "Loading user list..." : "Đang tải danh sách người dùng...",
+    searchPlaceholder: isEn ? "Search name or email..." : "Tìm tên hoặc email...",
+    filterAllRoles: isEn ? "All roles" : "Tất cả vai trò",
+    filterAllStatus: isEn ? "All statuses" : "Tất cả trạng thái",
+    filterActive: isEn ? "Active" : "Hoạt động",
+    filterLocked: isEn ? "Locked" : "Bị khóa",
+    btnAddUser: isEn ? "Add User" : "Thêm User",
+    noUsersFound: isEn ? "No matching users found." : "Không tìm thấy người dùng phù hợp.",
+    btnClearFilters: isEn ? "Clear all filters" : "Xóa tất cả bộ lọc",
+    colName: isEn ? "Full Name" : "Họ và tên",
+    colEmail: isEn ? "Email Address" : "Địa chỉ Email",
+    colRole: isEn ? "Role" : "Vai trò",
+    colStatus: isEn ? "Status" : "Trạng thái",
+    colJoinDate: isEn ? "Join Date" : "Ngày tham gia",
+    colActions: isEn ? "Actions" : "Hành động",
+    statusLocked: isEn ? "Locked" : "Bị khóa",
+    statusActive: isEn ? "Active" : "Hoạt động",
+    btnUpgradeTooltip: isEn ? "Upgrade to Student" : "Nâng cấp Học viên",
+    btnUnlockTooltip: isEn ? "Unlock account" : "Mở khóa tài khoản",
+    btnLockTooltip: isEn ? "Lock account" : "Khóa tài khoản",
+    btnEditTooltip: isEn ? "Edit details" : "Sửa thông tin",
+    btnDeleteTooltip: isEn ? "Delete account" : "Xóa tài khoản",
+    showingUsers: (count: number, total: number) => isEn ? `Showing ${count} of ${total} users` : `Hiển thị ${count} trên tổng số ${total} người dùng`,
+    pageDisplay: (current: number, total: number) => isEn ? `Page ${current} / ${total}` : `Trang ${current} / ${total}`,
+    
+    // Add user modal
+    modalAddTitle: isEn ? "Add new user" : "Thêm người dùng mới",
+    labelName: isEn ? "Full Name" : "Họ và tên",
+    labelEmail: isEn ? "Registration Email" : "Email Đăng ký",
+    labelPassword: isEn ? "Initial Password" : "Mật khẩu ban đầu",
+    placeholderName: isEn ? "Enter full name..." : "Nhập họ tên đầy đủ...",
+    placeholderPassword: isEn ? "Enter password (min 6 characters)..." : "Nhập mật khẩu (tối thiểu 6 ký tự)...",
+    labelRole: isEn ? "Role" : "Vai trò (Role)",
+    optionStudent: isEn ? "STUDENT (Student)" : "STUDENT (Học viên)",
+    optionInstructor: isEn ? "INSTRUCTOR (Instructor)" : "INSTRUCTOR (Giảng viên)",
+    optionGuest: isEn ? "GUEST (Guest)" : "GUEST (Khách hàng vãng lai)",
+    optionAdmin: isEn ? "ADMIN (Administrator)" : "ADMIN (Quản trị viên)",
+    btnCancel: isEn ? "Cancel" : "Hủy bỏ",
+    btnSubmitAdd: isEn ? "Add User" : "Thêm mới",
+    
+    // Edit user modal
+    modalEditTitle: isEn ? "Edit Information" : "Chỉnh sửa thông tin",
+    labelLockAccount: isEn ? "Lock account" : "Khóa tài khoản",
+    descLockAccount: isEn ? "User will not be able to log in to the application" : "Người dùng sẽ không thể đăng nhập vào ứng dụng",
+    btnSubmitSave: isEn ? "Save changes" : "Lưu thay đổi",
+    
+    // Lock modal
+    modalLockTitle: isEn ? "Lock account?" : "Khóa tài khoản?",
+    modalUnlockTitle: isEn ? "Unlock account?" : "Mở khóa tài khoản?",
+    descLock: (name: string, email: string) => isEn ? `Are you sure you want to lock the account of ${name} (${email})?` : `Bạn có chắc chắn muốn khóa tài khoản của ${name} (${email})?`,
+    descUnlock: (name: string, email: string) => isEn ? `Are you sure you want to unlock the account of ${name} (${email})?` : `Bạn có chắc chắn muốn mở khóa tài khoản của ${name} (${email})?`,
+    btnConfirm: isEn ? "Confirm" : "Xác nhận",
+    
+    // Delete modal
+    modalDeleteTitle: isEn ? "Permanently delete user?" : "Xóa vĩnh viễn user?",
+    descDelete: (name: string) => isEn ? `This action is permanent and cannot be undone. Are you sure you want to permanently delete the account of ${name}?` : `Hành động này không thể phục hồi. Bạn chắc chắn muốn xóa vĩnh viễn tài khoản của ${name}?`,
+    btnDeleteConfirm: isEn ? "Delete permanently" : "Xóa vĩnh viễn",
+    
+    // Upgrade modal
+    modalUpgradeTitle: isEn ? "Upgrade Student?" : "Nâng cấp Học viên?",
+    descUpgrade: (name: string) => isEn ? `Are you sure you want to upgrade the account of ${name} from GUEST to STUDENT?` : `Bạn có chắc chắn muốn nâng cấp nhanh tài khoản của ${name} từ vai trò GUEST lên STUDENT (Học viên)?`
+  };
+
   // Dữ liệu và trạng thái tải
   const [users, setUsers] = useState<UserType[]>([]);
   const [pagination, setPagination] = useState<PaginationType>({
@@ -115,15 +198,15 @@ export default function AdminUsersPage() {
         setUsers(data.users || []);
         setPagination(data.pagination || { totalUsers: 0, totalPages: 1, currentPage: 1, limit: 8 });
       } else {
-        showToast(data.message || "Không thể tải danh sách người dùng.", "error");
+        showToast(data.message || (isEn ? "Failed to load user list." : "Không thể tải danh sách người dùng."), "error");
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Lỗi kết nối máy chủ. Vui lòng thử lại.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [search, roleFilter, statusFilter, currentPage, pagination.limit, showToast]);
+  }, [search, roleFilter, statusFilter, currentPage, pagination.limit, showToast, isEn]);
 
   // Lấy toàn bộ người dùng để tính toán KPI (Thống kê)
   const fetchKpis = useCallback(async () => {
@@ -199,16 +282,16 @@ export default function AdminUsersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(`Tạo thành công tài khoản mới cho '${formName}'!`);
+        showToast(isEn ? `Successfully created new account for '${formName}'!` : `Tạo thành công tài khoản mới cho '${formName}'!`);
         setShowAddModal(false);
         resetForm();
         fetchUsers();
         fetchKpis();
       } else {
-        setFormError(data.message || "Đã xảy ra lỗi khi tạo người dùng.");
+        setFormError(data.message || (isEn ? "An error occurred while creating user." : "Đã xảy ra lỗi khi tạo người dùng."));
       }
     } catch (err) {
-      setFormError("Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.");
+      setFormError(t.toastConnError);
     } finally {
       setIsSubmitLoading(false);
     }
@@ -256,16 +339,16 @@ export default function AdminUsersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(`Cập nhật thông tin tài khoản của '${formName}' thành công!`);
+        showToast(isEn ? `Successfully updated details for '${formName}'!` : `Cập nhật thông tin tài khoản của '${formName}' thành công!`);
         setShowEditModal(false);
         resetForm();
         fetchUsers();
         fetchKpis();
       } else {
-        setFormError(data.message || "Đã xảy ra lỗi khi cập nhật.");
+        setFormError(data.message || (isEn ? "An error occurred while updating user." : "Đã xảy ra lỗi khi cập nhật."));
       }
     } catch (err) {
-      setFormError("Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.");
+      setFormError(t.toastConnError);
     } finally {
       setIsSubmitLoading(false);
     }
@@ -295,18 +378,18 @@ export default function AdminUsersPage() {
       if (response.ok) {
         showToast(
           selectedUser.isLocked
-            ? `Đã mở khóa thành công tài khoản của '${selectedUser.name}'!`
-            : `Đã khóa thành công tài khoản của '${selectedUser.name}'!`
+            ? t.toastUnlocked(selectedUser.name)
+            : t.toastLocked(selectedUser.name)
         );
         setShowLockModal(false);
         setSelectedUser(null);
         fetchUsers();
         fetchKpis();
       } else {
-        showToast(data.message || "Không thể khóa tài khoản.", "error");
+        showToast(data.message || t.toastLockError, "error");
       }
     } catch (err) {
-      showToast("Lỗi kết nối. Không thể khóa/mở khóa lúc này.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setIsSubmitLoading(false);
     }
@@ -334,16 +417,16 @@ export default function AdminUsersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(`Đã xóa vĩnh viễn tài khoản của '${selectedUser.name}' khỏi hệ thống!`);
+        showToast(t.toastDeleted(selectedUser.name));
         setShowDeleteModal(false);
         setSelectedUser(null);
         fetchUsers();
         fetchKpis();
       } else {
-        showToast(data.message || "Không thể xóa người dùng.", "error");
+        showToast(data.message || t.toastDeleteError, "error");
       }
     } catch (err) {
-      showToast("Lỗi kết nối. Không thể thực hiện xóa người dùng.", "error");
+      showToast(t.toastDeleteConnError, "error");
     } finally {
       setIsSubmitLoading(false);
     }
@@ -379,16 +462,16 @@ export default function AdminUsersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(`Đã nâng cấp tài khoản '${selectedUser.name}' lên Học viên (STUDENT) thành công!`);
+        showToast(t.toastUpgrade(selectedUser.name));
         setShowUpgradeModal(false);
         setSelectedUser(null);
         fetchUsers();
         fetchKpis();
       } else {
-        showToast(data.message || "Đã xảy ra lỗi khi nâng cấp quyền.", "error");
+        showToast(data.message || t.toastUpgradeError, "error");
       }
     } catch (err) {
-      showToast("Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setIsSubmitLoading(false);
     }
@@ -426,7 +509,7 @@ export default function AdminUsersPage() {
             <UsersIcon className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Người dùng</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiUsers}</div>
             <div className="text-3xl font-black text-[#0d153a] mt-0.5">{kpis.total}</div>
           </div>
         </div>
@@ -437,7 +520,7 @@ export default function AdminUsersPage() {
             <UserCheck className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Hoạt động</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiActive}</div>
             <div className="text-3xl font-black text-emerald-600 mt-0.5">{kpis.active}</div>
           </div>
         </div>
@@ -448,7 +531,7 @@ export default function AdminUsersPage() {
             <UserX className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Bị khóa</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiLocked}</div>
             <div className="text-3xl font-black text-rose-600 mt-0.5">{kpis.locked}</div>
           </div>
         </div>
@@ -456,7 +539,7 @@ export default function AdminUsersPage() {
         {/* KPI: Cơ cấu vai trò */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-center transition-transform duration-200 hover:-translate-y-0.5">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
-            Cơ cấu Vai Trò
+            {t.kpiStructure}
           </div>
           <div className="flex items-center justify-around text-center">
             <div>
@@ -487,7 +570,7 @@ export default function AdminUsersPage() {
         {/* Action Header Panel */}
         <div className="p-6 border-b border-slate-200/80 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-slate-50/50">
           <h2 className="text-lg font-black text-[#0d153a] flex items-center gap-2">
-            <span>Danh sách người dùng</span>
+            <span>{t.title}</span>
             {isLoading && <Loader2 className="w-4 h-4 text-[#3B5C37] animate-spin" />}
           </h2>
 
@@ -498,7 +581,7 @@ export default function AdminUsersPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Tìm tên hoặc email..."
+                placeholder={t.searchPlaceholder}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -517,7 +600,7 @@ export default function AdminUsersPage() {
               }}
               className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
             >
-              <option value="ALL">Tất cả vai trò</option>
+              <option value="ALL">{t.filterAllRoles}</option>
               <option value="ADMIN">ADMIN</option>
               <option value="INSTRUCTOR">INSTRUCTOR</option>
               <option value="STUDENT">STUDENT</option>
@@ -533,9 +616,9 @@ export default function AdminUsersPage() {
               }}
               className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="ACTIVE">Hoạt động</option>
-              <option value="LOCKED">Bị khóa</option>
+              <option value="ALL">{t.filterAllStatus}</option>
+              <option value="ACTIVE">{t.filterActive}</option>
+              <option value="LOCKED">{t.filterLocked}</option>
             </select>
 
             {/* Refresh Button */}
@@ -543,10 +626,10 @@ export default function AdminUsersPage() {
               onClick={() => {
                 fetchUsers();
                 fetchKpis();
-                showToast("Đã cập nhật danh sách người dùng.");
+                showToast(t.toastRefreshed);
               }}
               className="p-2 text-slate-500 hover:text-[#3B5C37] hover:bg-slate-100 rounded-xl transition-all"
-              title="Làm mới"
+              title={isEn ? "Refresh" : "Làm mới"}
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -560,7 +643,7 @@ export default function AdminUsersPage() {
               className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 hover:scale-[1.01]"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Thêm User</span>
+              <span>{t.btnAddUser}</span>
             </button>
           </div>
         </div>
@@ -570,12 +653,12 @@ export default function AdminUsersPage() {
           {isLoading && users.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
               <Loader2 className="w-10 h-10 text-[#3B5C37] animate-spin" />
-              <p className="text-sm font-bold">Đang tải danh sách người dùng...</p>
+              <p className="text-sm font-bold">{t.loadingList}</p>
             </div>
           ) : users.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
               <AlertCircle className="w-10 h-10 text-slate-300" />
-              <p className="text-sm font-bold">Không tìm thấy người dùng phù hợp.</p>
+              <p className="text-sm font-bold">{t.noUsersFound}</p>
               <button
                 onClick={() => {
                   setSearch("");
@@ -585,19 +668,19 @@ export default function AdminUsersPage() {
                 }}
                 className="text-[#3B5C37] text-xs font-bold underline mt-2"
               >
-                Xóa tất cả bộ lọc
+                {t.btnClearFilters}
               </button>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase tracking-wider border-b border-slate-100">
-                  <th className="px-6 py-4">Họ và tên</th>
-                  <th className="px-6 py-4">Địa chỉ Email</th>
-                  <th className="px-6 py-4 text-center">Vai trò</th>
-                  <th className="px-6 py-4 text-center">Trạng thái</th>
-                  <th className="px-6 py-4">Ngày tham gia</th>
-                  <th className="px-6 py-4 text-right">Hành động</th>
+                  <th className="px-6 py-4">{t.colName}</th>
+                  <th className="px-6 py-4">{t.colEmail}</th>
+                  <th className="px-6 py-4 text-center">{t.colRole}</th>
+                  <th className="px-6 py-4 text-center">{t.colStatus}</th>
+                  <th className="px-6 py-4">{t.colJoinDate}</th>
+                  <th className="px-6 py-4 text-right">{t.colActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -657,12 +740,12 @@ export default function AdminUsersPage() {
                       {user.isLocked ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 border border-rose-100 text-rose-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                          <span>Bị khóa</span>
+                          <span>{t.statusLocked}</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-100 text-emerald-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Hoạt động</span>
+                          <span>{t.statusActive}</span>
                         </span>
                       )}
                     </td>
@@ -687,7 +770,7 @@ export default function AdminUsersPage() {
                               setShowUpgradeModal(true);
                             }}
                             className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-600 transition-all hover:scale-[1.03]"
-                            title="Nâng cấp Học viên"
+                            title={t.btnUpgradeTooltip}
                           >
                             <Sparkles className="w-3.5 h-3.5" />
                           </button>
@@ -704,7 +787,7 @@ export default function AdminUsersPage() {
                               ? "bg-emerald-50 hover:bg-[#2f4a2b]merald-100 border-emerald-200 text-emerald-600"
                               : "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600"
                           }`}
-                          title={user.isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                          title={user.isLocked ? t.btnUnlockTooltip : t.btnLockTooltip}
                         >
                           {user.isLocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                         </button>
@@ -713,7 +796,7 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => openEditModal(user)}
                           className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-all"
-                          title="Sửa thông tin"
+                          title={t.btnEditTooltip}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
@@ -725,7 +808,7 @@ export default function AdminUsersPage() {
                             setShowDeleteModal(true);
                           }}
                           className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 transition-all"
-                          title="Xóa tài khoản"
+                          title={t.btnDeleteTooltip}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -742,7 +825,7 @@ export default function AdminUsersPage() {
         {users.length > 0 && (
           <div className="p-5 border-t border-slate-200/80 flex items-center justify-between bg-slate-50/50">
             <span className="text-xs font-bold text-slate-400">
-              Hiển thị {users.length} trên tổng số {pagination.totalUsers} người dùng
+              {t.showingUsers(users.length, pagination.totalUsers)}
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -753,7 +836,7 @@ export default function AdminUsersPage() {
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-xs font-bold text-slate-500 px-3">
-                Trang {currentPage} / {pagination.totalPages}
+                {t.pageDisplay(currentPage, pagination.totalPages)}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
@@ -773,7 +856,7 @@ export default function AdminUsersPage() {
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-zoom-in">
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="font-extrabold text-[#0d153a] text-lg">Thêm người dùng mới</h3>
+              <h3 className="font-extrabold text-[#0d153a] text-lg">{t.modalAddTitle}</h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="p-1 hover:bg-slate-200 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
@@ -793,11 +876,11 @@ export default function AdminUsersPage() {
 
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Họ và tên</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelName}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Nhập họ tên đầy đủ..."
+                  placeholder={t.placeholderName}
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
@@ -806,7 +889,7 @@ export default function AdminUsersPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Email Đăng ký</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelEmail}</label>
                 <input
                   type="email"
                   required
@@ -819,11 +902,11 @@ export default function AdminUsersPage() {
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Mật khẩu ban đầu</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelPassword}</label>
                 <input
                   type="password"
                   required
-                  placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)..."
+                  placeholder={t.placeholderPassword}
                   value={formPassword}
                   onChange={(e) => setFormPassword(e.target.value)}
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
@@ -832,16 +915,16 @@ export default function AdminUsersPage() {
 
               {/* Role Selection */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Vai trò (Role)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelRole}</label>
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value as any)}
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-semibold"
                 >
-                  <option value="STUDENT">STUDENT (Học viên)</option>
-                  <option value="INSTRUCTOR">INSTRUCTOR (Giảng viên)</option>
-                  <option value="GUEST">GUEST (Khách hàng vãng lai)</option>
-                  <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                  <option value="STUDENT">{t.optionStudent}</option>
+                  <option value="INSTRUCTOR">{t.optionInstructor}</option>
+                  <option value="GUEST">{t.optionGuest}</option>
+                  <option value="ADMIN">{t.optionAdmin}</option>
                 </select>
               </div>
 
@@ -852,7 +935,7 @@ export default function AdminUsersPage() {
                   onClick={() => setShowAddModal(false)}
                   className="px-4 py-2 rounded-xl text-sm font-bold border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
@@ -860,7 +943,7 @@ export default function AdminUsersPage() {
                   className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isSubmitLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Thêm mới</span>
+                  <span>{t.btnSubmitAdd}</span>
                 </button>
               </div>
             </form>
@@ -873,7 +956,7 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-zoom-in">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="font-extrabold text-[#0d153a] text-lg">Chỉnh sửa thông tin</h3>
+              <h3 className="font-extrabold text-[#0d153a] text-lg">{t.modalEditTitle}</h3>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="p-1 hover:bg-slate-200 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
@@ -892,7 +975,7 @@ export default function AdminUsersPage() {
 
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Họ và tên</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelName}</label>
                 <input
                   type="text"
                   required
@@ -904,7 +987,7 @@ export default function AdminUsersPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Địa chỉ Email</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.colEmail}</label>
                 <input
                   type="email"
                   required
@@ -916,25 +999,25 @@ export default function AdminUsersPage() {
 
               {/* Role Selection */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Vai trò (Role)</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.labelRole}</label>
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value as any)}
                   className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-semibold"
                 >
-                  <option value="STUDENT">STUDENT (Học viên)</option>
-                  <option value="INSTRUCTOR">INSTRUCTOR (Giảng viên)</option>
-                  <option value="GUEST">GUEST (Khách hàng vãng lai)</option>
-                  <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                  <option value="STUDENT">{t.optionStudent}</option>
+                  <option value="INSTRUCTOR">{t.optionInstructor}</option>
+                  <option value="GUEST">{t.optionGuest}</option>
+                  <option value="ADMIN">{t.optionAdmin}</option>
                 </select>
               </div>
 
               {/* Lock toggle */}
               <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-xl">
                 <div>
-                  <span className="text-xs font-extrabold text-slate-700 block">Khóa tài khoản</span>
+                  <span className="text-xs font-extrabold text-slate-700 block">{t.labelLockAccount}</span>
                   <span className="text-[10px] text-slate-400 font-bold block mt-0.5">
-                    Người dùng sẽ không thể đăng nhập vào ứng dụng
+                    {t.descLockAccount}
                   </span>
                 </div>
                 <input
@@ -952,7 +1035,7 @@ export default function AdminUsersPage() {
                   onClick={() => setShowEditModal(false)}
                   className="px-4 py-2 rounded-xl text-sm font-bold border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
@@ -960,7 +1043,7 @@ export default function AdminUsersPage() {
                   className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {isSubmitLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Lưu thay đổi</span>
+                  <span>{t.btnSubmitSave}</span>
                 </button>
               </div>
             </form>
@@ -984,11 +1067,12 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-[#0d153a] text-lg">
-                  {selectedUser.isLocked ? "Mở khóa tài khoản?" : "Khóa tài khoản?"}
+                  {selectedUser.isLocked ? t.modalUnlockTitle : t.modalLockTitle}
                 </h3>
                 <p className="text-slate-400 text-xs mt-2 font-medium px-4">
-                  Bạn có chắc chắn muốn {selectedUser.isLocked ? "mở khóa" : "khóa"} tài khoản của{" "}
-                  <strong className="text-slate-700">{selectedUser.name}</strong> ({selectedUser.email})?
+                  {selectedUser.isLocked 
+                    ? t.descUnlock(selectedUser.name, selectedUser.email) 
+                    : t.descLock(selectedUser.name, selectedUser.email)}
                 </p>
               </div>
               <div className="w-full flex gap-2.5 mt-4">
@@ -999,19 +1083,19 @@ export default function AdminUsersPage() {
                   }}
                   className="flex-1 px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   onClick={handleToggleLock}
                   disabled={isSubmitLoading}
                   className={`flex-1 px-4 py-2.5 text-xs font-bold text-white rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 ${
                     selectedUser.isLocked
-                      ? "bg-emerald-500 hover:bg-[#2f4a2b]merald-600 shadow-emerald-200"
+                      ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200"
                       : "bg-rose-500 hover:bg-rose-600 shadow-rose-200"
                   }`}
                 >
                   {isSubmitLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Xác nhận</span>
+                  <span>{t.btnConfirm}</span>
                 </button>
               </div>
             </div>
@@ -1028,10 +1112,9 @@ export default function AdminUsersPage() {
                 <Trash2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-extrabold text-rose-600 text-lg">Xóa vĩnh viễn user?</h3>
+                <h3 className="font-extrabold text-rose-600 text-lg">{t.modalDeleteTitle}</h3>
                 <p className="text-slate-400 text-xs mt-2 font-medium px-4">
-                  Hành động này **không thể phục hồi**. Bạn chắc chắn muốn xóa vĩnh viễn tài khoản của{" "}
-                  <strong className="text-slate-700">{selectedUser.name}</strong>?
+                  {t.descDelete(selectedUser.name)}
                 </p>
               </div>
               <div className="w-full flex gap-2.5 mt-4">
@@ -1042,7 +1125,7 @@ export default function AdminUsersPage() {
                   }}
                   className="flex-1 px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   onClick={handleDeleteUser}
@@ -1050,7 +1133,7 @@ export default function AdminUsersPage() {
                   className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5"
                 >
                   {isSubmitLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Xóa vĩnh viễn</span>
+                  <span>{t.btnDeleteConfirm}</span>
                 </button>
               </div>
             </div>
@@ -1067,10 +1150,9 @@ export default function AdminUsersPage() {
                 <Sparkles className="w-6 h-6 animate-pulse" />
               </div>
               <div>
-                <h3 className="font-extrabold text-[#0d153a] text-lg">Nâng cấp Học viên?</h3>
+                <h3 className="font-extrabold text-[#0d153a] text-lg">{t.modalUpgradeTitle}</h3>
                 <p className="text-slate-400 text-xs mt-2 font-medium px-4">
-                  Bạn có chắc chắn muốn nâng cấp nhanh tài khoản của{" "}
-                  <strong className="text-slate-700">{selectedUser.name}</strong> từ vai trò <strong className="text-amber-600">GUEST</strong> lên <strong className="text-indigo-600">STUDENT (Học viên)</strong>?
+                  {t.descUpgrade(selectedUser.name)}
                 </p>
               </div>
               <div className="w-full flex gap-2.5 mt-4">
@@ -1081,7 +1163,7 @@ export default function AdminUsersPage() {
                   }}
                   className="flex-1 px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   onClick={handleQuickUpgrade}
@@ -1089,7 +1171,7 @@ export default function AdminUsersPage() {
                   className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-200 transition-all flex items-center justify-center gap-1.5"
                 >
                   {isSubmitLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Xác nhận nâng cấp</span>
+                  <span>{t.btnConfirm}</span>
                 </button>
               </div>
             </div>

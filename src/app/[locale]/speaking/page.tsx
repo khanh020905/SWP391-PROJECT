@@ -186,6 +186,8 @@ export default function SpeakingDashboard() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) setUser(session?.user ?? null);
+    }).catch((err) => {
+      console.warn("Failed to get session in speaking dashboard:", err);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

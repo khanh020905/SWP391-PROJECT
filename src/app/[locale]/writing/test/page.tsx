@@ -399,6 +399,7 @@ export default function WritingTestPage() {
 
           {activeTask.imageUrl && (
             <div className="mt-5 overflow-hidden rounded-xl border border-[#e6eadf] bg-white p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeTask.imageUrl}
                 alt={activeTask.title}

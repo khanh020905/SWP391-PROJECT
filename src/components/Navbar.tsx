@@ -168,7 +168,7 @@ export default function Navbar() {
       <header className={`mx-auto flex w-full max-w-[1160px] items-center justify-between px-9 transition-all duration-300 ease-in-out ${
         isScrolled ? "py-3.5" : "py-5"
       }`}>
-        <Link href="/" className={`flex items-center gap-2.5 text-xl font-black cursor-pointer hover:opacity-90 transition-opacity ${
+        <Link href="/" className={`flex items-center gap-2.5 text-xl font-black cursor-pointer no-underline focus:outline-none outline-none hover:opacity-90 transition-opacity ${
           isTedPage ? "text-white" : "text-[#1b3d1e]"
         }`}>
           <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-12 w-auto object-contain" />
@@ -176,8 +176,6 @@ export default function Navbar() {
             Quali {isTedPage ? <span className="text-[#E62B1E]">IELTS</span> : "IELTS"}
           </span>
         </Link>
-
-
         {/* Dynamic Auth Header section */}
         <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           <LanguageSwitcher />

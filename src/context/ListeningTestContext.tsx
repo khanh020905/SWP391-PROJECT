@@ -467,13 +467,20 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
       const graded = gradeListeningTest(sections, answers);
       setResult(graded);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = null;
+      try {
+        const sessionRes = await supabase.auth.getSession();
+        session = sessionRes.data.session;
+      } catch (e) {
+        console.warn("[Listening Submit] Failed to retrieve Supabase session:", e);
+      }
       
       if (session?.user) {
-        const userId = session.user.id;
-        const submissionId = typeof window !== "undefined" && window.crypto?.randomUUID 
-          ? window.crypto.randomUUID() 
-          : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
+        try {
+          const userId = session.user.id;
+          const submissionId = typeof window !== "undefined" && window.crypto?.randomUUID 
+            ? window.crypto.randomUUID() 
+            : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
 
         const res = await fetch("/api/listening/submit", {
           method: "POST",
@@ -506,6 +513,9 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || "Không thể lưu kết quả bài làm vào hệ thống.");
         }
+      } catch (dbErr) {
+        console.error("Error saving listening progress to database:", dbErr);
+      }
       } else {
         console.log("Guest session: skipping database submission save.");
       }

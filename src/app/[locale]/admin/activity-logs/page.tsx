@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/authFetch";
+import { useLocale } from "next-intl";
 import {
   Clock,
   Search,
@@ -40,6 +41,66 @@ interface Pagination {
 }
 
 export default function AdminActivityLogsPage() {
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    toastErrorLoad: isEn ? "Unable to load activity history." : "Không thể tải lịch sử hoạt động.",
+    toastErrorConn: isEn ? "Server connection error while fetching logs." : "Lỗi kết nối máy chủ khi lấy logs.",
+    toastErrorClear: isEn ? "Unable to clear activity history." : "Không thể xóa lịch sử hoạt động.",
+    toastErrorConnClear: isEn ? "Connection error while clearing history." : "Đã xảy ra lỗi kết nối khi dọn dẹp lịch sử.",
+    toastSuccessClear: isEn ? "Successfully cleared all system activity history!" : "Đã dọn dẹp sạch toàn bộ lịch sử hoạt động hệ thống!",
+    toastUpdated: isEn ? "Updated with latest history!" : "Đã cập nhật lịch sử mới nhất!",
+    
+    // Actions badges
+    actionCreate: isEn ? "Create Account" : "Tạo tài khoản",
+    actionUpdate: isEn ? "Update" : "Cập nhật",
+    actionDelete: isEn ? "Delete Account" : "Xóa tài khoản",
+    actionLock: isEn ? "Lock Account" : "Khóa tài khoản",
+    actionUnlock: isEn ? "Unlock" : "Mở khóa",
+    actionUpgrade: isEn ? "Upgrade Student" : "Nâng cấp Học viên",
+    actionUnknown: (action: string) => action,
+
+    // Header & Banner
+    securityLog: isEn ? "Security Log" : "Nhật ký Bảo mật",
+    bannerTitle: isEn ? "System Activity History" : "Lịch sử hoạt động Hệ thống",
+    bannerDesc: isEn ? "Track in real-time all changes, from creating new accounts, upgrading students, to locking/unlocking QualiCode security accounts." : "Theo dõi thời gian thực mọi thay đổi, từ tạo tài khoản mới, nâng cấp học viên, cho đến khóa/mở khóa tài khoản bảo mật của QualiCode.",
+    refresh: isEn ? "Refresh" : "Làm mới",
+    clearLogs: isEn ? "Clear all logs" : "Xóa toàn bộ nhật ký",
+
+    // KPIs
+    kpiTotal: isEn ? "Total activities" : "Tổng số hoạt động",
+    kpiUpgrade: isEn ? "Upgrade Student" : "Nâng cấp Học viên",
+    kpiCreate: isEn ? "Create Account" : "Tạo tài khoản",
+    kpiLock: isEn ? "Lock & Security" : "Khóa & Bảo mật",
+
+    // Search and Table
+    tableTitle: isEn ? "Detailed activity log" : "Chi tiết nhật ký hoạt động",
+    searchPlaceholder: isEn ? "Search admin, recipient, details..." : "Tìm admin, người nhận, nội dung...",
+    filterAllActions: isEn ? "All actions" : "Tất cả hành động",
+    loadingLogs: isEn ? "Loading system history logs..." : "Đang tải nhật ký lịch sử hệ thống...",
+    noRecordsFound: isEn ? "No activity records found." : "Không tìm thấy bản ghi hoạt động nào.",
+    resetFilters: isEn ? "Reset filters" : "Đặt lại bộ lọc",
+
+    // Table Columns
+    colAdmin: isEn ? "Administrator (Admin)" : "Quản trị viên (Admin)",
+    colAction: isEn ? "Action" : "Hành động",
+    colTarget: isEn ? "Target Affected" : "Đối tượng tác động",
+    colDetails: isEn ? "Activity Details" : "Chi tiết hoạt động",
+    colTime: isEn ? "Time" : "Thời gian",
+    noTarget: isEn ? "No target" : "Không có đối tượng",
+
+    // Pagination
+    showingLogs: (count: number, total: number) => isEn ? `Showing ${count} of ${total} activity records` : `Hiển thị ${count} trên tổng số ${total} bản ghi hoạt động`,
+    pageDisplay: (current: number, total: number) => isEn ? `Page ${current} / ${total}` : `Trang ${current} / ${total}`,
+
+    // Clear confirmation modal
+    clearModalTitle: isEn ? "Clear activity log?" : "Dọn dẹp lịch sử hoạt động?",
+    clearModalDesc: isEn ? "This action will permanently delete all records of Admin actions from the system. This action cannot be undone." : "Hành động này sẽ xóa sạch vĩnh viễn toàn bộ nhật ký ghi lại các thao tác của Admin từ trước tới nay. Hành động này không thể hoàn tác.",
+    btnCancel: isEn ? "Cancel" : "Hủy bỏ",
+    btnConfirmClear: isEn ? "Delete permanently" : "Xóa vĩnh viễn",
+  };
+
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     totalLogs: 0,
@@ -52,7 +113,7 @@ export default function AdminActivityLogsPage() {
   const [actionFilter, setActionFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Dynamic KPIs calculated from all logs (we will fetch all logs or calculate from local state)
+  // Dynamic KPIs calculated from all logs
   const [kpis, setKpis] = useState({
     total: 0,
     locks: 0,
@@ -90,15 +151,15 @@ export default function AdminActivityLogsPage() {
         setLogs(data.logs || []);
         setPagination(data.pagination || { totalLogs: 0, totalPages: 1, currentPage: 1, limit: 10 });
       } else {
-        showToast(data.message || "Không thể tải lịch sử hoạt động.", "error");
+        showToast(data.message || t.toastErrorLoad, "error");
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Lỗi kết nối máy chủ khi lấy logs.", "error");
+      showToast(t.toastErrorConn, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [search, actionFilter, currentPage, showToast]);
+  }, [search, actionFilter, currentPage, showToast, t.toastErrorLoad, t.toastErrorConn]);
 
   // Fetch all logs to compute absolute KPIs
   const fetchKpis = useCallback(async () => {
@@ -137,15 +198,15 @@ export default function AdminActivityLogsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Đã dọn dẹp sạch toàn bộ lịch sử hoạt động hệ thống!");
+        showToast(t.toastSuccessClear);
         setShowClearModal(false);
         fetchLogs();
         fetchKpis();
       } else {
-        showToast(data.message || "Không thể xóa lịch sử hoạt động.", "error");
+        showToast(data.message || t.toastErrorClear, "error");
       }
     } catch (err) {
-      showToast("Đã xảy ra lỗi kết nối khi dọn dẹp lịch sử.", "error");
+      showToast(t.toastErrorConnClear, "error");
     } finally {
       setIsClearing(false);
     }
@@ -158,48 +219,48 @@ export default function AdminActivityLogsPage() {
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-emerald-50 border-emerald-200 text-emerald-700">
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Tạo tài khoản</span>
+            <span>{t.actionCreate}</span>
           </span>
         );
       case "UPDATE":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-blue-50 border-blue-200 text-blue-700">
             <Info className="w-3.5 h-3.5" />
-            <span>Cập nhật</span>
+            <span>{t.actionUpdate}</span>
           </span>
         );
       case "DELETE":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-red-50 border-red-200 text-red-700">
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Xóa tài khoản</span>
+            <span>{t.actionDelete}</span>
           </span>
         );
       case "LOCK":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-rose-50 border-rose-200 text-rose-700">
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Khóa tài khoản</span>
+            <span>{t.actionLock}</span>
           </span>
         );
       case "UNLOCK":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-teal-50 border-teal-200 text-teal-700">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Mở khóa</span>
+            <span>{t.actionUnlock}</span>
           </span>
         );
       case "UPGRADE":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm shadow-indigo-100">
             <Sparkles className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />
-            <span>Nâng cấp Học viên</span>
+            <span>{t.actionUpgrade}</span>
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border bg-slate-50 border-slate-200 text-slate-700">
-            <span>{action}</span>
+            <span>{t.actionUnknown(action)}</span>
           </span>
         );
     }
@@ -216,8 +277,8 @@ export default function AdminActivityLogsPage() {
 
   const formatVietnameseDate = (isoString: string) => {
     const d = new Date(isoString);
-    const timeStr = d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-    const dateStr = d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const timeStr = d.toLocaleTimeString(isEn ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" });
+    const dateStr = d.toLocaleDateString(isEn ? "en-US" : "vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
     return `${timeStr} - ${dateStr}`;
   };
 
@@ -242,13 +303,13 @@ export default function AdminActivityLogsPage() {
 
         <div className="relative z-10 space-y-3.5 max-w-xl">
           <span className="bg-[#3B5C37]/25 text-[#ffab66] border border-[#3B5C37]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
-            Nhật ký Bảo mật
+            {t.securityLog}
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-            Lịch sử hoạt động <span className="text-[#3B5C37]">Hệ thống</span>
+            {t.bannerTitle}
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
-            Theo dõi thời gian thực mọi thay đổi, từ tạo tài khoản mới, nâng cấp học viên, cho đến khóa/mở khóa tài khoản bảo mật của QualiCode.
+            {t.bannerDesc}
           </p>
         </div>
 
@@ -257,12 +318,12 @@ export default function AdminActivityLogsPage() {
             onClick={() => {
               fetchLogs();
               fetchKpis();
-              showToast("Đã cập nhật lịch sử mới nhất!");
+              showToast(t.toastUpdated);
             }}
             className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs flex items-center gap-2 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Làm mới</span>
+            <span>{t.refresh}</span>
           </button>
           
           <button
@@ -270,7 +331,7 @@ export default function AdminActivityLogsPage() {
             className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Xóa toàn bộ nhật ký</span>
+            <span>{t.clearLogs}</span>
           </button>
         </div>
       </section>
@@ -283,7 +344,7 @@ export default function AdminActivityLogsPage() {
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng số hoạt động</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiTotal}</div>
             <div className="text-2xl font-black text-[#0d153a] mt-0.5">{kpis.total}</div>
           </div>
         </div>
@@ -294,7 +355,7 @@ export default function AdminActivityLogsPage() {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nâng cấp Học viên</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiUpgrade}</div>
             <div className="text-2xl font-black text-indigo-600 mt-0.5">{kpis.upgrades}</div>
           </div>
         </div>
@@ -305,7 +366,7 @@ export default function AdminActivityLogsPage() {
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tạo tài khoản</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiCreate}</div>
             <div className="text-2xl font-black text-emerald-600 mt-0.5">{kpis.creations}</div>
           </div>
         </div>
@@ -316,7 +377,7 @@ export default function AdminActivityLogsPage() {
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khóa & Bảo mật</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiLock}</div>
             <div className="text-2xl font-black text-rose-600 mt-0.5">{kpis.locks}</div>
           </div>
         </div>
@@ -328,7 +389,7 @@ export default function AdminActivityLogsPage() {
         {/* Table Filter Panel */}
         <div className="p-6 border-b border-slate-200/80 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-slate-50/50">
           <h2 className="text-base font-black text-[#0d153a] flex items-center gap-2">
-            <span>Chi tiết nhật ký hoạt động</span>
+            <span>{t.tableTitle}</span>
             {isLoading && <Loader2 className="w-4 h-4 text-[#3B5C37] animate-spin" />}
           </h2>
 
@@ -338,7 +399,7 @@ export default function AdminActivityLogsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Tìm admin, người nhận, nội dung..."
+                placeholder={t.searchPlaceholder}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -359,13 +420,13 @@ export default function AdminActivityLogsPage() {
                 }}
                 className="bg-white px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
               >
-                <option value="ALL">Tất cả hành động</option>
-                <option value="CREATE">CREATE (Tạo mới)</option>
-                <option value="UPDATE">UPDATE (Cập nhật)</option>
-                <option value="DELETE">DELETE (Xóa bỏ)</option>
-                <option value="LOCK">LOCK (Khóa tài khoản)</option>
-                <option value="UNLOCK">UNLOCK (Mở khóa)</option>
-                <option value="UPGRADE">UPGRADE (Nâng cấp Học viên)</option>
+                <option value="ALL">{t.filterAllActions}</option>
+                <option value="CREATE">CREATE ({isEn ? "Create" : "Tạo mới"})</option>
+                <option value="UPDATE">UPDATE ({isEn ? "Update" : "Cập nhật"})</option>
+                <option value="DELETE">DELETE ({isEn ? "Delete" : "Xóa bỏ"})</option>
+                <option value="LOCK">LOCK ({isEn ? "Lock Account" : "Khóa tài khoản"})</option>
+                <option value="UNLOCK">UNLOCK ({isEn ? "Unlock" : "Mở khóa"})</option>
+                <option value="UPGRADE">UPGRADE ({isEn ? "Upgrade Student" : "Nâng cấp Học viên"})</option>
               </select>
             </div>
           </div>
@@ -376,12 +437,12 @@ export default function AdminActivityLogsPage() {
           {isLoading && logs.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
               <Loader2 className="w-8 h-8 text-[#3B5C37] animate-spin" />
-              <p className="text-xs font-bold">Đang tải nhật ký lịch sử hệ thống...</p>
+              <p className="text-xs font-bold">{t.loadingLogs}</p>
             </div>
           ) : logs.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
               <Clock className="w-10 h-10 text-slate-300" />
-              <p className="text-sm font-bold">Không tìm thấy bản ghi hoạt động nào.</p>
+              <p className="text-sm font-bold">{t.noRecordsFound}</p>
               <button
                 onClick={() => {
                   setSearch("");
@@ -390,18 +451,18 @@ export default function AdminActivityLogsPage() {
                 }}
                 className="text-[#3B5C37] text-xs font-bold underline mt-2"
               >
-                Đặt lại bộ lọc
+                {t.resetFilters}
               </button>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-100">
-                  <th className="px-6 py-4">Quản trị viên (Admin)</th>
-                  <th className="px-6 py-4 text-center">Hành động</th>
-                  <th className="px-6 py-4">Đối tượng tác động</th>
-                  <th className="px-6 py-4">Chi tiết hoạt động</th>
-                  <th className="px-6 py-4">Thời gian</th>
+                  <th className="px-6 py-4">{t.colAdmin}</th>
+                  <th className="px-6 py-4 text-center">{t.colAction}</th>
+                  <th className="px-6 py-4">{t.colTarget}</th>
+                  <th className="px-6 py-4">{t.colDetails}</th>
+                  <th className="px-6 py-4">{t.colTime}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs font-medium">
@@ -436,7 +497,7 @@ export default function AdminActivityLogsPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-slate-400 italic">Không có đối tượng</span>
+                        <span className="text-slate-400 italic">{t.noTarget}</span>
                       )}
                     </td>
 
@@ -465,7 +526,7 @@ export default function AdminActivityLogsPage() {
         {logs.length > 0 && (
           <div className="p-5 border-t border-slate-200/80 flex items-center justify-between bg-slate-50/50">
             <span className="text-xs font-bold text-slate-400">
-              Hiển thị {logs.length} trên tổng số {pagination.totalLogs} bản ghi hoạt động
+              {t.showingLogs(logs.length, pagination.totalLogs)}
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -476,7 +537,7 @@ export default function AdminActivityLogsPage() {
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-xs font-bold text-slate-500 px-3">
-                Trang {currentPage} / {pagination.totalPages}
+                {t.pageDisplay(currentPage, pagination.totalPages)}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
@@ -499,9 +560,9 @@ export default function AdminActivityLogsPage() {
                 <Trash2 className="w-6 h-6 animate-bounce" />
               </div>
               <div>
-                <h3 className="font-extrabold text-rose-600 text-lg">Dọn dẹp lịch sử hoạt động?</h3>
+                <h3 className="font-extrabold text-rose-600 text-lg">{t.clearModalTitle}</h3>
                 <p className="text-slate-400 text-xs mt-2 font-medium px-2 leading-relaxed">
-                  Hành động này sẽ **xóa sạch vĩnh viễn** toàn bộ nhật ký ghi lại các thao tác của Admin từ trước tới nay. Hành động này **không thể hoàn tác**.
+                  {t.clearModalDesc}
                 </p>
               </div>
               <div className="w-full flex gap-2.5 mt-4">
@@ -509,7 +570,7 @@ export default function AdminActivityLogsPage() {
                   onClick={() => setShowClearModal(false)}
                   className="flex-1 px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-colors"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   onClick={handleClearLogs}
@@ -517,7 +578,7 @@ export default function AdminActivityLogsPage() {
                   className="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5"
                 >
                   {isClearing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Xóa vĩnh viễn</span>
+                  <span>{t.btnConfirmClear}</span>
                 </button>
               </div>
             </div>

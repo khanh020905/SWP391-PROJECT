@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/authFetch";
+import { useLocale } from "next-intl";
 import {
   Settings,
   Mail,
@@ -56,6 +57,90 @@ interface SystemSettings {
 }
 
 export default function AdminSettingsPage() {
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    loading: isEn ? "Loading system configuration..." : "Đang tải cấu hình hệ thống...",
+    toastLoadFail: isEn ? "Failed to load system configuration." : "Không thể tải cấu hình hệ thống.",
+    toastLoadError: isEn ? "Server connection error while fetching configuration." : "Lỗi kết nối máy chủ khi lấy cấu hình.",
+    toastWeightInvalid: (val: number) => isEn ? `Total IELTS Speaking weight must be 100%. Current: ${val}%` : `Tổng trọng số IELTS Speaking phải bằng 100%. Hiện tại: ${val}%`,
+    toastBeginnerInvalid: isEn ? "Beginner max band score must be less than Intermediate max band score." : "Ngưỡng điểm Beginner tối đa phải nhỏ hơn ngưỡng Intermediate tối đa.",
+    toastIntermediateInvalid: isEn ? "Intermediate max band score must be less than Advanced min band score." : "Ngưỡng điểm Intermediate tối đa phải nhỏ hơn ngưỡng Advanced tối thiểu.",
+    toastSaveSuccess: isEn ? "System settings saved successfully!" : "Lưu cấu hình hệ thống thành công!",
+    toastSaveFail: isEn ? "Failed to save settings." : "Không thể lưu cấu hình.",
+    toastSaveError: isEn ? "Connection error while submitting settings data." : "Lỗi kết nối khi gửi dữ liệu cấu hình.",
+    
+    adminTitle: isEn ? "Supreme Admin" : "Quản trị tối cao",
+    configTitle: isEn ? "System Settings" : "Cấu hình Hệ thống",
+    configSubtitle: isEn ? "Configure general parameters, SMTP mail server for automated alerts, customized AI comments, and IELTS Speaking band weight scores." : "Thiết lập các thông số chung, máy chủ gửi email thông báo tự động và tùy chỉnh nhận xét AI cũng như trọng số tính điểm IELTS Speaking.",
+    btnReload: isEn ? "Reload" : "Tải lại",
+    
+    tabSystem: isEn ? "System Settings" : "Tham số hệ thống",
+    tabEmail: isEn ? "Email & SMTP" : "Cấu hình Email & SMTP",
+    tabBand: isEn ? "IELTS Weights & Thresholds" : "Trọng số & Ngưỡng điểm IELTS",
+    
+    // TAB 1
+    sysTitle: isEn ? "General App Settings" : "Tham số chung của Ứng dụng",
+    sysSubtitle: isEn ? "Manage base system identity and global accessibility modes." : "Quản lý thông tin nhận diện cơ bản của hệ thống và các chế độ truy cập toàn cục.",
+    appName: isEn ? "Application Name" : "Tên ứng dụng",
+    appPlaceholder: isEn ? "Enter app name..." : "Nhập tên ứng dụng...",
+    supportEmail: isEn ? "Customer Support Email" : "Email hỗ trợ khách hàng",
+    defaultRole: isEn ? "Default role for new accounts" : "Vai trò mặc định cho tài khoản mới",
+    guestRole: isEn ? "GUEST (Visitor)" : "GUEST (Khách vãng lai)",
+    studentRole: isEn ? "STUDENT (Student)" : "STUDENT (Học viên)",
+    adminRole: isEn ? "ADMIN (Administrator)" : "ADMIN (Quản trị viên)",
+    roleHint: isEn ? "Online registration accounts will be automatically assigned this role." : "Các tài khoản đăng ký trực tuyến sẽ tự động được gán vai trò này.",
+    allowReg: isEn ? "Allow New Registrations" : "Cho phép Đăng ký tài khoản mới",
+    allowRegHint: isEn ? "Toggle student account creation on public signup page." : "Bật/Tắt tính năng tạo tài khoản của học viên bên ngoài giao diện đăng nhập.",
+    maintenanceMode: isEn ? "System Maintenance Mode" : "Chế độ bảo trì hệ thống (Maintenance Mode)",
+    maintenanceHint: isEn ? "When enabled, normal students cannot access test-taking or payment systems." : "Khi được bật, học viên thông thường không thể truy cập vào hệ thống làm bài hoặc thanh toán.",
+    
+    // TAB 2
+    emailTitle: isEn ? "SMTP Server & Outbound Mail Settings" : "Cấu hình SMTP Server & Email Gửi đi",
+    emailSubtitle: isEn ? "Set up SMTP server details for sending OTP codes, payment receipts, and system alerts." : "Thiết lập thông tin máy chủ SMTP phục vụ cho việc gửi mã OTP, hóa đơn thanh toán và cảnh báo hệ thống.",
+    smtpHost: isEn ? "SMTP Host Server" : "Máy chủ SMTP Host",
+    smtpPort: isEn ? "Port" : "Cổng Port",
+    smtpUser: isEn ? "Sender Email Address (Username/Email)" : "Email Gửi thư (Username/Email)",
+    emailTriggers: isEn ? "Automated Email Triggers" : "Sự kiện gửi thư tự động (Automated Triggers)",
+    triggerRegister: isEn ? "On New Registration" : "Khi đăng ký mới",
+    triggerRegisterHint: isEn ? "Send welcome email to student" : "Gửi thư chào mừng học viên",
+    triggerPayment: isEn ? "Successful Payment" : "Thanh toán thành công",
+    triggerPaymentHint: isEn ? "Send invoice and study package details" : "Gửi hóa đơn và thông tin gói học",
+    triggerLock: isEn ? "Account Locked" : "Tài khoản bị khóa",
+    triggerLockHint: isEn ? "Send lock reason and support instructions" : "Gửi lý do và hướng dẫn hỗ trợ",
+    
+    // TAB 3
+    bandTitle: isEn ? "IELTS Speaking Metric Weights" : "Trọng số tính điểm IELTS Speaking",
+    bandSubtitle: isEn ? "Adjust percentage weights for the 4 Speaking criteria. The sum must equal exactly 100%." : "Điều chỉnh tỉ lệ phần trăm của 4 tiêu chí chấm thi Speaking. Tổng của cả 4 giá trị bắt buộc phải bằng **100%**.",
+    fluency: isEn ? "Fluency & Coherence" : "Fluency & Coherence (Độ trôi chảy)",
+    lexical: isEn ? "Lexical Resource" : "Lexical Resource (Từ vựng)",
+    grammar: isEn ? "Grammar Range & Accuracy" : "Grammar Range & Accuracy (Ngữ pháp)",
+    pronunciation: isEn ? "Pronunciation" : "Pronunciation (Phát âm)",
+    currentSum: isEn ? "Current sum: " : "Tổng tỷ trọng hiện tại: ",
+    validWeights: isEn ? "Valid and ready to save" : "Hợp lệ và sẵn sàng lưu trữ",
+    invalidWeights: isEn ? "Error: The sum of weights must equal exactly 100%!" : "Lỗi: Tổng trọng số phải chính xác bằng 100%!",
+    
+    levelRangesTitle: isEn ? "Level Ranges & Sample AI Feedback" : "Ngưỡng phân loại cấp độ & Nhận xét mẫu AI",
+    levelRangesSubtitle: isEn ? "Configure IELTS Speaking band ranges for each level and pre-write feedback text to display dynamically." : "Cấu hình dải điểm IELTS Speaking cho từng cấp độ và soạn sẵn văn bản nhận xét tương ứng để hiển thị tự động.",
+    levelBeginner: isEn ? "1. BEGINNER Level" : "1. Cấp độ CƠ BẢN (Beginner)",
+    beginnerBandRange: isEn ? "Band range: 0.0 - to max:" : "Dải điểm: 0.0 - đến tối đa:",
+    feedbackTemplate: isEn ? "Sample Feedback Template" : "Văn bản nhận xét mẫu",
+    beginnerFeedbackPlaceholder: isEn ? "Enter sample feedback for Beginner level..." : "Nhập nhận xét mẫu cho cấp độ Beginner...",
+    
+    levelIntermediate: isEn ? "2. INTERMEDIATE Level" : "2. Cấp độ TRUNG CẤP (Intermediate)",
+    intermediateBandRange: (val: string) => isEn ? `Band range from: ${val} - to max:` : `Dải điểm từ: ${val} - đến tối đa:`,
+    intermediateFeedbackPlaceholder: isEn ? "Enter sample feedback for Intermediate level..." : "Nhập nhận xét mẫu cho cấp độ Intermediate...",
+    
+    levelAdvanced: isEn ? "3. ADVANCED Level" : "3. Cấp độ CAO CẤP (Advanced)",
+    advancedBandRange: isEn ? "Band range from min:" : "Dải điểm từ tối thiểu:",
+    advancedBandRangeSuffix: isEn ? "and above (up to 9.0)" : "trở lên (đến 9.0)",
+    advancedFeedbackPlaceholder: isEn ? "Enter sample feedback for Advanced level..." : "Nhập nhận xét mẫu cho cấp độ Advanced...",
+    
+    footerCheck: isEn ? "Please double-check configuration details before saving to prevent service interruptions." : "Hãy kiểm tra kỹ trước khi bấm lưu để tránh lỗi hoạt động.",
+    btnSave: isEn ? "Save System Settings" : "Lưu cấu hình hệ thống"
+  };
+
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -96,15 +181,15 @@ export default function AdminSettingsPage() {
           pronunciation: bs.pronunciationWeight <= 1 ? Math.round(bs.pronunciationWeight * 100) : bs.pronunciationWeight,
         });
       } else {
-        showToast(data.message || "Không thể tải cấu hình hệ thống.", "error");
+        showToast(data.message || t.toastLoadFail, "error");
       }
     } catch (err: any) {
       console.error(err);
-      showToast("Lỗi kết nối máy chủ khi lấy cấu hình.", "error");
+      showToast(t.toastLoadError, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, t.toastLoadFail, t.toastLoadError]);
 
   useEffect(() => {
     fetchSettings();
@@ -130,18 +215,18 @@ export default function AdminSettingsPage() {
 
     // Validate weights sum
     if (!isWeightValid) {
-      showToast(`Tổng trọng số IELTS Speaking phải bằng 100%. Hiện tại: ${totalWeight}%`, "error");
+      showToast(t.toastWeightInvalid(totalWeight), "error");
       return;
     }
 
     // Validate bands consistency
     const { beginnerMaxBand, intermediateMaxBand, advancedMinBand } = settings.bandScore;
     if (Number(beginnerMaxBand) >= Number(intermediateMaxBand)) {
-      showToast("Ngưỡng điểm Beginner tối đa phải nhỏ hơn ngưỡng Intermediate tối đa.", "error");
+      showToast(t.toastBeginnerInvalid, "error");
       return;
     }
     if (Number(intermediateMaxBand) >= Number(advancedMinBand)) {
-      showToast("Ngưỡng điểm Intermediate tối đa phải nhỏ hơn ngưỡng Advanced tối thiểu.", "error");
+      showToast(t.toastIntermediateInvalid, "error");
       return;
     }
 
@@ -187,7 +272,7 @@ export default function AdminSettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Lưu cấu hình hệ thống thành công!");
+        showToast(t.toastSaveSuccess);
         if (data.settings) {
           setSettings(data.settings);
           // Sync UI weights
@@ -200,11 +285,11 @@ export default function AdminSettingsPage() {
           });
         }
       } else {
-        showToast(data.message || "Không thể lưu cấu hình.", "error");
+        showToast(data.message || t.toastSaveFail, "error");
       }
     } catch (err) {
       console.error(err);
-      showToast("Lỗi kết nối khi gửi dữ liệu cấu hình.", "error");
+      showToast(t.toastSaveError, "error");
     } finally {
       setIsSaving(false);
     }
@@ -214,7 +299,7 @@ export default function AdminSettingsPage() {
     return (
       <div className="py-24 flex flex-col items-center justify-center text-slate-400 gap-3">
         <Loader2 className="w-10 h-10 text-[#3B5C37] animate-spin" />
-        <p className="text-sm font-bold animate-pulse">Đang tải cấu hình hệ thống...</p>
+        <p className="text-sm font-bold animate-pulse">{t.loading}</p>
       </div>
     );
   }
@@ -240,13 +325,21 @@ export default function AdminSettingsPage() {
 
         <div className="relative z-10 space-y-3.5 max-w-xl">
           <span className="bg-[#3B5C37]/25 text-[#ffab66] border border-[#3B5C37]/30 text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest inline-block">
-            Quản trị tối cao
+            {t.adminTitle}
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-            Cấu hình <span className="text-[#3B5C37]">Hệ thống</span>
+            {isEn ? (
+              <>
+                System <span className="text-[#3B5C37]">Settings</span>
+              </>
+            ) : (
+              <>
+                Cấu hình <span className="text-[#3B5C37]">Hệ thống</span>
+              </>
+            )}
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
-            Thiết lập các thông số chung, máy chủ gửi email thông báo tự động và tùy chỉnh nhận xét AI cũng như trọng số tính điểm IELTS Speaking.
+            {t.configSubtitle}
           </p>
         </div>
 
@@ -256,7 +349,7 @@ export default function AdminSettingsPage() {
             className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Tải lại</span>
+            <span>{t.btnReload}</span>
           </button>
         </div>
       </section>
@@ -272,7 +365,7 @@ export default function AdminSettingsPage() {
           }`}
         >
           <Settings className="w-4 h-4" />
-          <span>Tham số hệ thống</span>
+          <span>{t.tabSystem}</span>
         </button>
 
         <button
@@ -284,7 +377,7 @@ export default function AdminSettingsPage() {
           }`}
         >
           <Mail className="w-4 h-4" />
-          <span>Cấu hình Email & SMTP</span>
+          <span>{t.tabEmail}</span>
         </button>
 
         <button
@@ -296,7 +389,7 @@ export default function AdminSettingsPage() {
           }`}
         >
           <Sliders className="w-4 h-4" />
-          <span>Trọng số & Ngưỡng điểm IELTS</span>
+          <span>{t.tabBand}</span>
         </button>
       </div>
 
@@ -308,17 +401,17 @@ export default function AdminSettingsPage() {
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
                   <Globe className="w-5 h-5 text-[#3B5C37]" />
-                  <span>Tham số chung của Ứng dụng</span>
+                  <span>{t.sysTitle}</span>
                 </h3>
                 <p className="text-xs text-slate-400 font-semibold mt-1">
-                  Quản lý thông tin nhận diện cơ bản của hệ thống và các chế độ truy cập toàn cục.
+                  {t.sysSubtitle}
                 </p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
                 {/* App Name */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tên ứng dụng</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.appName}</label>
                   <input
                     type="text"
                     value={settings.system.appName}
@@ -329,14 +422,14 @@ export default function AdminSettingsPage() {
                       })
                     }
                     className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-semibold"
-                    placeholder="Nhập tên ứng dụng..."
+                    placeholder={t.appPlaceholder}
                     required
                   />
                 </div>
 
                 {/* Support Email */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email hỗ trợ khách hàng</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.supportEmail}</label>
                   <input
                     type="email"
                     value={settings.system.supportEmail}
@@ -354,7 +447,7 @@ export default function AdminSettingsPage() {
 
                 {/* Default User Role */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vai trò mặc định cho tài khoản mới</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.defaultRole}</label>
                   <select
                     value={settings.system.defaultUserRole}
                     onChange={(e) =>
@@ -368,12 +461,12 @@ export default function AdminSettingsPage() {
                     }
                     className="w-full bg-white px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-semibold"
                   >
-                    <option value="GUEST">GUEST (Khách vãng lai)</option>
-                    <option value="STUDENT">STUDENT (Học viên)</option>
-                    <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                    <option value="GUEST">{t.guestRole}</option>
+                    <option value="STUDENT">{t.studentRole}</option>
+                    <option value="ADMIN">{t.adminRole}</option>
                   </select>
                   <p className="text-[10px] text-slate-400 font-medium">
-                    Các tài khoản đăng ký trực tuyến sẽ tự động được gán vai trò này.
+                    {t.roleHint}
                   </p>
                 </div>
               </div>
@@ -382,9 +475,9 @@ export default function AdminSettingsPage() {
                 {/* Allow Registration Toggle */}
                 <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
                   <div>
-                    <h4 className="text-sm font-bold text-[#0d153a]">Cho phép Đăng ký tài khoản mới</h4>
+                    <h4 className="text-sm font-bold text-[#0d153a]">{t.allowReg}</h4>
                     <p className="text-xs text-slate-400 font-semibold mt-0.5">
-                      Bật/Tắt tính năng tạo tài khoản của học viên bên ngoài giao diện đăng nhập.
+                      {t.allowRegHint}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -408,10 +501,10 @@ export default function AdminSettingsPage() {
                   <div>
                     <h4 className="text-sm font-bold text-amber-800 flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-amber-600" />
-                      <span>Chế độ bảo trì hệ thống (Maintenance Mode)</span>
+                      <span>{t.maintenanceMode}</span>
                     </h4>
                     <p className="text-xs text-amber-600/80 font-medium mt-0.5">
-                      Khi được bật, học viên thông thường không thể truy cập vào hệ thống làm bài hoặc thanh toán.
+                      {t.maintenanceHint}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -439,17 +532,17 @@ export default function AdminSettingsPage() {
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
                   <Key className="w-5 h-5 text-[#3B5C37]" />
-                  <span>Cấu hình SMTP Server & Email Gửi đi</span>
+                  <span>{t.emailTitle}</span>
                 </h3>
                 <p className="text-xs text-slate-400 font-semibold mt-1">
-                  Thiết lập thông tin máy chủ SMTP phục vụ cho việc gửi mã OTP, hóa đơn thanh toán và cảnh báo hệ thống.
+                  {t.emailSubtitle}
                 </p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-3">
                 {/* SMTP Host */}
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Máy chủ SMTP Host</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.smtpHost}</label>
                   <input
                     type="text"
                     value={settings.email.smtpHost}
@@ -467,7 +560,7 @@ export default function AdminSettingsPage() {
 
                 {/* SMTP Port */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cổng Port</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.smtpPort}</label>
                   <input
                     type="number"
                     value={settings.email.smtpPort}
@@ -485,7 +578,7 @@ export default function AdminSettingsPage() {
 
                 {/* SMTP User */}
                 <div className="space-y-2 md:col-span-3">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Gửi thư (Username/Email)</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.smtpUser}</label>
                   <input
                     type="text"
                     value={settings.email.smtpUser}
@@ -504,7 +597,7 @@ export default function AdminSettingsPage() {
 
               <div className="border-t border-slate-100 pt-6 space-y-4">
                 <h4 className="text-xs font-black text-[#0d153a] uppercase tracking-wider">
-                  Sự kiện gửi thư tự động (Automated Triggers)
+                  {t.emailTriggers}
                 </h4>
 
                 <div className="grid gap-4 sm:grid-cols-3">
@@ -522,8 +615,8 @@ export default function AdminSettingsPage() {
                       className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
-                      <span className="text-xs font-extrabold text-[#0d153a] block">Khi đăng ký mới</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">Gửi thư chào mừng học viên</span>
+                      <span className="text-xs font-extrabold text-[#0d153a] block">{t.triggerRegister}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{t.triggerRegisterHint}</span>
                     </div>
                   </label>
 
@@ -541,8 +634,8 @@ export default function AdminSettingsPage() {
                       className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
-                      <span className="text-xs font-extrabold text-[#0d153a] block">Thanh toán thành công</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">Gửi hóa đơn và thông tin gói học</span>
+                      <span className="text-xs font-extrabold text-[#0d153a] block">{t.triggerPayment}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{t.triggerPaymentHint}</span>
                     </div>
                   </label>
 
@@ -560,8 +653,8 @@ export default function AdminSettingsPage() {
                       className="w-4.5 h-4.5 text-[#3B5C37] bg-white border-slate-300 rounded-lg focus:ring-[#3B5C37] cursor-pointer"
                     />
                     <div>
-                      <span className="text-xs font-extrabold text-[#0d153a] block">Tài khoản bị khóa</span>
-                      <span className="text-[10px] text-slate-400 font-semibold">Gửi lý do và hướng dẫn hỗ trợ</span>
+                      <span className="text-xs font-extrabold text-[#0d153a] block">{t.triggerLock}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{t.triggerLockHint}</span>
                     </div>
                   </label>
                 </div>
@@ -577,10 +670,10 @@ export default function AdminSettingsPage() {
                 <div className="border-b border-slate-100 pb-4">
                   <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
                     <Database className="w-5 h-5 text-[#3B5C37]" />
-                    <span>Trọng số tính điểm IELTS Speaking</span>
+                    <span>{t.bandTitle}</span>
                   </h3>
                   <p className="text-xs text-slate-400 font-semibold mt-1">
-                    Điều chỉnh tỉ lệ phần trăm của 4 tiêu chí chấm thi Speaking. Tổng của cả 4 giá trị bắt buộc phải bằng **100%**.
+                    {t.bandSubtitle}
                   </p>
                 </div>
 
@@ -588,7 +681,7 @@ export default function AdminSettingsPage() {
                   {/* Fluency Weight */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                      Fluency & Coherence (Độ trôi chảy)
+                      {t.fluency}
                     </label>
                     <div className="relative">
                       <input
@@ -606,7 +699,7 @@ export default function AdminSettingsPage() {
                   {/* Lexical Resource Weight */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                      Lexical Resource (Từ vựng)
+                      {t.lexical}
                     </label>
                     <div className="relative">
                       <input
@@ -624,7 +717,7 @@ export default function AdminSettingsPage() {
                   {/* Grammar Weight */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                      Grammar Range & Accuracy (Ngữ pháp)
+                      {t.grammar}
                     </label>
                     <div className="relative">
                       <input
@@ -642,7 +735,7 @@ export default function AdminSettingsPage() {
                   {/* Pronunciation Weight */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                      Pronunciation (Phát âm)
+                      {t.pronunciation}
                     </label>
                     <div className="relative">
                       <input
@@ -666,10 +759,10 @@ export default function AdminSettingsPage() {
                 }`}>
                   <div className="flex items-center gap-2">
                     {isWeightValid ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                    <span>Tổng tỷ trọng hiện tại: {totalWeight}%</span>
+                    <span>{t.currentSum}{totalWeight}%</span>
                   </div>
                   <span>
-                    {isWeightValid ? "Hợp lệ và sẵn sàng lưu trữ" : "Lỗi: Tổng trọng số phải chính xác bằng 100%!"}
+                    {isWeightValid ? t.validWeights : t.invalidWeights}
                   </span>
                 </div>
               </div>
@@ -679,10 +772,10 @@ export default function AdminSettingsPage() {
                 <div className="border-b border-slate-100 pb-4">
                   <h3 className="text-base font-extrabold text-[#0d153a] flex items-center gap-2">
                     <Layers className="w-5 h-5 text-[#3B5C37]" />
-                    <span>Ngưỡng phân loại cấp độ & Nhận xét mẫu AI</span>
+                    <span>{t.levelRangesTitle}</span>
                   </h3>
                   <p className="text-xs text-slate-400 font-semibold mt-1">
-                    Cấu hình dải điểm IELTS Speaking cho từng cấp độ và soạn sẵn văn bản nhận xét tương ứng để hiển thị tự động.
+                    {t.levelRangesSubtitle}
                   </p>
                 </div>
 
@@ -690,9 +783,9 @@ export default function AdminSettingsPage() {
                   {/* BEGINNER BAND */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                      <span className="text-sm font-extrabold text-[#0d153a]">1. Cấp độ CƠ BẢN (Beginner)</span>
+                      <span className="text-sm font-extrabold text-[#0d153a]">{t.levelBeginner}</span>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <span>Dải điểm: 0.0 - đến tối đa:</span>
+                        <span>{t.beginnerBandRange}</span>
                         <input
                           type="number"
                           step="0.5"
@@ -713,7 +806,7 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Văn bản nhận xét mẫu</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.feedbackTemplate}</label>
                       <textarea
                         value={settings.bandScore.beginnerFeedback}
                         onChange={(e) =>
@@ -727,7 +820,7 @@ export default function AdminSettingsPage() {
                         }
                         rows={3}
                         className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
-                        placeholder="Nhập nhận xét mẫu cho cấp độ Beginner..."
+                        placeholder={t.beginnerFeedbackPlaceholder}
                         required
                       />
                     </div>
@@ -736,9 +829,9 @@ export default function AdminSettingsPage() {
                   {/* INTERMEDIATE BAND */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                      <span className="text-sm font-extrabold text-[#0d153a]">2. Cấp độ TRUNG CẤP (Intermediate)</span>
+                      <span className="text-sm font-extrabold text-[#0d153a]">{t.levelIntermediate}</span>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <span>Dải điểm từ: {(Number(settings.bandScore.beginnerMaxBand) + 0.5).toFixed(1)} - đến tối đa:</span>
+                        <span>{t.intermediateBandRange((Number(settings.bandScore.beginnerMaxBand) + 0.5).toFixed(1))}</span>
                         <input
                           type="number"
                           step="0.5"
@@ -759,7 +852,7 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Văn bản nhận xét mẫu</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.feedbackTemplate}</label>
                       <textarea
                         value={settings.bandScore.intermediateFeedback}
                         onChange={(e) =>
@@ -773,7 +866,7 @@ export default function AdminSettingsPage() {
                         }
                         rows={3}
                         className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
-                        placeholder="Nhập nhận xét mẫu cho cấp độ Intermediate..."
+                        placeholder={t.intermediateFeedbackPlaceholder}
                         required
                       />
                     </div>
@@ -782,9 +875,9 @@ export default function AdminSettingsPage() {
                   {/* ADVANCED BAND */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                      <span className="text-sm font-extrabold text-[#0d153a]">3. Cấp độ CAO CẤP (Advanced)</span>
+                      <span className="text-sm font-extrabold text-[#0d153a]">{t.levelAdvanced}</span>
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <span>Dải điểm từ tối thiểu:</span>
+                        <span>{t.advancedBandRange}</span>
                         <input
                           type="number"
                           step="0.5"
@@ -802,11 +895,11 @@ export default function AdminSettingsPage() {
                           }
                           className="w-16 bg-white px-2.5 py-1.5 text-center text-xs font-extrabold rounded-lg border border-slate-200 focus:outline-none focus:border-[#3B5C37]"
                         />
-                        <span>trở lên (đến 9.0)</span>
+                        <span>{t.advancedBandRangeSuffix}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Văn bản nhận xét mẫu</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">{t.feedbackTemplate}</label>
                       <textarea
                         value={settings.bandScore.advancedFeedback}
                         onChange={(e) =>
@@ -820,7 +913,7 @@ export default function AdminSettingsPage() {
                         }
                         rows={3}
                         className="w-full bg-white px-4 py-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-600 font-medium leading-relaxed"
-                        placeholder="Nhập nhận xét mẫu cho cấp độ Advanced..."
+                        placeholder={t.advancedFeedbackPlaceholder}
                         required
                       />
                     </div>
@@ -834,16 +927,16 @@ export default function AdminSettingsPage() {
           <div className="bg-slate-50 rounded-2xl border border-slate-200/60 p-5 flex items-center justify-between gap-4">
             <div className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 text-slate-400" />
-              <span>Hãy kiểm tra kỹ trước khi bấm lưu để tránh lỗi hoạt động.</span>
+              <span>{t.footerCheck}</span>
             </div>
             
             <button
               type="submit"
               disabled={isSaving || (activeTab === "band" && !isWeightValid)}
-              className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-[#3B5C37] hover:bg-[#2f4a2b] disabled:opacity-50 transition-all shadow-md shadow-orange-100 flex items-center gap-2 cursor-pointer"
+              className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-[#3B5C37] hover:bg-[#2f4a2b] disabled:opacity-50 transition-all shadow-md shadow-[#3B5C37]/10 flex items-center gap-2 cursor-pointer"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>Lưu cấu hình hệ thống</span>
+              <span>{t.btnSave}</span>
             </button>
           </div>
         </form>

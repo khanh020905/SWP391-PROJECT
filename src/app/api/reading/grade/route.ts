@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { READING_ANSWER_KEY, checkAnswer } from "@/lib/readingAnswerKey";
-import { READING_PASSAGE_1, READING_TEST_META } from "@/lib/readingMockData";
+import { READING_PASSAGE_1, READING_PASSAGE_2, READING_PASSAGE_3, READING_TEST_META } from "@/lib/readingMockData";
 import type { ReadingAttemptPayload, ReadingGradeResult } from "@/types/readingGrade";
 import { buildReadingExplanationVi } from "@/lib/readingExplainEngine";
 
@@ -52,7 +52,13 @@ function fallbackGrade(
   attemptId: string,
   answers: Record<string, string>
 ): ReadingGradeResult {
-  const questionResults = READING_PASSAGE_1.questions.map((q) => {
+  const allQuestions = [
+    ...READING_PASSAGE_1.questions,
+    ...READING_PASSAGE_2.questions,
+    ...READING_PASSAGE_3.questions,
+  ];
+
+  const questionResults = allQuestions.map((q) => {
     const userAnswer = answers[String(q.id)] ?? "";
     const correctAnswer = READING_ANSWER_KEY[q.id] ?? "";
     const isCorrect = checkAnswer(q.id, userAnswer);
@@ -77,7 +83,7 @@ function fallbackGrade(
     bandScore: bandFromRaw(rawScore, total),
     overallFeedbackVi: `Bạn đạt ${rawScore}/${total} câu đúng. Hãy ôn lại các dạng câu sai và luyện đọc lướt (skimming) + đọc tìm chi tiết (scanning).`,
     strengths: rawScore >= total / 2 ? ["Hoàn thành phần lớn câu hỏi"] : [],
-    improvements: ["Đọc kỹ từ khóa trong đề", "Chú ý dạng True/False/Not Given"],
+    improvements: ["Đọc kỹ từ khóa trong đề", "Chú ý dạng True/False/Not Given/Yes/No"],
     questionResults,
     gradedAt: new Date().toISOString(),
   };
@@ -85,12 +91,6 @@ function fallbackGrade(
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "GEMINI_API_KEY chưa được cấu hình trên server." },
-      { status: 500 }
-    );
-  }
 
   try {
     const body = (await request.json()) as ReadingAttemptPayload;
@@ -101,6 +101,11 @@ export async function POST(request: NextRequest) {
     }
 
     const prelim = fallbackGrade(attemptId, answers);
+
+    if (!apiKey) {
+      console.warn("[Gemini Reading] GEMINI_API_KEY is not configured. Returning local fallback grade.");
+      return NextResponse.json({ grade: prelim, source: "fallback" });
+    }
 
     const wrongQuestions = prelim.questionResults
       .filter((r) => !r.isCorrect)

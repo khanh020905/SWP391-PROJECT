@@ -130,7 +130,13 @@ export default function QuestionCard({ question, showInstruction }: QuestionCard
               selected ? "border-green-400" : "border-gray-200"
             }`}
           >
-            <option value="">— Chọn heading —</option>
+            <option value="">
+              {question.instruction?.toLowerCase().includes("paragraph")
+                ? "— Chọn đoạn văn —"
+                : question.instruction?.toLowerCase().includes("heading")
+                ? "— Chọn heading —"
+                : "— Chọn đáp án —"}
+            </option>
             {question.headings.map((h) => (
               <option key={h} value={h}>
                 {h}

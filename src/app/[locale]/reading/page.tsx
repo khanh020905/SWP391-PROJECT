@@ -75,7 +75,9 @@ export default function ReadingLobbyPage() {
     fetchReadingPassages()
       .then((data) => {
         const valid = data ? data.filter((p: any) => p.questions && p.questions.length > 0) : [];
-        setPassages(valid);
+        const filtered = valid.filter((p: any) => p.youpass_id && p.youpass_id.startsWith("bc-passage-"));
+        filtered.sort((a: any, b: any) => a.youpass_id.localeCompare(b.youpass_id));
+        setPassages(filtered);
       })
       .catch((err) => console.error("Error loading passages:", err));
 
@@ -119,6 +121,10 @@ export default function ReadingLobbyPage() {
       } else {
         setUserRole("GUEST");
       }
+      setLoading(false);
+    }).catch((err) => {
+      console.warn("Failed to get session in reading lobby:", err);
+      setUserRole("GUEST");
       setLoading(false);
     });
   }, []);
@@ -360,6 +366,7 @@ export default function ReadingLobbyPage() {
           {loadingExams ? (
             <div className="col-span-full flex items-center justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-t-transparent border-[#3B5C37]"></div>
+            </div>
             </div>
           ) : exams.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-500 font-medium bg-white rounded-3xl border border-gray-150 shadow-sm">

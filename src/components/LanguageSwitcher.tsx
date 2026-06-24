@@ -20,7 +20,7 @@ export default function LanguageSwitcher() {
     <Link
       href={pathname}
       locale={nextLocale}
-      className={`text-sm font-bold transition-colors cursor-pointer select-none px-2 ${colorClass}`}
+      className={`text-sm font-bold transition-colors cursor-pointer select-none px-2 focus:outline-none outline-none ${colorClass}`}
     >
       {displayLabel}
     </Link>

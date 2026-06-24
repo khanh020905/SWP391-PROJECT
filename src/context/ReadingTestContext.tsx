@@ -9,7 +9,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { fetchReadingPassages } from "@/services/readingService";
 import {
@@ -313,6 +314,10 @@ export function ReadingTestProvider({ children }: { children: React.ReactNode })
         setUserRole("GUEST");
         setUserName(null);
       }
+    }).catch((err) => {
+      console.warn("Failed to retrieve reading test user session:", err);
+      setUserRole("GUEST");
+      setUserName(null);
     });
   }, [examId]);
 

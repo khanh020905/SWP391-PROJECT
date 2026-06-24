@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/authFetch";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import {
   Plus,
   Search,
@@ -16,6 +17,10 @@ import {
   CheckCircle2,
   Clock3,
   RefreshCw,
+  Headphones,
+  BookOpen,
+  PenTool,
+  Mic,
 } from "lucide-react";
 
 interface Exam {
@@ -26,16 +31,59 @@ interface Exam {
   cambridge_no: number | null;
   test_no: number | null;
   status: "draft" | "published";
+  category: "listening" | "reading" | "writing" | "speaking";
+  duration_minutes: number | null;
   created_at: string;
   updated_at: string;
   exam_sections: { id: string; section_no: number; title: string }[];
 }
 
 export default function AdminExamsPage() {
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    toastErrorLoad: isEn ? "Failed to load exam list" : "Không thể tải danh sách đề thi",
+    toastErrorConn: isEn ? "Server connection error" : "Lỗi kết nối máy chủ",
+    toastSuccessDelete: (title: string) => isEn ? `Deleted exam "${title}"` : `Đã xóa đề thi "${title}"`,
+    toastErrorDelete: isEn ? "Failed to delete exam" : "Xóa thất bại",
+    confirmDeleteTitle: isEn ? "Confirm Delete Exam" : "Xác nhận xóa đề thi",
+    confirmDeleteDesc: (title: string) => isEn
+      ? `Are you sure you want to delete exam "${title}"? This action will permanently delete all contents, questions and related audio files.`
+      : `Bạn có chắc chắn muốn xóa đề thi "${title}"? Thao tác này sẽ xóa vĩnh viễn tất cả nội dung, câu hỏi và file audio liên quan.`,
+    cancel: isEn ? "Cancel" : "Hủy",
+    delete: isEn ? "Delete" : "Xóa",
+    deleting: isEn ? "Deleting..." : "Đang xóa...",
+    pageTitle: isEn ? "Manage Cambridge Exams" : "Quản lý Đề Thi Cambridge",
+    pageDesc: isEn ? "Add, edit and delete Cambridge IELTS Listening, Reading, and Writing exams" : "Thêm, sửa và xóa các đề thi Cambridge IELTS Listening, Reading, và Writing",
+    addExam: isEn ? "Add New Exam" : "Thêm đề thi mới",
+    searchPlaceholder: isEn ? "Search exam name..." : "Tìm kiếm tên đề thi...",
+    filterAllStatus: isEn ? "All statuses" : "Tất cả trạng thái",
+    filterPublished: isEn ? "Published" : "Đã xuất bản",
+    filterDraft: isEn ? "Draft" : "Nháp",
+    loadingData: isEn ? "Loading data..." : "Đang tải dữ liệu...",
+    noExamsFound: isEn ? "No exams found" : "Không tìm thấy đề thi",
+    filterHelpText: isEn ? "Try changing search filters" : "Thử thay đổi bộ lọc tìm kiếm",
+    newExamHelpText: isEn ? "Click \"Add New Exam\" to create your first Cambridge exam" : "Nhấn \"Thêm đề thi mới\" để tạo đề thi Cambridge đầu tiên",
+    createNewExam: isEn ? "Create New Exam" : "Tạo đề thi mới",
+    thExam: isEn ? "Exam" : "Đề thi",
+    thCambridge: isEn ? "Cambridge" : "Cambridge",
+    thContent: isEn ? "Content" : "Nội dung",
+    thStatus: isEn ? "Status" : "Trạng thái",
+    thDate: isEn ? "Created Date" : "Ngày tạo",
+    thActions: isEn ? "Actions" : "Hành động",
+    statusPublished: isEn ? "Published" : "Đã xuất bản",
+    statusDraft: isEn ? "Draft" : "Nháp",
+    titleEdit: isEn ? "Edit" : "Chỉnh sửa",
+    titleDelete: isEn ? "Delete" : "Xóa",
+    showingExams: (count: number) => isEn ? `Showing ${count} exams` : `Hiển thị ${count} đề thi`,
+  };
+
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [deleteTarget, setDeleteTarget] = useState<Exam | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -45,6 +93,7 @@ export default function AdminExamsPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.set("status", statusFilter);
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
       if (search.trim()) params.set("search", search.trim());
 
       const res = await authFetch(`/api/admin/exams?${params.toString()}`);
@@ -52,14 +101,14 @@ export default function AdminExamsPage() {
       if (res.ok) {
         setExams(data.exams || []);
       } else {
-        showToast("error", data.error || "Không thể tải danh sách đề thi");
+        showToast("error", data.error || t.toastErrorLoad);
       }
     } catch {
-      showToast("error", "Lỗi kết nối máy chủ");
+      showToast("error", t.toastErrorConn);
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter]);
+  }, [search, statusFilter, categoryFilter, t.toastErrorLoad, t.toastErrorConn]);
 
   useEffect(() => {
     const timer = setTimeout(() => fetchExams(), 300);
@@ -79,20 +128,20 @@ export default function AdminExamsPage() {
       const data = await res.json();
       if (res.ok) {
         setExams((prev) => prev.filter((e) => e.id !== deleteTarget.id));
-        showToast("success", `Đã xóa đề thi "${deleteTarget.title}"`);
+        showToast("success", t.toastSuccessDelete(deleteTarget.title));
         setDeleteTarget(null);
       } else {
-        showToast("error", data.error || "Xóa thất bại");
+        showToast("error", data.error || t.toastErrorDelete);
       }
     } catch {
-      showToast("error", "Lỗi kết nối máy chủ");
+      showToast("error", t.toastErrorConn);
     } finally {
       setIsDeleting(false);
     }
   };
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    new Date(iso).toLocaleDateString(isEn ? "en-US" : "vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -123,11 +172,9 @@ export default function AdminExamsPage() {
                 <Trash2 className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-base font-black text-[#0d153a]">Xác nhận xóa đề thi</h3>
+                <h3 className="text-base font-black text-[#0d153a]">{t.confirmDeleteTitle}</h3>
                 <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                  Bạn có chắc chắn muốn xóa đề thi{" "}
-                  <strong className="text-[#0d153a]">"{deleteTarget.title}"</strong>?{" "}
-                  Thao tác này sẽ xóa vĩnh viễn tất cả nội dung, câu hỏi và file audio liên quan.
+                  {t.confirmDeleteDesc(deleteTarget.title)}
                 </p>
               </div>
             </div>
@@ -137,7 +184,7 @@ export default function AdminExamsPage() {
                 disabled={isDeleting}
                 className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
-                Hủy
+                {t.cancel}
               </button>
               <button
                 onClick={handleDelete}
@@ -149,7 +196,7 @@ export default function AdminExamsPage() {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                {isDeleting ? "Đang xóa..." : "Xóa đề thi"}
+                {isDeleting ? t.deleting : t.delete}
               </button>
             </div>
           </div>
@@ -159,9 +206,9 @@ export default function AdminExamsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[#0d153a]">Quản lý Đề Thi Cambridge</h1>
+          <h1 className="text-2xl font-black text-[#0d153a]">{t.pageTitle}</h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">
-            Thêm, sửa và xóa các đề thi Cambridge IELTS Listening
+            {t.pageDesc}
           </p>
         </div>
         <Link
@@ -169,7 +216,7 @@ export default function AdminExamsPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3B5C37] text-white text-sm font-bold hover:bg-[#2f4a2b] transition-all shadow-[0_4px_16px_rgba(59, 92, 55,0.25)] hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.35)] active:scale-95 select-none"
         >
           <Plus className="w-4 h-4" />
-          Thêm đề thi mới
+          {t.addExam}
         </Link>
       </div>
 
@@ -180,7 +227,7 @@ export default function AdminExamsPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Tìm kiếm tên đề thi..."
+            placeholder={t.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors"
@@ -199,9 +246,25 @@ export default function AdminExamsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors cursor-pointer"
           >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="published">Đã xuất bản</option>
-            <option value="draft">Nháp</option>
+            <option value="all">{t.filterAllStatus}</option>
+            <option value="published">{t.filterPublished}</option>
+            <option value="draft">{t.filterDraft}</option>
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+        </div>
+
+        {/* Category Filter */}
+        <div className="relative">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="appearance-none pl-4 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors cursor-pointer"
+          >
+            <option value="all">{isEn ? "All skills" : "Tất cả kỹ năng"}</option>
+            <option value="listening">{isEn ? "Listening" : "Nghe (Listening)"}</option>
+            <option value="reading">{isEn ? "Reading" : "Đọc (Reading)"}</option>
+            <option value="writing">{isEn ? "Writing" : "Viết (Writing)"}</option>
+            <option value="speaking">{isEn ? "Speaking" : "Nói (Speaking)"}</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
         </div>
@@ -210,7 +273,7 @@ export default function AdminExamsPage() {
         <button
           onClick={fetchExams}
           className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 hover:text-[#0d153a] hover:border-slate-300 transition-colors"
-          title="Tải lại"
+          title={isEn ? "Refresh" : "Tải lại"}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -221,7 +284,7 @@ export default function AdminExamsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="w-8 h-8 border-3 border-[#3B5C37]/30 border-t-[#3B5C37] rounded-full animate-spin" />
-            <p className="text-sm font-bold text-slate-400">Đang tải dữ liệu...</p>
+            <p className="text-sm font-bold text-slate-400">{t.loadingData}</p>
           </div>
         ) : exams.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -229,11 +292,11 @@ export default function AdminExamsPage() {
               <FileText className="w-8 h-8 text-slate-300" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-black text-slate-500">Không tìm thấy đề thi</p>
+              <p className="text-sm font-black text-slate-500">{t.noExamsFound}</p>
               <p className="text-xs text-slate-400 mt-1">
                 {search || statusFilter !== "all"
-                  ? "Thử thay đổi bộ lọc tìm kiếm"
-                  : "Nhấn \"Thêm đề thi mới\" để tạo đề thi Cambridge đầu tiên"}
+                  ? t.filterHelpText
+                  : t.newExamHelpText}
               </p>
             </div>
             {!search && statusFilter === "all" && (
@@ -242,7 +305,7 @@ export default function AdminExamsPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B5C37]/10 text-[#3B5C37] text-xs font-bold hover:bg-[#3B5C37]/20 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Tạo đề thi mới
+                {t.createNewExam}
               </Link>
             )}
           </div>
@@ -252,22 +315,25 @@ export default function AdminExamsPage() {
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/60">
                   <th className="text-left px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">
-                    Đề thi
-                  </th>
-                  <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider hidden sm:table-cell">
-                    Cambridge
-                  </th>
-                  <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider hidden md:table-cell">
-                    Nội dung
+                    {t.thExam}
                   </th>
                   <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">
-                    Trạng thái
+                    {isEn ? "Category" : "Kỹ năng"}
+                  </th>
+                  <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider hidden sm:table-cell">
+                    {t.thCambridge}
+                  </th>
+                  <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider hidden md:table-cell">
+                    {t.thContent}
+                  </th>
+                  <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">
+                    {t.thStatus}
                   </th>
                   <th className="text-left px-4 py-4 text-xs font-black text-slate-500 uppercase tracking-wider hidden lg:table-cell">
-                    Ngày tạo
+                    {t.thDate}
                   </th>
                   <th className="text-right px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-wider">
-                    Hành động
+                    {t.thActions}
                   </th>
                 </tr>
               </thead>
@@ -291,6 +357,27 @@ export default function AdminExamsPage() {
                           )}
                         </div>
                       </div>
+                    </td>
+
+                    {/* Category */}
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                        exam.category === "reading"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : exam.category === "writing"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : exam.category === "speaking"
+                          ? "bg-violet-50 text-violet-700 border-violet-200"
+                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      }`}>
+                        {exam.category === "reading"
+                          ? (isEn ? "Reading" : "Đọc")
+                          : exam.category === "writing"
+                          ? (isEn ? "Writing" : "Viết")
+                          : exam.category === "speaking"
+                          ? (isEn ? "Speaking" : "Nói")
+                          : (isEn ? "Listening" : "Nghe")}
+                      </span>
                     </td>
 
                     {/* Cambridge Info */}
@@ -321,7 +408,8 @@ export default function AdminExamsPage() {
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100">
-                          {exam.exam_sections?.length || 0}/4 Section
+                          {exam.exam_sections?.length || 0}/{exam.category === "writing" ? 2 : exam.category === "speaking" ? 3 : exam.category === "reading" ? 3 : 4}{" "}
+                          {exam.category === "writing" ? "Task" : exam.category === "speaking" ? "Part" : exam.category === "reading" ? "Passage" : "Section"}
                         </span>
                       </div>
                     </td>
@@ -331,12 +419,12 @@ export default function AdminExamsPage() {
                       {exam.status === "published" ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
                           <CheckCircle2 className="w-3 h-3" />
-                          Đã xuất bản
+                          {t.statusPublished}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold border border-amber-200">
                           <Clock3 className="w-3 h-3" />
-                          Nháp
+                          {t.statusDraft}
                         </span>
                       )}
                     </td>
@@ -354,14 +442,14 @@ export default function AdminExamsPage() {
                         <Link
                           href={`/admin/exams/${exam.id}/edit`}
                           className="p-2 rounded-xl text-slate-400 hover:text-[#3B5C37] hover:bg-[#e8ede6] transition-all"
-                          title="Chỉnh sửa"
+                          title={t.titleEdit}
                         >
                           <Pencil className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(exam)}
                           className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                          title="Xóa"
+                          title={t.titleDelete}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -375,7 +463,7 @@ export default function AdminExamsPage() {
             {/* Footer summary */}
             <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/40">
               <p className="text-xs font-medium text-slate-400">
-                Hiển thị <strong className="text-slate-600">{exams.length}</strong> đề thi
+                {t.showingExams(exams.length)}
               </p>
             </div>
           </div>

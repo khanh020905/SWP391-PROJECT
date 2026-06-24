@@ -167,8 +167,8 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
       <header className="bg-white border-b border-slate-200/80 px-6 py-4 sticky top-0 z-30 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0d153a] no-underline">
-              <span className="text-[#3B5C37]">*</span>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-black text-[#0d153a] no-underline focus:outline-none outline-none">
+              <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-10 w-auto object-contain" />
               <span>QualiIelts</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-[#5e6792]">

@@ -256,5 +256,31 @@
       "admin": "Admin",
       "student": "Student"
     }
+  },
+  "admin": {
+    "sidebar": {
+      "brand": "QualiCode Admin",
+      "overview": "Overview",
+      "users": "User Management",
+      "exams": "Exam Management",
+      "payments": "Payment Management",
+      "activityLogs": "Activity History",
+      "settings": "System Settings",
+      "viewHome": "View Home",
+      "logout": "Admin Logout",
+      "authenticating": "Authenticating Admin..."
+    },
+    "header": {
+      "title": "Admin Dashboard",
+      "breadcrumbs": {
+        "overview": "Overview",
+        "users": "User Management",
+        "exams": "Exam Management",
+        "payments": "Payment Management",
+        "activityLogs": "Activity History",
+        "settings": "System Settings"
+      },
+      "mainSystem": "Main System"
+    }
   }
 }

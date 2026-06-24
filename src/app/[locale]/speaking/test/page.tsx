@@ -973,6 +973,8 @@ function SpeakingTestRoomContent() {
             })
           }).catch(e => console.error("Không thể ghi nhận study log:", e));
         }
+      }).catch((err) => {
+        console.warn("Failed to get session for study log registration:", err);
       });
 
       // Redirection to the feedback dashboard

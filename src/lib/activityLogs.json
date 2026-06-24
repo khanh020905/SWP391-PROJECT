@@ -118,5 +118,35 @@
     "targetName": "Cấu hình Hệ thống",
     "targetEmail": "system-settings",
     "details": "Cập nhật thành công các cấu hình hệ thống, thiết lập mail SMTP và ngưỡng điểm IELTS Band."
+  },
+  {
+    "id": "log_axby87k",
+    "timestamp": "2026-06-17T01:43:17.391Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "DELETE",
+    "targetName": "Khiết Đan Nguyễn",
+    "targetEmail": "nguyentrankhietdan@gmail.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống (đồng bộ Auth + DB)"
+  },
+  {
+    "id": "log_wanvav3",
+    "timestamp": "2026-06-17T02:08:06.839Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Cấu hình Hệ thống",
+    "targetEmail": "system-settings",
+    "details": "Cập nhật thành công các cấu hình hệ thống, thiết lập mail SMTP và ngưỡng điểm IELTS Band."
+  },
+  {
+    "id": "log_fc8ws6b",
+    "timestamp": "2026-06-24T09:35:30.958Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Nguyễn Đình Long",
+    "targetEmail": "lngnguyen94@gmail.com",
+    "details": "Cập nhật thông tin tài khoản (Vai trò cũ: STUDENT -> Vai trò mới: ADMIN)"
   }
 ]
