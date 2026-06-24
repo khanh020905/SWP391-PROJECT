@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { DIAGNOSTIC_QUESTIONS } from "@/lib/diagnosticQuestions";
 import { fetchDiagnosticQuestions } from "@/services/diagnosticService";
@@ -31,6 +31,9 @@ import {
 export default function OrientationPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRetest = searchParams?.get('retest') === 'true';
+  const retestPathId = searchParams?.get('pathId');
   const locale = params?.locale || "vi";
 
   // Wizard steps:
@@ -52,6 +55,8 @@ export default function OrientationPage() {
 
   // Band result from computed scoring
   const [calculatedBand, setCalculatedBand] = useState<number>(5.0);
+  const [diagnosticId, setDiagnosticId] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<any>(null);
 
   // Roadmap generation form states
   const [targetBand, setTargetBand] = useState<number>(6.5);
@@ -190,11 +195,51 @@ export default function OrientationPage() {
     setTargetBand(Math.min(9.0, band + 1.5));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     computeBand();
     setStep(5);
     setScanProgress(0);
     setScanStepIndex(0);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const submitRes = await fetch("/api/student/diagnostic/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        },
+        body: JSON.stringify({ 
+          answers,
+          isRetest,
+          retestPathId
+        })
+      });
+
+      const submitData = await submitRes.json();
+      if (submitData.success) {
+        if (submitData.id) setDiagnosticId(submitData.id);
+        if (submitData.comparison) setComparison(submitData.comparison);
+      }
+    } catch (err: any) {
+      console.error("Failed to submit diagnostic answers:", err);
+    }
+  };
+
+  const handleCompleteRoadmap = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch("/api/student/roadmap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session?.access_token || ""}`
+      },
+      body: JSON.stringify({ 
+        action: "COMPLETE", 
+        pathId: retestPathId 
+      })
+    });
+    router.push(`/${locale}/roadmap`);
   };
 
   // AI scanner progress animation
@@ -244,7 +289,8 @@ export default function OrientationPage() {
           targetBand,
           dailyHours,
           targetDate,
-          focusSkills
+          focusSkills,
+          diagnosticId
         })
       });
 
@@ -281,6 +327,17 @@ export default function OrientationPage() {
   // ─── STEP 0: INTRO ─────────────────────────────────────────
   const renderIntro = () => (
     <div className="space-y-8 text-left max-w-3xl mx-auto py-4">
+      {isRetest && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-5 md:p-6 flex gap-4 items-start shadow-sm">
+          <Sparkles className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="text-sm font-black text-[#0d153a]">Bài Kiểm Tra Lại (Retest)</h4>
+            <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+              Đây là bài kiểm tra lại để đánh giá tiến bộ của bạn so với lộ trình đang theo.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col items-center text-center space-y-4">
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] flex items-center justify-center text-white shadow-lg animate-pulse">
           <BrainCircuit className="w-8 h-8" />
@@ -377,19 +434,22 @@ export default function OrientationPage() {
 
           {q.type === "multiple_choice" && (
             <div className="grid sm:grid-cols-2 gap-2">
-              {q.options?.map((opt: string) => {
-                const letter = opt.charAt(0);
+              {q.options?.map((opt: any) => {
+                const isString = typeof opt === "string";
+                const letter = isString ? opt.charAt(0) : (opt.key || opt.letter || opt.value || "");
+                const text = isString ? opt : (opt.text || opt.label || opt.value || "");
                 const isSelected = answers[q.id] === letter;
+                const keyStr = isString ? opt : (opt.key || JSON.stringify(opt));
                 return (
                   <button
-                    key={opt}
+                    key={keyStr}
                     type="button"
                     onClick={() => handleAnswerChange(q.id, letter)}
                     className={`text-left p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                       isSelected ? "border-blue-500 bg-blue-50/30 text-blue-700" : "border-slate-100 bg-white hover:border-slate-200 text-slate-500"
                     }`}
                   >
-                    {opt}
+                    {text}
                   </button>
                 );
               })}
@@ -466,12 +526,15 @@ export default function OrientationPage() {
             <h4 className="text-xs font-black text-[#0d153a] uppercase tracking-wider border-b border-slate-50 pb-2">Q7: Multiple Choice</h4>
             <p className="text-xs font-bold text-[#0d153a] leading-tight">{questions.reading[1]?.questionText}</p>
             <div className="grid sm:grid-cols-2 gap-2 mt-2.5">
-              {questions.reading[1]?.options?.map((opt: string) => {
-                const letter = opt.charAt(0);
+              {questions.reading[1]?.options?.map((opt: any) => {
+                const isString = typeof opt === "string";
+                const letter = isString ? opt.charAt(0) : (opt.key || opt.letter || opt.value || "");
+                const text = isString ? opt : (opt.text || opt.label || opt.value || "");
                 const isSelected = answers.r2 === letter;
+                const keyStr = isString ? opt : (opt.key || JSON.stringify(opt));
                 return (
                   <button
-                    key={opt}
+                    key={keyStr}
                     type="button"
                     onClick={() => handleAnswerChange("r2", letter)}
                     className={`w-full text-left p-3 rounded-xl border text-xs font-medium transition-all flex items-start gap-2.5 cursor-pointer ${
@@ -481,7 +544,7 @@ export default function OrientationPage() {
                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${isSelected ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300"}`}>
                       {isSelected && <Check className="w-2.5 h-2.5" />}
                     </div>
-                    <span>{opt}</span>
+                    <span>{text}</span>
                   </button>
                 );
               })}
@@ -687,6 +750,53 @@ export default function OrientationPage() {
 
     return (
       <div className="space-y-8 text-left max-w-4xl mx-auto py-2">
+        {comparison && (
+          <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-4 ${
+            comparison.reachedTarget 
+              ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-500/30 text-emerald-800" 
+              : comparison.improved 
+                ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/30 text-blue-800" 
+                : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/30 text-amber-800"
+          }`}>
+            <div className="flex items-center gap-3.5">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                comparison.reachedTarget ? "bg-emerald-500/20 text-emerald-700" : comparison.improved ? "bg-blue-500/20 text-blue-700" : "bg-amber-500/20 text-amber-700"
+              }`}>
+                {comparison.reachedTarget ? <Trophy className="w-5 h-5" /> : comparison.improved ? <TrendingUp className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-extrabold uppercase tracking-wider">
+                  {comparison.reachedTarget ? "Đạt mục tiêu!" : comparison.improved ? "Tiến bộ ghi nhận!" : "Kết quả kiểm tra lại"}
+                </h4>
+                <p className="text-xs font-bold leading-relaxed">
+                  {comparison.reachedTarget && (
+                    <>
+                      🎉 Chúc mừng! Bạn đã đạt mục tiêu Band {comparison.targetBand}. Band hiện tại: {comparison.newBand} (tăng {comparison.bandDiff} so với lần test trước).
+                    </>
+                  )}
+                  {!comparison.reachedTarget && comparison.improved && (
+                    <>
+                      📈 Bạn đã tiến bộ! Band tăng từ {comparison.oldBand} lên {comparison.newBand} (+{comparison.bandDiff}). Mục tiêu {comparison.targetBand} — cố gắng thêm nhé!
+                    </>
+                  )}
+                  {!comparison.improved && (
+                    <>
+                      Band hiện tại {comparison.newBand}, chưa thấy tiến bộ so với lần trước ({comparison.oldBand}). Hãy xem lại các phase trong lộ trình và tập trung vào kỹ năng còn yếu.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            {comparison.reachedTarget && (
+              <button
+                onClick={handleCompleteRoadmap}
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer hover:scale-[1.02] active:scale-95"
+              >
+                <span>Đánh dấu hoàn thành lộ trình 🎉</span>
+              </button>
+            )}
+          </div>
+        )}
         {/* Success banner */}
         <div className="bg-gradient-to-r from-[#3B5C37] to-[#1f3e1b] rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 blur-xl rounded-full" />

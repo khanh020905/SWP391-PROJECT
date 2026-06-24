@@ -149,7 +149,7 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
 
   const initialsFallback = (user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase();
 
-  const isFlashcardAppPage = pathname.includes("/profile");
+  const isFlashcardAppPage = pathname.includes("/profile") || pathname.includes("/roadmap") || pathname.includes("/learning/daily");
 
   if (isFlashcardAppPage) {
     return (

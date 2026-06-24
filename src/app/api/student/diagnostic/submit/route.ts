@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { DIAGNOSTIC_QUESTIONS } from "@/lib/diagnosticQuestions";
 import { DIAGNOSTIC_PROMPT } from "@/lib/diagnosticSystemPrompt";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 async function getAuthenticatedUser(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace("Bearer ", "");
@@ -223,17 +223,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { answers } = body;
+    const { answers, isRetest, retestPathId } = body;
 
     if (!answers) {
       return NextResponse.json({ error: "Answers are required" }, { status: 400 });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     let finalResult: any = null;
 
     if (apiKey) {
-      // Build standard answer key for Claude reference
+      // Build standard answer key for Gemini reference
       const answerKey = {
         listening: DIAGNOSTIC_QUESTIONS.listening.map(q => ({ id: q.id, answers: q.answers, correctAnswer: q.correctAnswer })),
         reading: DIAGNOSTIC_QUESTIONS.reading.map(q => ({ id: q.id, items: q.items, correctAnswer: q.correctAnswer }))
@@ -241,50 +241,39 @@ export async function POST(request: NextRequest) {
 
       const userMessage = DIAGNOSTIC_PROMPT.buildUserMessage(answers, answerKey);
 
-      // Attempt to call Anthropic Claude API with a retry count of 1
+      // Attempt to call Gemini API with a retry count of 1
       let attempts = 0;
       const maxAttempts = 2;
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: { responseMimeType: "application/json" }
+      });
+
       while (attempts < maxAttempts && !finalResult) {
         attempts++;
         try {
-          const res = await fetch(ANTHROPIC_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": apiKey,
-              "anthropic-version": "2023-06-01"
-            },
-            body: JSON.stringify({
-              model: "claude-3-5-sonnet-20241022",
-              max_tokens: 4000,
-              system: DIAGNOSTIC_PROMPT.system,
-              messages: [{ role: "user", content: userMessage }],
-              temperature: 0.3
-            })
+          const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: userMessage }] }],
+            systemInstruction: DIAGNOSTIC_PROMPT.system,
           });
 
-          if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`Anthropic API returned status ${res.status}: ${errText}`);
-          }
-
-          const responseData = await res.json();
-          const rawText = responseData.content?.[0]?.text || "";
-          finalResult = parseClaudeJson(rawText);
+          const responseText = result.response.text();
+          finalResult = parseClaudeJson(responseText);
 
           if (!finalResult || typeof finalResult.overall_band !== "number") {
             finalResult = null;
-            throw new Error("Failed to parse valid JSON structure from Claude output.");
+            throw new Error("Failed to parse valid JSON structure from Gemini output.");
           }
         } catch (apiError) {
-          console.error(`[Claude Diagnostic Submit Attempt ${attempts} failed]`, apiError);
+          console.error(`[Gemini Diagnostic Submit Attempt ${attempts} failed]`, apiError);
           if (attempts >= maxAttempts) {
             console.log("Exceeded maximum API retries. Falling back to local scoring script.");
           }
         }
       }
     } else {
-      console.log("No ANTHROPIC_API_KEY configured. Falling back to rule-based grading.");
+      console.log("No GEMINI_API_KEY configured. Falling back to rule-based grading.");
     }
 
     // Fallback if Claude call fails or key is missing
@@ -314,7 +303,56 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, id: `temp_${Date.now()}`, result: finalResult });
     }
 
-    return NextResponse.json({ success: true, id: insertedData.id, result: finalResult });
+    let comparisonResult: any = null;
+
+    if (isRetest && retestPathId) {
+      // Lấy thông tin lộ trình đang theo + band lúc tạo lộ trình
+      const { data: pathData } = await supabaseAdmin
+        .from("learning_paths")
+        .select("id, diagnostic_id, ai_suggestion")
+        .eq("id", retestPathId)
+        .single();
+
+      if (pathData) {
+        // Lấy band cũ từ diagnostic_results gốc
+        const { data: oldDiagnostic } = await supabaseAdmin
+          .from("diagnostic_results")
+          .select("overall_band")
+          .eq("id", pathData.diagnostic_id)
+          .single();
+
+        const oldBand = oldDiagnostic?.overall_band || 0;
+        const newBand = finalResult.overall_band;
+        const targetBand = pathData.ai_suggestion?.targetBand || null;
+
+        const improved = newBand > oldBand;
+        const reachedTarget = targetBand ? newBand >= targetBand : false;
+
+        comparisonResult = {
+          oldBand,
+          newBand,
+          targetBand,
+          improved,
+          reachedTarget,
+          bandDiff: Math.round((newBand - oldBand) * 10) / 10
+        };
+
+        // Lưu kết quả retest, link tới path_id qua diagnostic_id mới
+        await supabaseAdmin
+          .from("diagnostic_results")
+          .update({ 
+            full_result: { ...finalResult, comparison: comparisonResult, retest_of_path: retestPathId }
+          })
+          .eq("id", insertedData.id);
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      id: insertedData.id, 
+      result: finalResult,
+      comparison: comparisonResult
+    });
 
   } catch (err: any) {
     console.error("❌ Exception in Diagnostic Submit API:", err);
