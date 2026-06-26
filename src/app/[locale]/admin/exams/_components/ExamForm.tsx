@@ -250,7 +250,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/exams/upload-audio", { method: "POST", body: fd });
+      const res = await authFetch("/api/admin/exams/upload-audio", { method: "POST", body: fd });
       const data = await res.json();
       if (res.ok) {
         setForm((prev) => {
@@ -285,7 +285,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const res = await authFetch("/api/admin/upload", { method: "POST", body: fd });
       const data = await res.json();
       if (res.ok) {
         setForm((prev) => {
@@ -460,7 +460,7 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       const url = mode === "edit" ? `/api/admin/exams/${initialData?.id}` : "/api/admin/exams";
       const method = mode === "edit" ? "PUT" : "POST";
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
