@@ -401,7 +401,7 @@ export default function AdminExamsPage() {
                     {/* Content Summary */}
                     <td className="px-4 py-4 hidden md:table-cell">
                       <div className="flex items-center gap-3">
-                        {exam.audio_url && (
+                        {(exam.audio_url || exam.category === "listening") && (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-50 text-violet-600 text-[10px] font-bold border border-violet-100">
                             <Music className="w-3 h-3" />
                             Audio
