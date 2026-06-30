@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   ArrowRight,
   CheckCircle2,
@@ -19,6 +20,8 @@ import type { WritingAttemptPayload } from "@/types/writing";
 import Navbar from "@/components/Navbar";
 
 export default function WritingLobbyPage() {
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
   const [attempts, setAttempts] = useState<WritingAttemptPayload[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [filter, setFilter] = useState<"all" | "task1" | "task2">("all");
@@ -124,6 +127,33 @@ export default function WritingLobbyPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Sentence Translation Promotion Card */}
+        <section className="relative rounded-[32px] overflow-hidden mb-10 bg-white p-6 md:p-8 border-2 border-[#1b3d1e] shadow-[6px_6px_0px_#1b3d1e] flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#1b3d1e] duration-200">
+          <div className="flex gap-5 items-start">
+            <div className="h-14 w-14 bg-[#edf3e8] text-[#3B5C37] rounded-2xl flex items-center justify-center shrink-0 border border-[#ccd6c5]">
+              <BookOpen className="h-7 w-7" />
+            </div>
+            <div>
+              <span className="inline-block bg-[#edf3e8] border border-[#d8e3d1] text-[#3B5C37] text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full mb-2">
+                LUYỆN TẬP BỔ TRỢ
+              </span>
+              <h3 className="text-xl font-black text-[#1b3d1e]">
+                Luyện dịch viết IELTS (Sentence Translation)
+              </h3>
+              <p className="text-xs font-semibold text-gray-500 mt-1 max-w-2xl leading-relaxed">
+                Rèn luyện khả năng tư duy song ngữ bằng cách dịch câu tiếng Việt sang tiếng Anh học thuật. Có chấm câu chi tiết, phân tích lỗi sai và mở rộng cấu trúc ngữ pháp/từ vựng theo chủ đề viết.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/${locale}/writing/translation`}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#3B5C37] px-6 py-4 text-xs font-black text-white hover:bg-[#2c472a] shadow-md shadow-[#3B5C37]/10 hover:shadow-lg active:scale-[0.98] transition-all shrink-0 cursor-pointer select-none no-underline"
+          >
+            LUYỆN DỊCH NGAY
+            <ArrowRight className="w-4 h-4 shrink-0" />
+          </Link>
         </section>
 
         {/* Tab Controls and Header */}

@@ -282,5 +282,31 @@
       },
       "mainSystem": "Main System"
     }
+  },
+  "writingTranslation": {
+    "title": "IELTS Writing Sentence Translation",
+    "subtitle": "Translate Vietnamese sentences into academic English to improve grammar & vocabulary.",
+    "check": "Check Answer",
+    "next": "Next Sentence",
+    "explanation": "Detailed Explanation",
+    "correctAnswer": "Model Answer",
+    "yourAnswer": "Your Translation",
+    "vocabulary": "Key Vocabulary",
+    "grammar": "Grammar Structure",
+    "tips": "Tips & Focus",
+    "selectTopic": "Select a Topic",
+    "progress": "Progress",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "emptyInput": "Please input your translation before checking.",
+    "noSentences": "No sentences available for this topic.",
+    "term": "Term/Phrase",
+    "meaning": "Meaning",
+    "structure": "Structure",
+    "usage": "Usage",
+    "sidebarTitle": "Sentence List"
   }
 }

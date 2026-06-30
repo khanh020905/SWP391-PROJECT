@@ -33,34 +33,81 @@ function parseClaudeJson(text: string) {
   }
 }
 
-// Fallback logic to generate realistic grading in case Anthropic API fails or is not set up
-function generateFallbackResult(answers: any, userId: string) {
+// Fallback logic to generate realistic grading in case Anthropic/Gemini API fails or is not set up
+function generateFallbackResult(answers: any, userId: string, answerKey?: any) {
   // Simple check on objective answers
   let lCorrect = 0;
   let rCorrect = 0;
 
-  // Listening grading
-  const l1Ans = answers.l1 || "";
-  if (l1Ans.toLowerCase().includes("monday") && (l1Ans.toLowerCase().includes("2") || l1Ans.toLowerCase().includes("two"))) {
-    lCorrect += 2;
-  } else if (l1Ans.toLowerCase().includes("monday") || l1Ans.toLowerCase().includes("2")) {
-    lCorrect += 1;
-  }
+  if (answerKey) {
+    // Grade dynamically based on answerKey
+    if (answerKey.listening && Array.isArray(answerKey.listening)) {
+      answerKey.listening.forEach((q: any) => {
+        const userAns = (answers[q.id] || "").trim().toLowerCase();
+        if (!userAns) return;
+        
+        if (q.id === "l1" && userAns.includes("monday") && (userAns.includes("2") || userAns.includes("two"))) {
+          lCorrect += 2;
+        } else if (q.id === "l1" && (userAns.includes("monday") || userAns.includes("2"))) {
+          lCorrect += 1;
+        } else {
+          const possibleAnswers = (q.answers || [q.correctAnswer] || [])
+            .map((a: any) => String(a).trim().toLowerCase())
+            .filter(Boolean);
+          const isMatch = possibleAnswers.some((pa: string) => userAns.includes(pa) || pa.includes(userAns));
+          if (isMatch) {
+            lCorrect += 1;
+          }
+        }
+      });
+    }
 
-  if ((answers.l2 || "").trim().toUpperCase() === "C") {
-    lCorrect += 1;
-  }
+    if (answerKey.reading && Array.isArray(answerKey.reading)) {
+      const r1 = answerKey.reading[0];
+      if (r1 && r1.items) {
+        r1.items.forEach((item: any, idx: number) => {
+          const key = `r1_${idx}`;
+          const userAns = (answers[key] || "").trim().toUpperCase();
+          const correctAns = (item.correctAnswer || item.correct_answer || "").trim().toUpperCase();
+          if (userAns && userAns === correctAns) {
+            rCorrect += 1;
+          }
+        });
+      }
 
-  const l3Ans = (answers.l3 || "").trim().toLowerCase();
-  if (l3Ans.includes("1.1")) {
-    lCorrect += 1;
-  }
+      const r2 = answerKey.reading[1];
+      if (r2) {
+        const userAns = (answers.r2 || "").trim().toUpperCase();
+        const correctAns = (r2.correctAnswer || r2.correct_answer || "").trim().toUpperCase();
+        if (userAns && correctAns && userAns.charAt(0) === correctAns.charAt(0)) {
+          rCorrect += 1;
+        }
+      }
+    }
+  } else {
+    // Listening grading
+    const l1Ans = answers.l1 || "";
+    if (l1Ans.toLowerCase().includes("monday") && (l1Ans.toLowerCase().includes("2") || l1Ans.toLowerCase().includes("two"))) {
+      lCorrect += 2;
+    } else if (l1Ans.toLowerCase().includes("monday") || l1Ans.toLowerCase().includes("2")) {
+      lCorrect += 1;
+    }
 
-  // Reading grading
-  if ((answers.r1_0 || "").trim().toUpperCase() === "TRUE") rCorrect += 1;
-  if ((answers.r1_1 || "").trim().toUpperCase() === "FALSE") rCorrect += 1;
-  if ((answers.r1_2 || "").trim().toUpperCase() === "NOT GIVEN") rCorrect += 1;
-  if ((answers.r2 || "").trim().toUpperCase() === "B") rCorrect += 1;
+    if ((answers.l2 || "").trim().toUpperCase() === "C") {
+      lCorrect += 1;
+    }
+
+    const l3Ans = (answers.l3 || "").trim().toLowerCase();
+    if (l3Ans.includes("1.1")) {
+      lCorrect += 1;
+    }
+
+    // Reading grading
+    if ((answers.r1_0 || "").trim().toUpperCase() === "TRUE") rCorrect += 1;
+    if ((answers.r1_1 || "").trim().toUpperCase() === "FALSE") rCorrect += 1;
+    if ((answers.r1_2 || "").trim().toUpperCase() === "NOT GIVEN") rCorrect += 1;
+    if ((answers.r2 || "").trim().toUpperCase() === "B") rCorrect += 1;
+  }
 
   // Band calculations
   const lBand = Math.min(9.0, 3.5 + lCorrect * 1.0);
@@ -223,7 +270,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { answers, isRetest, retestPathId } = body;
+    const { answers, isRetest, retestPathId, answerKey: reqAnswerKey } = body;
 
     if (!answers) {
       return NextResponse.json({ error: "Answers are required" }, { status: 400 });
@@ -232,13 +279,12 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
     let finalResult: any = null;
 
-    if (apiKey) {
-      // Build standard answer key for Gemini reference
-      const answerKey = {
-        listening: DIAGNOSTIC_QUESTIONS.listening.map(q => ({ id: q.id, answers: q.answers, correctAnswer: q.correctAnswer })),
-        reading: DIAGNOSTIC_QUESTIONS.reading.map(q => ({ id: q.id, items: q.items, correctAnswer: q.correctAnswer }))
-      };
+    const answerKey = reqAnswerKey || {
+      listening: DIAGNOSTIC_QUESTIONS.listening.map(q => ({ id: q.id, answers: q.answers, correctAnswer: q.correctAnswer })),
+      reading: DIAGNOSTIC_QUESTIONS.reading.map(q => ({ id: q.id, items: q.items, correctAnswer: q.correctAnswer }))
+    };
 
+    if (apiKey) {
       const userMessage = DIAGNOSTIC_PROMPT.buildUserMessage(answers, answerKey);
 
       // Attempt to call Gemini API with a retry count of 1
@@ -278,7 +324,7 @@ export async function POST(request: NextRequest) {
 
     // Fallback if Claude call fails or key is missing
     if (!finalResult) {
-      finalResult = generateFallbackResult(answers, user.id);
+      finalResult = generateFallbackResult(answers, user.id, answerKey);
     }
 
     // Save submission and evaluation to Supabase

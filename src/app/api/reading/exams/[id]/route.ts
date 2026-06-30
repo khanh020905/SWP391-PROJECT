@@ -7,6 +7,7 @@ export async function GET(
 ) {
   try {
     const { id: examId } = await params;
+    console.log(">>> GET /api/reading/exams/[id] called with examId:", examId);
 
     // 1. Fetch exam metadata
     const { data: exam, error: examError } = await supabaseAdmin
