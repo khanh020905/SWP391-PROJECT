@@ -88,6 +88,7 @@ export default function OrientationPage() {
                 options: extra.options || [],
                 correctAnswer: extra.correctAnswer || "",
                 answers: extra.answers || [],
+                audioSrc: extra.audioSrc || "",
               };
             }),
             reading: (data.reading || []).map((m: any, idx: number) => {
@@ -155,22 +156,63 @@ export default function OrientationPage() {
   const computeBand = () => {
     let correct = 0;
 
-    // Listening L1 (2-part fill)
-    const l1 = (answers.l1 || "").toLowerCase();
-    if (l1.includes("monday")) correct += 1;
-    if (l1.includes("2") || l1.includes("two")) correct += 1;
+    // Grade Listening dynamically using questions.listening
+    if (questions.listening && Array.isArray(questions.listening)) {
+      questions.listening.forEach((q: any) => {
+        const userAns = (answers[q.id] || "").trim().toLowerCase();
+        if (!userAns) return;
 
-    // L2 MCQ
-    if ((answers.l2 || "").trim().toUpperCase() === "C") correct += 1;
+        if (q.type === "multiple_choice") {
+          const correctAns = (q.correctAnswer || "").trim().toLowerCase();
+          const normalizedAns = userAns.charAt(0);
+          const normalizedCorrect = correctAns.charAt(0);
+          if (normalizedAns && normalizedCorrect && normalizedAns === normalizedCorrect) {
+            correct += 1;
+          }
+        } else {
+          const possibleAnswers = (q.answers || [q.correctAnswer] || [])
+            .map((a: any) => String(a).trim().toLowerCase())
+            .filter(Boolean);
+            
+          if (q.id === "l1" && q.audioDescription?.includes("Accommodation")) {
+            // Legacy / fallback question l1
+            if (userAns.includes("monday")) correct += 1;
+            if (userAns.includes("2") || userAns.includes("two")) correct += 1;
+          } else {
+            const isMatch = possibleAnswers.some((pa: string) => userAns.includes(pa) || pa.includes(userAns));
+            if (isMatch) {
+              correct += 1;
+            }
+          }
+        }
+      });
+    }
 
-    // L3 fill
-    if ((answers.l3 || "").trim().toLowerCase().includes("1.1")) correct += 1;
+    // Grade Reading dynamically using questions.reading
+    if (questions.reading && Array.isArray(questions.reading)) {
+      // r1 True/False/Not Given
+      const r1 = questions.reading[0];
+      if (r1 && r1.items) {
+        r1.items.forEach((item: any, idx: number) => {
+          const key = `r1_${idx}`;
+          const userAns = (answers[key] || "").trim().toUpperCase();
+          const correctAns = (item.correctAnswer || item.correct_answer || "").trim().toUpperCase();
+          if (userAns && userAns === correctAns) {
+            correct += 1;
+          }
+        });
+      }
 
-    // Reading: r1_0, r1_1, r1_2, r2
-    if ((answers.r1_0 || "").trim().toUpperCase() === "TRUE") correct += 1;
-    if ((answers.r1_1 || "").trim().toUpperCase() === "FALSE") correct += 1;
-    if ((answers.r1_2 || "").trim().toUpperCase() === "NOT GIVEN") correct += 1;
-    if ((answers.r2 || "").trim().toUpperCase() === "B") correct += 1;
+      // r2 Multiple Choice
+      const r2 = questions.reading[1];
+      if (r2) {
+        const userAns = (answers.r2 || "").trim().toUpperCase();
+        const correctAns = (r2.correctAnswer || r2.correct_answer || "").trim().toUpperCase();
+        if (userAns && correctAns && userAns.charAt(0) === correctAns.charAt(0)) {
+          correct += 1;
+        }
+      }
+    }
 
     // Writing contribution
     const w1Len = getWordCount(answers.w1);
@@ -212,7 +254,19 @@ export default function OrientationPage() {
         body: JSON.stringify({ 
           answers,
           isRetest,
-          retestPathId
+          retestPathId,
+          answerKey: {
+            listening: (questions.listening || []).map((q: any) => ({
+              id: q.id,
+              answers: q.answers || [q.correctAnswer],
+              correctAnswer: q.correctAnswer
+            })),
+            reading: (questions.reading || []).map((q: any) => ({
+              id: q.id,
+              items: q.items || [],
+              correctAnswer: q.correctAnswer
+            }))
+          }
         })
       });
 
@@ -406,6 +460,26 @@ export default function OrientationPage() {
         </div>
         <span className="text-xs text-slate-400 font-bold bg-slate-100 px-3 py-1 rounded-xl">Q1 - Q3</span>
       </div>
+
+      {/* Audio Player */}
+      {questions.listening[0]?.audioSrc && (
+        <div className="bg-blue-50/50 border-2 border-blue-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center shrink-0">
+              <Volume2 className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-[#0d153a] uppercase tracking-wider">File âm thanh bài nghe</p>
+              <p className="text-[10px] text-gray-500 font-semibold leading-tight">{questions.listening[0]?.audioDescription}</p>
+            </div>
+          </div>
+          <audio 
+            src={questions.listening[0].audioSrc} 
+            controls 
+            className="w-full sm:w-80 h-9 outline-none block"
+          />
+        </div>
+      )}
 
       {questions.listening.map((q: any, idx: number) => (
         <div key={q.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-3">
