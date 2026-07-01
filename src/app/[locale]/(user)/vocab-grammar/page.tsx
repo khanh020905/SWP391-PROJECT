@@ -9,7 +9,14 @@ export default function VocabGrammarPage() {
   const locale = useLocale();
 
   return (
-    <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738] font-sans flex flex-col">
+    <div 
+      className="min-h-screen bg-no-repeat bg-[#e5ebd8] text-[#0f1738] font-sans flex flex-col"
+      style={{
+        backgroundImage: "url('/assets/hero-background-new.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center top"
+      }}
+    >
       <main className="flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-20">
         
         {/* Header Block */}
