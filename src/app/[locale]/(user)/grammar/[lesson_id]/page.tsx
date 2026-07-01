@@ -547,17 +547,29 @@ export default function GrammarDetailPage() {
     if (user) {
       setSaveStatus("saving");
       try {
-        const { error } = await supabase.from("practice_history").insert({
-          user_id: user.id,
-          category: "grammar",
-          test_id: lesson.lesson_id,
-          test_name: lesson.title,
-          score: correctCount,
-          total: questions.length,
-          metadata: { band: lesson.band }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("No session found");
+
+        const res = await fetch("/api/grammar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            lessonId: lesson.lesson_id,
+            lessonTitle: lesson.title,
+            score: correctCount,
+            totalQuestions: questions.length,
+            band: lesson.band
+          })
         });
 
-        if (error) throw error;
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Failed to save practice history");
+        }
+
         setSaveStatus("saved");
       } catch (err) {
         console.error("Lỗi khi lưu kết quả vào practice_history:", err);
