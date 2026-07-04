@@ -253,6 +253,12 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       if (form.title) {
         fd.append("examTitle", form.title);
       }
+      if (form.cambridge_no) {
+        fd.append("cambridgeNo", form.cambridge_no);
+      }
+      if (form.test_no) {
+        fd.append("testNo", form.test_no);
+      }
       const res = await authFetch("/api/admin/exams/upload-audio", { method: "POST", body: fd });
       const data = await res.json();
       if (res.ok) {
@@ -339,6 +345,12 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
       fd.append("file", file);
       if (form.title) {
         fd.append("examTitle", form.title);
+      }
+      if (form.cambridge_no) {
+        fd.append("cambridgeNo", form.cambridge_no);
+      }
+      if (form.test_no) {
+        fd.append("testNo", form.test_no);
       }
       const res = await authFetch("/api/admin/exams/upload-audio", { method: "POST", body: fd });
       const data = await res.json();
@@ -439,11 +451,19 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
           }
         }
 
-        if (form.category === "listening" && s.audio_url) {
-          answersObj = {
-            ...(answersObj || {}),
-            audio_url: s.audio_url,
-          };
+        if (form.category === "listening") {
+          if (s.audio_url) {
+            answersObj = {
+              ...(answersObj || {}),
+              audio_url: s.audio_url,
+            };
+          }
+          if (s.image_url) {
+            answersObj = {
+              ...(answersObj || {}),
+              image_url: s.image_url,
+            };
+          }
         }
 
         if (form.category === "writing" && s.image_url) {
@@ -896,8 +916,8 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                     </div>
                   )}
 
-                  {/* Image Upload for Section (Writing Category Only) */}
-                  {form.category === "writing" && (
+                  {/* Image Upload for Section (Writing or Listening Category) */}
+                  {(form.category === "writing" || form.category === "listening") && (
                     <div className="pt-2">
                       <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
                         {isEn ? "Section Image" : "Hình ảnh minh họa của phần này (nếu có)"}

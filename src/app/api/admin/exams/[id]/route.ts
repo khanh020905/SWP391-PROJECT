@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { NextRequest } from "next/server";
 import { requireRole, ADMIN_OR_INSTRUCTOR } from "@/lib/roles";
+import { autoGenerateQuestions } from "@/lib/autoQuestionGenerator";
 
 // GET /api/admin/exams/[id] — Get exam detail with sections
 export async function GET(
@@ -79,10 +80,13 @@ export async function PUT(
 
     // Update sections: delete existing and re-insert
     if (sections && Array.isArray(sections)) {
+      // Auto-generate questions and clean section content
+      const processedSections = await autoGenerateQuestions(id, category || "listening", sections);
+
       await supabaseAdmin.from("exam_sections").delete().eq("exam_id", id);
 
-      if (sections.length > 0) {
-        const sectionsToInsert = sections.map((s: any) => ({
+      if (processedSections.length > 0) {
+        const sectionsToInsert = processedSections.map((s: any) => ({
           exam_id: id,
           section_no: s.section_no,
           title: s.title || `Section ${s.section_no}`,

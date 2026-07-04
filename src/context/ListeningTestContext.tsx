@@ -8,6 +8,69 @@ import {
   NormalizedListeningQuestion
 } from "@/utils/questionHelpers";
 
+function findQuestionTextForSection(content: string | null, qNo: number): string {
+  if (!content) return `(${qNo})`;
+
+  // Replace ellipses or dots or underscores with a standard blank
+  const normalizedContent = content.replace(/(?:…+|\.{3,}|_{2,})/g, "________");
+  const lines = normalizedContent.split("\n");
+
+  // Find a line that contains the exact pattern (qNo)
+  const targetPattern = new RegExp(`\\(${qNo}\\)`);
+  let targetLine = lines.find(line => targetPattern.test(line));
+
+  if (!targetLine) {
+    // Fallback: try to find just the number with word boundary or attached to text
+    const fallbackPattern = new RegExp(`(?:\\b|\\d)${qNo}(?:\\b|\\s|_)`);
+    targetLine = lines.find(line => fallbackPattern.test(line));
+  }
+
+  if (!targetLine) {
+    return `(${qNo})`;
+  }
+
+  const line = targetLine.trim();
+
+  // Regex to match any digit followed by optional currency symbol and underscores
+  const qPattern = /(\d+)\s*[$£€¥]?\s*(?:_{2,})/g;
+  let matches: { qNo: number; index: number; length: number }[] = [];
+  let match;
+  while ((match = qPattern.exec(line)) !== null) {
+    matches.push({
+      qNo: parseInt(match[1]),
+      index: match.index,
+      length: match[0].length
+    });
+  }
+
+  const targetIndex = matches.findIndex(m => m.qNo === qNo);
+  if (targetIndex === -1) {
+    // If it's not a fill-in-the-blank on a shared line, do some basic cleanup
+    let cleanedLine = line;
+    const otherQPattern = /\((\d+)\)\s*_{2,}/g;
+    cleanedLine = cleanedLine.replace(otherQPattern, (m, otherQStr) => {
+      const otherQ = parseInt(otherQStr);
+      return otherQ === qNo ? m : `(${otherQ})`;
+    });
+    return cleanedLine;
+  }
+
+  const startPos = targetIndex === 0 ? 0 : matches[targetIndex - 1].index + matches[targetIndex - 1].length;
+  const endPos = targetIndex === matches.length - 1 ? line.length : matches[targetIndex + 1].index;
+
+  let untrimmedSegment = line.substring(startPos, endPos);
+  
+  if (targetIndex === 0) {
+    // Keep the prefix context for the first question in the line
+    return untrimmedSegment.trim();
+  }
+
+  let relativeIndex = matches[targetIndex].index - startPos;
+  let mainPart = untrimmedSegment.substring(relativeIndex);
+
+  return mainPart.trim();
+}
+
 export interface ListeningResult {
   totalQuestions: number;
   correctCount: number;
@@ -143,6 +206,7 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
 
   const initAudio = (src: string) => {
     if (typeof window === "undefined") return;
+    if (!src || src === "null" || src === "undefined") return;
     
     let fullSrc = src;
     const lowerSrc = src.toLowerCase();
@@ -335,32 +399,37 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
         if (dbSections && dbSections.length > 0) {
           const sectionsData = dbSections.map((row: any) => {
             const answersObj = row.answers || {};
-            const sortedKeys = Object.keys(answersObj).sort((a, b) => parseInt(a) - parseInt(b));
+            // Filter out non-numeric keys (like audio_url and image_url) to avoid mapping them as questions
+            const questionKeys = Object.keys(answersObj).filter((key) => !isNaN(Number(key)));
+            const sortedKeys = questionKeys.sort((a, b) => parseInt(a) - parseInt(b));
             const questions = sortedKeys.map((key) => {
               const correctAns = answersObj[key];
+              const qNo = parseInt(key);
+              const qText = findQuestionTextForSection(row.content, qNo);
               return {
                 id: `q_${testId}_${row.section_no}_${key}`,
                 type: "fill",
-                text: `(${key})`,
+                text: qText,
                 options: [],
                 correct_answer: correctAns,
                 answers: [correctAns],
               };
             });
 
-            const sectionAudioUrl = (row.answers as any)?.audio_url || "";
+            const rawAudioSrc = answersObj.audio_url || exam.audio_url || "";
+            const audioSrc = (rawAudioSrc === "null" || rawAudioSrc === "undefined" || !rawAudioSrc) ? "" : rawAudioSrc;
 
             return {
               section: row.section_no,
               title: row.title || `Section ${row.section_no}`,
-              audio_src: sectionAudioUrl || exam.audio_url || "",
+              audio_src: audioSrc || exam.audio_url || "",
               audio_description: row.content || "",
-              questions: questions
+              questions: questions,
+              image_url: answersObj.image_url || "",
             };
           });
 
           const hasAudio = !!exam.audio_url || sectionsData.some(s => s.audio_src);
-
           const realTest = {
             id: exam.id,
             test_id: exam.id,
@@ -378,7 +447,7 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
           setCurrentSectionIndex(0);
 
           const firstAudio = exam.audio_url || sectionsData.find(s => s.audio_src)?.audio_src;
-          if (firstAudio) {
+          if (firstAudio && firstAudio !== "null" && firstAudio !== "undefined") {
             initAudio(firstAudio);
           }
         } else {

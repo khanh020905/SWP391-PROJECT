@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, ADMIN_OR_INSTRUCTOR } from "@/lib/roles";
+import { autoGenerateQuestions } from "@/lib/autoQuestionGenerator";
 
 // GET /api/admin/exams — List all exams
 export async function GET(request: NextRequest) {
@@ -82,7 +83,10 @@ export async function POST(request: NextRequest) {
 
     // Insert sections if provided
     if (sections && Array.isArray(sections) && sections.length > 0) {
-      const sectionsToInsert = sections.map((s: any) => ({
+      // Auto-generate questions and clean section content
+      const processedSections = await autoGenerateQuestions(exam.id, category || "listening", sections);
+
+      const sectionsToInsert = processedSections.map((s: any) => ({
         exam_id: exam.id,
         section_no: s.section_no,
         title: s.title || `Section ${s.section_no}`,

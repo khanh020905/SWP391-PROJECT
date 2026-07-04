@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
-import { User, LogOut, ShieldAlert, Bell } from "lucide-react";
+import { User, LogOut, ShieldAlert, Bell, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -360,6 +360,19 @@ export default function Navbar() {
                     >
                       <User className={`w-4 h-4 ${isTedPage ? "text-[#E62B1E]" : "text-[#3B5C37]"}`} />
                       <span>{t("profile")}</span>
+                    </Link>
+
+                    <Link
+                      href="/pricing"
+                      onClick={() => setShowDropdown(false)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold active:scale-[0.98] transition-all cursor-pointer no-underline ${
+                        isTedPage 
+                          ? "text-[#b5a9a9] hover:bg-[#1a0f0f] hover:text-[#E62B1E]" 
+                          : "text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37]"
+                      }`}
+                    >
+                      <Sparkles className={`w-4 h-4 ${isTedPage ? "text-[#E62B1E]" : "text-[#3B5C37]"}`} />
+                      <span>{t("loggedInAs") === "Logged in as" ? "Premium Upgrade" : "Nâng cấp Premium"}</span>
                     </Link>
 
                     {user.user_metadata?.role === "ADMIN" && (

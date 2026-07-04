@@ -148,5 +148,125 @@
     "targetName": "Nguyễn Đình Long",
     "targetEmail": "lngnguyen94@gmail.com",
     "details": "Cập nhật thông tin tài khoản (Vai trò cũ: STUDENT -> Vai trò mới: ADMIN)"
+  },
+  {
+    "id": "log_yjc70be",
+    "timestamp": "2026-07-04T13:41:34.959Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-YFCKNY"
+  },
+  {
+    "id": "log_q2vhsqi",
+    "timestamp": "2026-07-04T13:41:34.961Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-YFCKNY đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_cwhaxg6)"
+  },
+  {
+    "id": "log_0xmcc1o",
+    "timestamp": "2026-07-04T13:56:39.731Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-7SJS32"
+  },
+  {
+    "id": "log_ff6d1ss",
+    "timestamp": "2026-07-04T13:56:39.733Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-7SJS32 đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_rcf869y)"
+  },
+  {
+    "id": "log_zxwto5v",
+    "timestamp": "2026-07-04T14:06:17.423Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-WUMVIN"
+  },
+  {
+    "id": "log_azlprl2",
+    "timestamp": "2026-07-04T14:06:17.426Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-WUMVIN đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_bkviupg)"
+  },
+  {
+    "id": "log_mrxkqir",
+    "timestamp": "2026-07-04T14:14:21.625Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-5NHFYI"
+  },
+  {
+    "id": "log_b90jrmh",
+    "timestamp": "2026-07-04T14:14:21.627Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-5NHFYI đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_a6ay5t9)"
+  },
+  {
+    "id": "log_xpyzdzf",
+    "timestamp": "2026-07-04T14:27:19.733Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-6SO10T"
+  },
+  {
+    "id": "log_g4ci5jd",
+    "timestamp": "2026-07-04T14:27:19.735Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-6SO10T đã được tự động thanh toán qua cổng Sepay API (Giao dịch: sepay_05d88ece-77b4-11f1-b21a-a6006ab65aca)"
+  },
+  {
+    "id": "log_n31owpj",
+    "timestamp": "2026-07-04T14:30:21.377Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-JNAJLW"
+  },
+  {
+    "id": "log_mv2xtyb",
+    "timestamp": "2026-07-04T14:30:21.381Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Hóa đơn INV-JNAJLW đã được tự động thanh toán qua cổng Sepay API (Giao dịch: sepay_e003b4bf-77b4-11f1-b21a-a6006ab65aca)"
   }
 ]
