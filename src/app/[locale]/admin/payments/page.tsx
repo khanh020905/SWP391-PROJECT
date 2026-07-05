@@ -226,7 +226,16 @@ export default function PaymentManagementPage() {
     btnMatchAction: isEn ? "Confirm Reconciliation & Approve" : "Xác nhận đối soát & Duyệt học viên",
   };
 
-  const [activeTab, setActiveTab] = useState<"sepay" | "invoices" | "packages">("sepay");
+  const [activeTab, setActiveTab] = useState<"sepay" | "invoices" | "packages">("invoices");
+  const [showRevenueChart, setShowRevenueChart] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<"7days" | "30days">("7days");
+  const [hoveredPoint, setHoveredPoint] = useState<{
+    x: number;
+    y: number;
+    amount: number;
+    dateLabel: string;
+    fullDate: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error"; subMessage?: string } | null>(null);
 
@@ -676,12 +685,67 @@ export default function PaymentManagementPage() {
     });
   };
 
+  // Generate chart data dynamically
+  const chartData = (() => {
+    const daysCount = chartPeriod === "7days" ? 7 : 30;
+    const list = [];
+    const now = new Date();
+
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toLocaleDateString(isEn ? "en-US" : "vi-VN", { month: "2-digit", day: "2-digit" });
+      const fullDateStr = d.toDateString();
+      
+      // Sum revenue for this day
+      const dailySum = invoices
+        .filter(inv => {
+          if (inv.status !== "PAID") return false;
+          const dateToUse = inv.paidAt ? new Date(inv.paidAt) : new Date(inv.createdAt);
+          return dateToUse.toDateString() === fullDateStr;
+        })
+        .reduce((sum, item) => sum + item.amount, 0);
+
+      list.push({
+        dateLabel: dateStr,
+        amount: dailySum,
+        fullDate: d.toLocaleDateString(isEn ? "en-US" : "vi-VN", { year: "numeric", month: "long", day: "numeric" })
+      });
+    }
+    return list;
+  })();
+
+  const maxAmount = Math.max(...chartData.map(d => d.amount), 100000);
+  
+  const points = chartData.map((d, index) => {
+    const x = 50 + (index * 520) / (chartData.length - 1);
+    const y = 200 - (d.amount / maxAmount) * 160;
+    return { x, y, data: d };
+  });
+
+  let pathD = "";
+  if (points.length > 0) {
+    pathD = "M " + points[0].x + " " + points[0].y;
+    for (let i = 1; i < points.length; i++) {
+      pathD += " L " + points[i].x + " " + points[i].y;
+    }
+  }
+
+  const fillD = pathD ? `${pathD} L ${points[points.length - 1].x} 200 L ${points[0].x} 200 Z` : "";
+
   return (
     <div className="space-y-8 relative">
       {/* KPI Row */}
-      <section className="grid gap-5 grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-5 grid-cols-1 md:grid-cols-3">
         {/* KPI: Doanh thu */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5 transition-transform duration-200 hover:-translate-y-0.5">
+        <div 
+          onClick={() => setShowRevenueChart(!showRevenueChart)}
+          className={`bg-white p-6 rounded-2xl border shadow-sm flex items-center gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer select-none ${
+            showRevenueChart 
+              ? "border-[#3B5C37] ring-2 ring-[#3B5C37]/10" 
+              : "border-slate-200/80"
+          }`}
+        >
           <div className="w-12 h-12 rounded-xl bg-[#e8ede6] flex items-center justify-center text-[#3B5C37] flex-shrink-0">
             <TrendingUp className="w-6 h-6" />
           </div>
@@ -714,36 +778,189 @@ export default function PaymentManagementPage() {
             <div className="text-2xl font-black text-amber-600 mt-0.5">{pendingInvoicesCount}</div>
           </div>
         </div>
-
-        {/* KPI: Giao dịch cần đối khớp */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5 transition-transform duration-200 hover:-translate-y-0.5">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
-            <ArrowRightLeft className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiNeedsMatch}</div>
-            <div className="text-2xl font-black text-rose-500 mt-0.5">{unmatchedTxCount}</div>
-          </div>
-        </div>
       </section>
 
+      {/* Revenue Chart Section */}
+      {showRevenueChart && (
+        <section className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm relative overflow-hidden animate-fade-in">
+          {/* Chart Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-base font-black text-[#0d153a] flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-500" />
+                <span>{isEn ? "Incoming Revenue Chart" : "Biểu đồ dòng tiền doanh thu"}</span>
+              </h3>
+              <p className="text-xs text-slate-400 font-semibold mt-1">
+                {isEn ? "Visual statistics of paid invoices over time" : "Thống kê trực quan các hóa đơn đã thanh toán thành công"}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Period Buttons */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setChartPeriod("7days")}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                    chartPeriod === "7days"
+                      ? "bg-white text-[#0d153a] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {isEn ? "7 Days" : "7 ngày qua"}
+                </button>
+                <button
+                  onClick={() => setChartPeriod("30days")}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                    chartPeriod === "30days"
+                      ? "bg-white text-[#0d153a] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {isEn ? "30 Days" : "30 ngày qua"}
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowRevenueChart(false)}
+                className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Chart Summary Row */}
+          <div className="grid grid-cols-3 gap-4 mb-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+            <div className="text-center sm:text-left">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Total Period" : "Tổng doanh thu kỳ"}</span>
+              <span className="text-lg font-black text-[#0d153a] mt-1 block">
+                {chartData.reduce((sum, item) => sum + item.amount, 0).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+            <div className="text-center sm:text-left border-l border-slate-200 pl-4">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Daily Average" : "Doanh thu trung bình"}</span>
+              <span className="text-lg font-black text-[#3b5c37] mt-1 block">
+                {Math.round(chartData.reduce((sum, item) => sum + item.amount, 0) / chartData.length).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+            <div className="text-center sm:text-left border-l border-slate-200 pl-4">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Peak Day" : "Ngày cao điểm nhất"}</span>
+              <span className="text-lg font-black text-emerald-600 mt-1 block">
+                {Math.max(...chartData.map(d => d.amount)).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+          </div>
+
+          {/* SVG Area Chart */}
+          <div className="relative w-full overflow-hidden">
+            <svg viewBox="0 0 600 240" className="w-full h-auto overflow-visible">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b5c37" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#3b5c37" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid Lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                const y = 40 + ratio * 160;
+                const valueLabel = maxAmount - ratio * maxAmount;
+                return (
+                  <g key={i} className="opacity-45">
+                    <line x1="50" y1={y} x2="570" y2={y} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 4" />
+                    <text x="40" y={y + 4} textAnchor="end" className="text-[9px] fill-slate-400 font-extrabold font-mono">
+                      {valueLabel >= 1000000 
+                        ? `${(valueLabel / 1000000).toFixed(1)}M` 
+                        : valueLabel >= 1000 
+                          ? `${Math.round(valueLabel / 1000)}k` 
+                          : valueLabel}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Area Path */}
+              {fillD && <path d={fillD} fill="url(#chartGradient)" />}
+
+              {/* Line Path */}
+              {pathD && (
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke="#3b5c37"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Data points */}
+              {points.map((pt, idx) => (
+                <g key={idx}>
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={hoveredPoint?.x === pt.x ? "6" : "4"}
+                    fill={hoveredPoint?.x === pt.x ? "#ffffff" : "#3b5c37"}
+                    stroke="#3b5c37"
+                    strokeWidth="2.5"
+                    className="transition-all duration-150"
+                  />
+                  {/* Hover Target Circle */}
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r="16"
+                    fill="transparent"
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredPoint({
+                      x: pt.x,
+                      y: pt.y,
+                      amount: pt.data.amount,
+                      dateLabel: pt.data.dateLabel,
+                      fullDate: pt.data.fullDate
+                    })}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  />
+                </g>
+              ))}
+
+              {/* X Axis Labels */}
+              {chartData.map((d, index) => {
+                const showLabel = chartPeriod === "7days" || index % 4 === 0 || index === chartData.length - 1;
+                if (!showLabel) return null;
+                const x = 50 + (index * 520) / (chartData.length - 1);
+                return (
+                  <text key={index} x={x} y="220" textAnchor="middle" className="text-[9px] fill-slate-400 font-extrabold font-mono">
+                    {d.dateLabel}
+                  </text>
+                );
+              })}
+            </svg>
+
+            {/* Custom Tooltip */}
+            {hoveredPoint && (
+              <div
+                className="absolute bg-slate-900/95 backdrop-blur-sm text-white text-[10px] p-2.5 rounded-xl shadow-lg border border-slate-800 pointer-events-none transition-all duration-150 z-10 font-bold"
+                style={{
+                  left: `${(hoveredPoint.x / 600) * 100}%`,
+                  top: `${(hoveredPoint.y / 240) * 100 - 15}%`,
+                  transform: 'translate(-50%, -100%)'
+                }}
+              >
+                <div className="text-slate-400 font-semibold">{hoveredPoint.fullDate}</div>
+                <div className="text-emerald-400 text-xs font-black mt-1">
+                  {hoveredPoint.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 gap-1 bg-white p-1.5 rounded-2xl border max-w-md">
-        <button
-          onClick={() => {
-            setActiveTab("sepay");
-            setSearchQuery("");
-            setStatusFilter("ALL");
-          }}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all ${
-            activeTab === "sepay"
-              ? "bg-[#0d153a] text-white shadow-sm"
-              : "text-slate-500 hover:text-[#0d153a] hover:bg-slate-50"
-          }`}
-        >
-          <Coins className="w-4 h-4" />
-          <span>{t.tabSepay}</span>
-        </button>
+      <div className="flex border-b border-slate-200 gap-1 bg-white p-1.5 rounded-2xl border max-w-xs">
         <button
           onClick={() => {
             setActiveTab("invoices");
@@ -875,101 +1092,7 @@ export default function PaymentManagementPage() {
           </div>
         </div>
 
-        {/* Tab Content: Sepay Transactions */}
-        {activeTab === "sepay" && (
-          <div className="overflow-x-auto">
-            {getFilteredTransactions().length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
-                <AlertCircle className="w-10 h-10 text-slate-300" />
-                <p className="text-xs font-bold">{t.noTransactionsFound}</p>
-              </div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-100">
-                    <th className="px-6 py-4">{t.colSystemTxId}</th>
-                    <th className="px-6 py-4">{t.colTxDate}</th>
-                    <th className="px-6 py-4">{t.colAmount}</th>
-                    <th className="px-6 py-4">{t.colTransferContent}</th>
-                    <th className="px-6 py-4">{t.colSenderBank}</th>
-                    <th className="px-6 py-4 text-center">{t.colStatus}</th>
-                    <th className="px-6 py-4 text-right">{t.colMatchAction}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700 text-xs font-medium">
-                  {getFilteredTransactions().map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-slate-500 whitespace-nowrap">
-                        {tx.id}
-                      </td>
-                      <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                          <span>
-                            {new Date(tx.transactionDate).toLocaleString(isEn ? "en-US" : "vi-VN", {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-extrabold text-[#0d153a] whitespace-nowrap">
-                        {tx.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"}
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-slate-600 max-w-xs truncate" title={tx.transferContent}>
-                        {tx.transferContent}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="font-bold text-slate-700">{tx.senderAccount}</div>
-                          <div className="text-[10px] text-slate-400 font-bold uppercase">{tx.senderBank} - {tx.bankTransactionId}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        {tx.status === "MATCHED" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 border border-emerald-200 text-emerald-700">
-                            <Check className="w-3 h-3" />
-                            <span>{isEn ? "Matched" : "Đã khớp"}</span>
-                          </span>
-                        )}
-                        {tx.status === "UNMATCHED" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 border border-rose-200 text-rose-700">
-                            <AlertCircle className="w-3 h-3 animate-pulse" />
-                            <span>{isEn ? "Unmatched" : "Chưa khớp"}</span>
-                          </span>
-                        )}
-                        {tx.status === "PENDING" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 border border-amber-200 text-amber-700">
-                            <span>{isEn ? "Pending" : "Chờ xử lý"}</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {tx.status === "MATCHED" ? (
-                          <span className="text-[11px] text-emerald-600 font-bold block">
-                            {isEn ? "Invoice:" : "Hóa đơn:"} {tx.matchedInvoiceId}
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => openMatchModal(tx)}
-                            disabled={actionLoading}
-                            className="bg-[#0d153a] hover:bg-slate-800 border border-[#0d153a]/25 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center gap-1.5 ml-auto cursor-pointer"
-                          >
-                            <Sparkles className="w-3 h-3" />
-                            <span>{t.btnManualMatch}</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+
 
         {/* Tab Content: Invoices */}
         {activeTab === "invoices" && (
@@ -1557,7 +1680,7 @@ export default function PaymentManagementPage() {
                   <div>{isEn ? "Transfer Amount:" : "Số tiền chuyển:"}</div>
                   <div className="font-extrabold text-[#0d153a]">{selectedTx.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"}</div>
                   <div>{isEn ? "Transfer Content:" : "Nội dung CK:"}</div>
-                  <div className="italic text-slate-800 font-bold">"{selectedTx.transferContent}"</div>
+                  <div className="italic text-slate-800 font-bold">&quot;{selectedTx.transferContent}&quot;</div>
                   <div>{isEn ? "Sender Account:" : "Người gửi:"}</div>
                   <div className="text-slate-700">{selectedTx.senderAccount} ({selectedTx.senderBank})</div>
                 </div>

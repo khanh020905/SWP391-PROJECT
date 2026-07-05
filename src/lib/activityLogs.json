@@ -268,5 +268,35 @@
     "targetName": "Admin QualiCode",
     "targetEmail": "admin@qualicode.com",
     "details": "Hóa đơn INV-JNAJLW đã được tự động thanh toán qua cổng Sepay API (Giao dịch: sepay_e003b4bf-77b4-11f1-b21a-a6006ab65aca)"
+  },
+  {
+    "id": "log_jkaqfty",
+    "timestamp": "2026-07-05T16:02:50.349Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Khiết Đan Nguyễn",
+    "targetEmail": "nguyentrankhietdan@gmail.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-V0VZXK"
+  },
+  {
+    "id": "log_tyz4pmf",
+    "timestamp": "2026-07-05T16:02:50.352Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Khiết Đan Nguyễn",
+    "targetEmail": "nguyentrankhietdan@gmail.com",
+    "details": "Hóa đơn INV-V0VZXK đã được tự động thanh toán qua cổng Sepay API (Giao dịch: sepay_f6824722-788a-11f1-b21a-a6006ab65aca)"
+  },
+  {
+    "id": "log_rkmmj7r",
+    "timestamp": "2026-07-05T16:09:27.706Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Admin QualiCode",
+    "targetEmail": "admin@qualicode.com",
+    "details": "Cập nhật trạng thái hóa đơn INV-1L8LCC: PENDING -> CANCELLED"
   }
 ]

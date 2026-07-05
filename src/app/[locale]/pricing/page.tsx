@@ -37,7 +37,16 @@ interface UserSession {
   email: string;
   name: string;
   role: string;
+  packageId?: string | null;
 }
+
+const getPackageLevel = (id: string | null | undefined): number => {
+  if (!id) return 0;
+  if (id === "pkg_1") return 1;
+  if (id === "pkg_2") return 2;
+  if (id === "pkg_3") return 3;
+  return 0;
+};
 
 export default function PricingPage() {
   const router = useRouter();
@@ -123,7 +132,8 @@ export default function PricingPage() {
           id: session.user.id,
           email: session.user.email || "",
           name: session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Student",
-          role: session.user.user_metadata?.role || "GUEST"
+          role: session.user.user_metadata?.role || "GUEST",
+          packageId: session.user.user_metadata?.packageId || null
         });
       }
     }
@@ -198,7 +208,6 @@ export default function PricingPage() {
   useEffect(() => {
     if (!statusPolling || !invoice) return;
 
-    let timer: NodeJS.Timeout;
     async function checkStatus() {
       try {
         const res = await fetch(`/api/student/payments/status?invoiceId=${invoice.id}`);
@@ -212,7 +221,7 @@ export default function PricingPage() {
             // Force refresh session state role to STUDENT
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-              setSessionUser(prev => prev ? { ...prev, role: "STUDENT" } : null);
+              setSessionUser(prev => prev ? { ...prev, role: "STUDENT", packageId: selectedPackage?.id } : null);
             }
 
             // Redirect to homepage after 3 seconds
@@ -226,12 +235,12 @@ export default function PricingPage() {
       }
     }
 
-    timer = setInterval(checkStatus, 4000);
+    const timer = setInterval(checkStatus, 4000);
 
     return () => {
       clearInterval(timer);
     };
-  }, [statusPolling, invoice, isEn]);
+  }, [statusPolling, invoice, isEn, locale, router, selectedPackage?.id]);
 
   // Handle Simulated payment for demo and test presentation
   const handleSimulatePayment = async () => {
@@ -305,28 +314,6 @@ export default function PricingPage() {
             {text.subTitle}
           </p>
 
-          {/* Billing Cycle Switch */}
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <span className={`text-xs font-bold transition-all ${billingCycle === "monthly" ? "text-[#1b3d1e]" : "text-slate-400"}`}>
-              {text.cycleMonthly}
-            </span>
-            <button
-              onClick={() => setBillingCycle(prev => prev === "monthly" ? "yearly" : "monthly")}
-              className="w-12 h-6.5 rounded-full bg-[#ebefe0] border border-[#c7d1b8] relative flex items-center px-1 transition-colors duration-300"
-            >
-              <div className={`w-5 h-5 rounded-full bg-[#3B5C37] shadow-sm transform transition-transform duration-300 ${
-                billingCycle === "yearly" ? "translate-x-5.5" : "translate-x-0"
-              }`} />
-            </button>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-xs font-bold transition-all ${billingCycle === "yearly" ? "text-[#1b3d1e]" : "text-slate-400"}`}>
-                {text.cycleYearly}
-              </span>
-              <span className="bg-amber-100 text-amber-800 text-[9px] font-black tracking-wide uppercase px-2 py-0.5 rounded-full border border-amber-200">
-                {text.saveBadge}
-              </span>
-            </div>
-          </div>
         </section>
 
         {/* Pricing Cards Grid */}
@@ -353,11 +340,11 @@ export default function PricingPage() {
           ) : (
             packages.map((pkg, idx) => {
               // Calculate dynamic price based on monthly/yearly cycle
-              const factor = billingCycle === "yearly" ? 12 * 0.8 : pkg.durationMonths;
-              const displayPrice = Math.round(pkg.price * (factor / pkg.durationMonths));
-              const displayPriceMonthly = Math.round(displayPrice / (billingCycle === "yearly" ? 12 : pkg.durationMonths));
+              const displayPriceMonthly = Math.round(pkg.price / pkg.durationMonths);
 
               const isPopular = idx === 1; // Middle package is popular
+              const userLevel = sessionUser ? (sessionUser.role === "ADMIN" ? 3 : getPackageLevel(sessionUser.packageId)) : 0;
+              const pkgLevel = getPackageLevel(pkg.id);
               
               return (
                 <div
@@ -384,19 +371,20 @@ export default function PricingPage() {
                     </div>
 
                     {/* Price display */}
-                    <div className="mb-8 pb-6 border-b border-slate-100 flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-[#0f1738] tracking-tight">
-                        {displayPriceMonthly.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
-                      </span>
-                      <span className="text-xs font-bold text-slate-400">
-                        {isEn ? "VND" : "đ"}/{isEn ? "mo" : "tháng"}
-                      </span>
-                      {billingCycle === "yearly" && (
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md ml-2">
-                          -{pkg.durationMonths * 10}%
+                    <div className="mb-4 flex flex-col gap-1">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-black text-[#0f1738] tracking-tight">
+                          {displayPriceMonthly.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
                         </span>
-                      )}
+                        <span className="text-xs font-bold text-slate-400">
+                          {isEn ? "VND" : "đ"}/{isEn ? "mo" : "tháng"}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-bold text-slate-400 tracking-wide mt-1">
+                        {isEn ? `Billed once: ${pkg.price.toLocaleString("en-US")} VND` : `Thanh toán một lần: ${pkg.price.toLocaleString("vi-VN")} đ`}
+                      </div>
                     </div>
+                    <div className="h-[1px] bg-slate-100 w-full mb-6" /> {/* Border separator */}
 
                     {/* Features list */}
                     <ul className="space-y-4 mb-8 flex-1">
@@ -411,14 +399,14 @@ export default function PricingPage() {
 
                   {/* Actions */}
                   <div>
-                    {sessionUser && sessionUser.role === "STUDENT" ? (
+                    {sessionUser && userLevel >= pkgLevel ? (
                       <div className="w-full flex items-center justify-center p-3 text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                        ✓ {text.btnFree}
+                        ✓ {pkg.id === sessionUser.packageId || (sessionUser.role === "ADMIN" && pkg.id === "pkg_3") ? text.btnFree : (isEn ? "Owned" : "Đã sở hữu")}
                       </div>
                     ) : (
                       <button
                         onClick={() => handleCheckout(pkg)}
-                        disabled={creatingInvoice}
+                        disabled={creatingInvoice || (sessionUser?.role === "ADMIN" && pkg.id !== "pkg_3")}
                         className={`w-full flex items-center justify-center gap-1.5 py-4 rounded-2xl text-xs font-black transition-all cursor-pointer border-none outline-none hover:scale-[1.02] active:scale-98 shadow-sm ${
                           isPopular 
                             ? "bg-[#3B5C37] text-white hover:bg-[#2c4728] shadow-[#3B5C37]/15" 

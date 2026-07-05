@@ -142,7 +142,9 @@ export async function GET(request: NextRequest) {
                      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
                        user_metadata: {
                          ...currentMetadata,
-                         role: "STUDENT"
+                         role: "STUDENT",
+                         packageId: invoice.packageId,
+                         packageName: invoice.packageName
                        }
                      });
 

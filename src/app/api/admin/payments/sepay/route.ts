@@ -159,7 +159,9 @@ export async function POST(request: NextRequest) {
                 const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
                   user_metadata: {
                     ...currentMetadata,
-                    role: "STUDENT"
+                    role: "STUDENT",
+                    packageId: invoice.packageId,
+                    packageName: invoice.packageName
                   }
                 });
 
@@ -307,7 +309,9 @@ export async function PATCH(request: NextRequest) {
           const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
             user_metadata: {
               ...currentMetadata,
-              role: "STUDENT"
+              role: "STUDENT",
+              packageId: invoice.packageId,
+              packageName: invoice.packageName
             }
           });
 
