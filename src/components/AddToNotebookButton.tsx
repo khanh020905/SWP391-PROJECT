@@ -35,6 +35,8 @@ export default function AddToNotebookButton({ word, definition, example, pos, so
         .then(d => {
           if (d.data) setFolders(d.data);
         });
+      }).catch((err) => {
+        console.warn("Failed to retrieve Supabase session for AddToNotebookButton:", err);
       });
     }
   }, [variant, openDropdown]);

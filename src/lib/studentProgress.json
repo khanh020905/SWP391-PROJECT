@@ -4,43 +4,80 @@
       "userId": "usr_2",
       "currentStreak": 5,
       "longestStreak": 12,
-      "lastStudyDate": "2026-06-16",
-      "lastStudyTimestamp": "2026-06-16T09:20:02.282Z",
+      "lastStudyDate": "2026-06-24",
+      "lastStudyTimestamp": "2026-06-24T14:20:01.948Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 35,
-      "lastGoalMetDate": "2026-06-16",
+      "lastGoalMetDate": "2026-06-24",
       "history": {
-        "2026-06-16": 35
+        "2026-06-24": 35
       }
     },
     "usr_4": {
       "userId": "usr_4",
       "currentStreak": 0,
       "longestStreak": 4,
-      "lastStudyDate": "2026-06-14",
-      "lastStudyTimestamp": "2026-06-14T09:20:02.282Z",
+      "lastStudyDate": "2026-06-22",
+      "lastStudyTimestamp": "2026-06-22T14:20:01.948Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {
-        "2026-06-14": 0
+        "2026-06-22": 0
       }
     },
     "usr_5": {
       "userId": "usr_5",
       "currentStreak": 3,
       "longestStreak": 3,
-      "lastStudyDate": "2026-06-17",
-      "lastStudyTimestamp": "2026-06-17T09:20:02.282Z",
+      "lastStudyDate": "2026-06-25",
+      "lastStudyTimestamp": "2026-06-25T14:20:01.948Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 45,
-      "lastGoalMetDate": "2026-06-17",
+      "lastGoalMetDate": "2026-06-25",
       "history": {
-        "2026-06-17": 45
+        "2026-06-25": 45
       }
     },
     "21f122e7-06c7-4df1-af22-4f2adca21c95": {
       "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": "2026-06-25",
+      "lastStudyTimestamp": "2026-06-25T14:20:01.948Z",
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 10,
+      "lastGoalMetDate": null,
+      "history": {
+        "2026-06-25": 10
+      }
+    },
+    "f9080ad5-09e8-4801-a0c6-d675219cbe57": {
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "currentStreak": 1,
+      "longestStreak": 1,
+      "lastStudyDate": "2026-06-30",
+      "lastStudyTimestamp": "2026-06-30T06:04:46.554Z",
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 60,
+      "lastGoalMetDate": "2026-06-30",
+      "history": {
+        "2026-06-30": 60
+      }
+    },
+    "d2fd367f-1835-46e0-ab1c-358989f40d48": {
+      "userId": "d2fd367f-1835-46e0-ab1c-358989f40d48",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": null,
+      "lastStudyTimestamp": null,
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 0,
+      "lastGoalMetDate": null,
+      "history": {}
+    },
+    "3d7e4ea7-378f-4c2b-b42e-2d321c22e64c": {
+      "userId": "3d7e4ea7-378f-4c2b-b42e-2d321c22e64c",
       "currentStreak": 0,
       "longestStreak": 0,
       "lastStudyDate": null,
@@ -55,16 +92,65 @@
     {
       "id": "log_init_1",
       "userId": "usr_2",
-      "date": "2026-06-16",
-      "timestamp": "2026-06-16T09:20:02.282Z",
+      "date": "2026-06-24",
+      "timestamp": "2026-06-24T14:20:01.948Z",
       "activity": "Luyện đề Speaking - Study & Hometown (Part 1)"
     },
     {
       "id": "log_init_2",
       "userId": "usr_5",
-      "date": "2026-06-17",
-      "timestamp": "2026-06-17T09:20:02.282Z",
+      "date": "2026-06-25",
+      "timestamp": "2026-06-25T14:20:01.948Z",
       "activity": "Luyện tập IELTS Speaking Room"
+    },
+    {
+      "id": "log_7mm0gvj",
+      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
+      "date": "2026-06-25",
+      "timestamp": "2026-06-25T14:20:01.948Z",
+      "activity": "Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: Cambridge 19 Speaking Test 3 (Đạt điểm AI: 6.0)"
+    },
+    {
+      "id": "log_cs8bbfo",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T05:57:33.889Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
+    },
+    {
+      "id": "log_zhumrps",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T05:57:33.898Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
+    },
+    {
+      "id": "log_pv5fawq",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T06:03:07.665Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
+    },
+    {
+      "id": "log_23tb2ns",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T06:03:07.881Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
+    },
+    {
+      "id": "log_fqkz5op",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T06:04:46.423Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
+    },
+    {
+      "id": "log_bxv8zqa",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "date": "2026-06-30",
+      "timestamp": "2026-06-30T06:04:46.554Z",
+      "activity": "Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: 0/40 câu đúng (Band: 2)"
     }
   ],
   "notifications": [
@@ -75,7 +161,7 @@
       "content": "Chúc mừng bạn đã đạt chuỗi 5 ngày học liên tiếp. Hãy tiếp tục luyện tập hôm nay để nâng band điểm IELTS nhé!",
       "type": "STUDY_REMINDER",
       "status": "UNREAD",
-      "createdAt": "2026-06-17T07:20:02.282Z"
+      "createdAt": "2026-06-25T12:20:01.948Z"
     },
     {
       "id": "notify_init_2",
@@ -84,10 +170,138 @@
       "content": "Đã 3 ngày bạn chưa luyện tập IELTS. Hãy làm ngay một bài nói Speaking ngắn hôm nay để kích hoạt lại streak nhé!",
       "type": "STREAK_WARNING",
       "status": "UNREAD",
-      "createdAt": "2026-06-17T03:20:02.282Z"
+      "createdAt": "2026-06-25T08:20:01.948Z"
     }
   ],
-  "vocabularies": [],
-  "collections": [],
+  "vocabularies": [
+    {
+      "id": "vocab_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "proponents",
+      "partOfSpeech": "noun",
+      "definition": "A person who speaks publicly in support of a particular idea or plan of action.",
+      "translation": "Người ủng hộ, người đề xuất (Người ủng hộ)",
+      "exampleSentence": "He is one of the leading proponents of urban agriculture and green buildings.",
+      "ipa": "/prəˈpəʊ.nənt/",
+      "isFavorite": true,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "Collocation quan trọng: leading proponents of...",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_2_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "emissions",
+      "partOfSpeech": "noun",
+      "definition": "An amount of gas, heat, light, etc. that is sent out.",
+      "translation": "Sự phát thải, lượng khí thải (Sự phát thải)",
+      "exampleSentence": "Many countries are trying to reduce their greenhouse gas emissions to combat climate change.",
+      "ipa": "/iˈmɪʃ.ən/",
+      "isFavorite": false,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "greenhouse gas emissions",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_3_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "yield",
+      "partOfSpeech": "noun",
+      "definition": "An amount of something positive, such as food or profit, that is produced or generated.",
+      "translation": "Sản lượng, năng suất, lợi nhuận (Sản lượng)",
+      "exampleSentence": "Modern hydroponic farms can produce up to ten times the yield of traditional soil agriculture.",
+      "ipa": "/jiːld/",
+      "isFavorite": true,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "crop yield / high yield",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_4_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "vital",
+      "partOfSpeech": "adjective",
+      "definition": "Necessary for the success or continued existence of something; extremely important.",
+      "translation": "Sống còn, cực kỳ quan trọng, thiết yếu (Cực kỳ quan trọng)",
+      "exampleSentence": "Good nutrition and regular exercise are vital for maintaining a healthy life.",
+      "ipa": "/ˈvaɪ.təl/",
+      "isFavorite": false,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "vital for / vital role",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_5_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "accommodate",
+      "partOfSpeech": "verb",
+      "definition": "To provide with a place to live or to be stored; to have space for.",
+      "translation": "Chứa được, cung cấp chỗ ở, đáp ứng (Chứa được)",
+      "exampleSentence": "The new conference room can easily accommodate up to eighty attendees.",
+      "ipa": "/əˈcɒm.ə.deɪt/",
+      "isFavorite": false,
+      "collectionId": "col_2_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "accommodate guests / attendees",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_6_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "state-of-the-art",
+      "partOfSpeech": "adjective",
+      "definition": "Very modern and using the most recent ideas and methods.",
+      "translation": "Tối tân, hiện đại nhất, tiên tiến nhất (Tối tân)",
+      "exampleSentence": "The Richmond Suite is equipped with a state-of-the-art sound system and projector.",
+      "ipa": "/ˌsteɪt.əv.ði.ˈɑːt/",
+      "isFavorite": true,
+      "collectionId": "col_2_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "Từ rất tốt để ghi điểm cao cho Speaking Part 2",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_7_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "sustainable",
+      "partOfSpeech": "adjective",
+      "definition": "Able to continue over a period of time; causing little or no damage to the environment.",
+      "translation": "Bền vững, có tính bền vững (Bền vững)",
+      "exampleSentence": "Urban farming helps create a more sustainable urban ecosystem.",
+      "ipa": "/səˈsteɪ.nə.bəl/",
+      "isFavorite": false,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "sustainable development / ecosystem",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "vocab_8_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "word": "resilient",
+      "partOfSpeech": "adjective",
+      "definition": "Able to be happy, successful, etc. again after something difficult or bad has happened, or returning to original shape.",
+      "translation": "Kiên cường, bền bỉ, có khả năng phục hồi nhanh (Kiên cường)",
+      "exampleSentence": "Urban agriculture offers a resilient buffer against food supply chain disruptions.",
+      "ipa": "/rɪˈzɪl.i.ənt/",
+      "isFavorite": true,
+      "collectionId": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "notes": "resilient buffer / economy",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    }
+  ],
+  "collections": [
+    {
+      "id": "col_1_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "name": "Urban Farming Vocab",
+      "description": "Từ vựng quan trọng rút ra từ bài đọc về Nông nghiệp đô thị",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    },
+    {
+      "id": "col_2_f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "name": "Speaking Boosters",
+      "description": "Từ vựng nâng band điểm trong phòng nói Speaking",
+      "createdAt": "2026-06-29T05:55:27.163Z"
+    }
+  ],
   "roadmaps": {}
 }

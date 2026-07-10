@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 export async function fetchWritingTasks() {
   const { data, error } = await supabase
     .from("writing_tasks")
-    .select("id, youpass_id, title, task_type, thumbnail_url, band_level, tags, is_visible, description")
+    .select("id, youpass_id, title, task_type, thumbnail_url, cloudinary_url, band_level, tags, is_visible, description")
     .eq("is_visible", true)
     .order("created_at", { ascending: false });
 

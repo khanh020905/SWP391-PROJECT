@@ -105,13 +105,31 @@ function ListeningTestListContent() {
     isLoading
   } = useListeningTest();
 
+  const [dbExams, setDbExams] = useState<any[]>([]);
+  const [loadingExams, setLoadingExams] = useState(true);
   const [historyScores, setHistoryScores] = useState<Record<string, { score: number; date: string }>>({});
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [historyList, setHistoryList] = useState<any[]>([]);
 
-  // Fetch test list
+  // Fetch test list & database exams list
   useEffect(() => {
     loadTestList();
+
+    supabase
+      .from("exams")
+      .select("id, title, cambridge_no, test_no, status, category")
+      .eq("category", "listening")
+      .eq("status", "published")
+      .order("cambridge_no", { ascending: false })
+      .order("test_no", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching listening exams:", error);
+        } else {
+          setDbExams(data || []);
+        }
+        setLoadingExams(false);
+      });
   }, []);
 
   // Fetch previous test results
@@ -164,7 +182,7 @@ function ListeningTestListContent() {
     fetchHistory();
   }, [testList]);
 
-  if (isLoading) {
+  if (isLoading || loadingExams) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -178,29 +196,73 @@ function ListeningTestListContent() {
   // Active database test (usually "IELTS Listening Practice Test" or similar)
   const activeDbTest = testList[0];
 
-  // Cambridge volumes definition to display in the UI
-  const volumes = [
+  // Group dbExams by cambridge_no
+  const groupedExams: Record<number, any[]> = {};
+  dbExams.forEach((exam) => {
+    const camNo = exam.cambridge_no || 0;
+    if (!groupedExams[camNo]) {
+      groupedExams[camNo] = [];
+    }
+    groupedExams[camNo].push(exam);
+  });
+
+  // Sort Cambridge numbers descending
+  const sortedCamNos = Object.keys(groupedExams)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  const dynamicVolumes = sortedCamNos.map((camNo) => {
+    const testsForCam = groupedExams[camNo].sort((a, b) => (a.test_no || 0) - (b.test_no || 0));
+    return {
+      title: `CAMBRIDGE IELTS ${camNo}`,
+      badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
+      tests: testsForCam.map((exam) => {
+        const hasHistory = historyScores[exam.id];
+        return {
+          id: exam.id,
+          testNum: exam.test_no || 1,
+          statsListens: "12,450",
+          statsPct: "80%",
+          isActive: true,
+          historyScore: hasHistory ? hasHistory.score : null,
+          historyDate: hasHistory ? hasHistory.date : null
+        };
+      })
+    };
+  });
+
+  const fallbackVolumes = [
     {
       title: "CAMBRIDGE IELTS 9",
       badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
       tests: [
-        { testNum: 1, statsListens: "44,123", statsPct: "80%", isActive: true },
-        { testNum: 2, statsListens: "44,246", statsPct: "80%", isActive: false },
-        { testNum: 3, statsListens: "44,369", statsPct: "80%", isActive: false },
-        { testNum: 4, statsListens: "44,492", statsPct: "80%", isActive: false }
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 1, statsListens: "44,123", statsPct: "80%", isActive: true },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 2, statsListens: "44,246", statsPct: "80%", isActive: false },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 3, statsListens: "44,369", statsPct: "80%", isActive: false },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 4, statsListens: "44,492", statsPct: "80%", isActive: false }
       ]
     },
     {
       title: "CAMBRIDGE IELTS 10",
       badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
       tests: [
-        { testNum: 1, statsListens: "38,512", statsPct: "78%", isActive: false },
-        { testNum: 2, statsListens: "39,120", statsPct: "81%", isActive: false },
-        { testNum: 3, statsListens: "37,945", statsPct: "79%", isActive: false },
-        { testNum: 4, statsListens: "38,220", statsPct: "80%", isActive: false }
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 1, statsListens: "38,512", statsPct: "78%", isActive: false },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 2, statsListens: "39,120", statsPct: "81%", isActive: false },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 3, statsListens: "37,945", statsPct: "79%", isActive: false },
+        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 4, statsListens: "38,220", statsPct: "80%", isActive: false }
       ]
     }
   ];
+
+  // Filter out fallbacks that are already in dynamic volumes to prevent duplicates
+  const existingCamNos = new Set(sortedCamNos);
+  const filteredFallbackVolumes = fallbackVolumes.filter((fb) => {
+    const match = fb.title.match(/CAMBRIDGE IELTS (\d+)/i);
+    const camNo = match ? parseInt(match[1]) : 0;
+    return !existingCamNos.has(camNo);
+  });
+
+  const allVolumes = [...dynamicVolumes, ...filteredFallbackVolumes];
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#0f1738] font-sans pb-20">
@@ -276,7 +338,7 @@ function ListeningTestListContent() {
 
         {/* Cambridge Volumes */}
         <div className="space-y-12">
-          {volumes.map((volume) => (
+          {allVolumes.map((volume) => (
             <section key={volume.title} className="space-y-6">
               {/* Header Title & Badge */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 border-b border-slate-100 pb-3">
@@ -295,9 +357,10 @@ function ListeningTestListContent() {
                 {volume.tests.map((test, index) => {
                   const config = cardConfigs[index % cardConfigs.length];
                   
-                  // If it's active or we want all of them to route to the database test
                   const handleNavigate = () => {
-                    if (activeDbTest) {
+                    if (test.id) {
+                      router.push(`/${locale}/listening/${test.id}`);
+                    } else if (activeDbTest) {
                       router.push(`/${locale}/listening/${activeDbTest.id}`);
                     } else {
                       alert("Không tìm thấy dữ liệu đề thi trên hệ thống.");
@@ -325,9 +388,9 @@ function ListeningTestListContent() {
                         <h3 className="text-4xl font-black text-white tracking-wide drop-shadow-sm uppercase">
                           TEST {test.testNum}
                         </h3>
-                        {test.isActive && activeDbTest && historyScores[activeDbTest.id] && (
+                        {test.historyScore && (
                           <div className="self-start bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-white border border-white/10">
-                            Kết quả gần nhất: <span className="text-yellow-300 font-black">{historyScores[activeDbTest.id].score} Band</span> ({historyScores[activeDbTest.id].date})
+                            Kết quả gần nhất: <span className="text-yellow-300 font-black">{test.historyScore} Band</span> ({test.historyDate})
                           </div>
                         )}
                       </div>

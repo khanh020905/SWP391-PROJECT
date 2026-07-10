@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles, ClipboardCheck, BookOpen } from "lucide-react";
+import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles, ClipboardCheck, BookOpen, Layers, GraduationCap } from "lucide-react";
 
 export default function UserAreaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -140,16 +140,16 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   const menuItems = [
     { label: "Hồ sơ cá nhân", href: "/profile", icon: User },
     { label: "Chỉnh sửa hồ sơ", href: "/profile?edit=true", icon: User },
-    { label: "Sổ từ vựng", href: "/profile", icon: BookOpen },
+    { label: "Từ vựng & Ngữ pháp", href: "/vocab-grammar", icon: Layers },
+    { label: "Từ điển IELTS", href: "/vocabulary", icon: BookOpen },
+    { label: "Ngữ pháp IELTS", href: "/grammar", icon: GraduationCap },
     { label: "Kiểm tra năng lực", href: "/orientation", icon: ClipboardCheck },
     { label: "Lộ trình học AI", href: "/roadmap", icon: Sparkles },
-    { label: "Đổi ảnh đại diện", href: "/settings/avatar", icon: Camera },
-    { label: "Đổi mật khẩu", href: "/settings/password", icon: Key },
   ];
 
   const initialsFallback = (user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase();
 
-  const isFlashcardAppPage = pathname.includes("/profile");
+  const isFlashcardAppPage = pathname.includes("/profile") || pathname.includes("/roadmap") || pathname.includes("/learning/daily") || pathname.includes("/vocabulary") || pathname.includes("/vocab-grammar") || pathname.includes("/grammar");
 
   if (isFlashcardAppPage) {
     return (
@@ -167,8 +167,8 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
       <header className="bg-white border-b border-slate-200/80 px-6 py-4 sticky top-0 z-30 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0d153a] no-underline">
-              <span className="text-[#3B5C37]">*</span>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-black text-[#0d153a] no-underline focus:outline-none outline-none">
+              <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-10 w-auto object-contain" />
               <span>QualiIelts</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-[#5e6792]">

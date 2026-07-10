@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
 import {
   BookOpen,
   Clock,
@@ -18,11 +19,55 @@ import { READING_TEST_META } from "@/lib/readingMockData"; // fallback/meta titl
 import type { UserRole } from "@/types/reading";
 import Navbar from "@/components/Navbar";
 
+// Helper function to map Cambridge number to book cover
+function getBookCover(cambridgeNo: number | null | undefined): string {
+  if (!cambridgeNo) return "/assets/cambridge/cam-12.jpeg";
+  if (cambridgeNo === 20) return "/assets/cambridge/cam-20.jpeg";
+  if (cambridgeNo === 18) return "/assets/cambridge/cam-12.jpeg";
+  if (cambridgeNo === 17) return "/assets/cambridge/cam-13.jpeg";
+  if (cambridgeNo === 16) return "/assets/cambridge/cam-11.jpeg";
+  if (cambridgeNo === 10) return "/assets/cambridge/cam-10.jpeg";
+  if (cambridgeNo === 9) return "/assets/cambridge/cam-9.jpeg";
+  return "/assets/cambridge/cam-12.jpeg";
+}
+
+// Helper to determine the badge topic/color based on passage title
+function getPassageBadge(title: string, sectionNo: number) {
+  const t = title.toLowerCase();
+  if (t.includes("urban") || t.includes("farm") || t.includes("food") || t.includes("forest") || t.includes("environment") || t.includes("climate") || t.includes("nature") || t.includes("tree")) {
+    return { label: "ENVIRONMENT", color: "bg-emerald-50 border-emerald-100 text-emerald-600" };
+  }
+  if (t.includes("psychology") || t.includes("mind") || t.includes("brain") || t.includes("decision") || t.includes("behavio") || t.includes("stress") || t.includes("cognit")) {
+    return { label: "PSYCHOLOGY", color: "bg-purple-50 border-purple-100 text-purple-600" };
+  }
+  if (t.includes("ocean") || t.includes("sea") || t.includes("space") || t.includes("planet") || t.includes("earth") || t.includes("dinosaurs") || t.includes("mammal") || t.includes("animal") || t.includes("science")) {
+    return { label: "NATURAL SCIENCE", color: "bg-orange-50 border-orange-100 text-orange-600" };
+  }
+  if (t.includes("history") || t.includes("archaeo") || t.includes("ancient") || t.includes("century") || t.includes("development") || t.includes("railway") || t.includes("london")) {
+    return { label: "HISTORY", color: "bg-amber-50 border-amber-100 text-amber-600" };
+  }
+  if (t.includes("technology") || t.includes("robot") || t.includes("computer") || t.includes("ai") || t.includes("machine") || t.includes("engineer")) {
+    return { label: "TECHNOLOGY", color: "bg-blue-50 border-blue-100 text-blue-600" };
+  }
+  
+  if (sectionNo === 1) {
+    return { label: "GENERAL SCIENCE", color: "bg-emerald-50 border-emerald-100 text-emerald-600" };
+  }
+  if (sectionNo === 2) {
+    return { label: "SOCIOLOGY", color: "bg-purple-50 border-purple-100 text-purple-600" };
+  }
+  return { label: "ACADEMIC", color: "bg-orange-50 border-orange-100 text-orange-600" };
+}
+
 export default function ReadingLobbyPage() {
+  const params = useParams();
+  const locale = params?.locale || "vi";
   const [userRole, setUserRole] = useState<UserRole>("UNKNOWN");
   const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [passages, setPassages] = useState<any[]>([]);
+  const [exams, setExams] = useState<any[]>([]);
+  const [loadingExams, setLoadingExams] = useState(true);
   const [view, setView] = useState<"select" | "dashboard">("select");
   const [comingSoonTest, setComingSoonTest] = useState<string>("");
 
@@ -30,9 +75,39 @@ export default function ReadingLobbyPage() {
     fetchReadingPassages()
       .then((data) => {
         const valid = data ? data.filter((p: any) => p.questions && p.questions.length > 0) : [];
-        setPassages(valid);
+        const filtered = valid.filter((p: any) => p.youpass_id && p.youpass_id.startsWith("bc-passage-"));
+        filtered.sort((a: any, b: any) => a.youpass_id.localeCompare(b.youpass_id));
+        setPassages(filtered);
       })
       .catch((err) => console.error("Error loading passages:", err));
+
+    // Fetch published reading exams from supabase
+    supabase
+      .from("exams")
+      .select(`
+        id, title, cambridge_no, test_no, duration_minutes,
+        exam_sections(id, section_no, title),
+        questions(id)
+      `)
+      .eq("category", "reading")
+      .eq("status", "published")
+      .order("cambridge_no", { ascending: false })
+      .order("test_no", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching exams:", error);
+        } else {
+          // Sort sections inside each exam by section_no ascending
+          const sortedExams = (data || []).map((exam: any) => {
+            if (exam.exam_sections) {
+              exam.exam_sections.sort((a: any, b: any) => a.section_no - b.section_no);
+            }
+            return exam;
+          });
+          setExams(sortedExams);
+        }
+        setLoadingExams(false);
+      });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -46,6 +121,10 @@ export default function ReadingLobbyPage() {
       } else {
         setUserRole("GUEST");
       }
+      setLoading(false);
+    }).catch((err) => {
+      console.warn("Failed to get session in reading lobby:", err);
+      setUserRole("GUEST");
       setLoading(false);
     });
   }, []);
@@ -284,323 +363,104 @@ export default function ReadingLobbyPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Card 1: Cambridge 18 - Test 1 (PLAYABLE) */}
-          <div className="bg-white rounded-[32px] border border-gray-150 p-6 md:p-8 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300">
-            <div>
-              {/* Header section with book cover & metadata */}
-              <div className="flex gap-6 items-start relative">
-                {/* Cambridge tag pill */}
-                <div className="absolute top-0 right-0 bg-[#fefdf0] border border-[#f5e0aa] text-[#b07d0a] text-[10px] font-black uppercase px-3 py-1 rounded-full">
-                  CAM 18
-                </div>
-
-                <div className="relative w-[100px] h-[138px] sm:w-[120px] sm:h-[166px] shrink-0 rounded-2xl overflow-hidden shadow-md">
-                  <img 
-                    src="/assets/cambridge/cam-12.jpeg" 
-                    alt="Cambridge 18 Academic Reading" 
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2.5 pt-1">
-                  <h3 className="text-xl sm:text-2xl font-black text-[#0f1738] leading-tight">
-                    Cambridge 18 - Test 1
-                  </h3>
-                  
-                  <div className="inline-flex w-fit items-center gap-1 bg-amber-50 border border-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[11px] font-bold">
-                    <span className="text-xs">★</span> BAND 6.0-9.0
-                  </div>
-
-                  <div className="inline-flex w-fit items-center gap-1.5 bg-[#008060] text-white px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wide">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    Giao diện chuẩn thi thật 100%
-                  </div>
-                </div>
-              </div>
-
-              {/* Passages List */}
-              <div className="flex flex-col gap-3.5 my-8">
-                {/* Passage 1 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      1
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      Urban Farming: The Future of Food Production
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 shrink-0">
-                    ENVIRONMENT
-                  </span>
-                </div>
-
-                {/* Passage 2 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      2
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      The Psychology of Decision-Making
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 shrink-0">
-                    PSYCHOLOGY
-                  </span>
-                </div>
-
-                {/* Passage 3 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      3
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      The Deep Ocean: Earth's Final Frontier
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 shrink-0">
-                    NATURAL SCIENCE
-                  </span>
-                </div>
-              </div>
+          {loadingExams ? (
+            <div className="col-span-full flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-t-transparent border-[#3B5C37]"></div>
             </div>
-
-            {/* Actions */}
-            <div className="flex gap-4">
-              <Link
-                href="/reading/test"
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#008060] bg-white px-5 py-3.5 text-sm font-extrabold text-[#008060] hover:bg-[#edf7f4] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                LUYỆN TẬP
-              </Link>
-              <Link
-                href="/reading/test"
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#008060] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_6px_16px_rgba(0,128,96,0.15)] hover:bg-[#006b50] hover:shadow-[0_8px_20px_rgba(0,128,96,0.25)] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <Clock className="w-4 h-4 shrink-0" />
-                ĐI THI
-              </Link>
+          ) : exams.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-gray-500 font-medium bg-white rounded-3xl border border-gray-150 shadow-sm">
+              Không tìm thấy đề thi Reading nào.
             </div>
-          </div>
+          ) : (
+            exams.map((exam) => {
+              const coverImg = getBookCover(exam.cambridge_no);
+              const totalQ = exam.questions?.length || 40;
+              const sections = exam.exam_sections || [];
+              
+              return (
+                <div key={exam.id} className="bg-white rounded-[32px] border border-gray-150 p-6 md:p-8 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300">
+                  <div>
+                    {/* Header section with book cover & metadata */}
+                    <div className="flex gap-6 items-start relative">
+                      {/* Cambridge tag pill */}
+                      {exam.cambridge_no && (
+                        <div className="absolute top-0 right-0 bg-[#fefdf0] border border-[#f5e0aa] text-[#b07d0a] text-[10px] font-black uppercase px-3 py-1 rounded-full">
+                          CAM {exam.cambridge_no}
+                        </div>
+                      )}
 
-          {/* Card 2: Cambridge 20 - Test 1 (DEMO) */}
-          <div className="bg-white rounded-[32px] border border-gray-150 p-6 md:p-8 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300">
-            <div>
-              {/* Header section with book cover & metadata */}
-              <div className="flex gap-6 items-start relative">
-                {/* Cambridge tag pill */}
-                <div className="absolute top-0 right-0 bg-[#fefdf0] border border-[#f5e0aa] text-[#b07d0a] text-[10px] font-black uppercase px-3 py-1 rounded-full">
-                  CAM 20
-                </div>
+                      <div className="relative w-[100px] h-[138px] sm:w-[120px] sm:h-[166px] shrink-0 rounded-2xl overflow-hidden shadow-md">
+                        <img 
+                          src={coverImg} 
+                          alt={exam.title} 
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
 
-                <div className="relative w-[100px] h-[138px] sm:w-[120px] sm:h-[166px] shrink-0 rounded-2xl overflow-hidden shadow-md">
-                  <img 
-                    src="/assets/cambridge/cam-20.jpeg" 
-                    alt="Cambridge 20 Academic Reading" 
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+                      <div className="flex flex-col gap-2.5 pt-1">
+                        <h3 className="text-xl sm:text-2xl font-black text-[#0f1738] leading-tight">
+                          {exam.title}
+                        </h3>
+                        
+                        <div className="inline-flex w-fit items-center gap-1 bg-amber-50 border border-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[11px] font-bold">
+                          <span className="text-xs">★</span> BAND 6.0-9.0
+                        </div>
 
-                <div className="flex flex-col gap-2.5 pt-1">
-                  <h3 className="text-xl sm:text-2xl font-black text-[#0f1738] leading-tight">
-                    Cambridge 20 - Test 1
-                  </h3>
-                  
-                  <div className="inline-flex w-fit items-center gap-1 bg-amber-50 border border-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[11px] font-bold">
-                    <span className="text-xs">★</span> BAND 6.0-9.0
-                  </div>
-
-                  <div className="inline-flex w-fit items-center gap-1.5 bg-[#008060] text-white px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wide">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    Giao diện chuẩn thi thật 100%
-                  </div>
-                </div>
-              </div>
-
-              {/* Passages List */}
-              <div className="flex flex-col gap-3.5 my-8">
-                {/* Passage 1 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      1
+                        <div className="inline-flex w-fit items-center gap-1.5 bg-[#008060] text-white px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wide">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          Giao diện chuẩn thi thật 100%
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      The kākāpō
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 shrink-0">
-                    NATURAL SCIENCE
-                  </span>
-                </div>
 
-                {/* Passage 2 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      2
+                    {/* Passages List */}
+                    <div className="flex flex-col gap-3.5 my-8">
+                      {sections.map((sec: any) => {
+                        const badge = getPassageBadge(sec.title || "", sec.section_no);
+                        return (
+                          <div key={sec.id} className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-7 h-7 rounded-full bg-white border-2 border-[#008060] text-[#008060] flex items-center justify-center font-black text-xs shrink-0">
+                                {sec.section_no}
+                              </div>
+                              <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
+                                {sec.title}
+                              </span>
+                            </div>
+                            <span className={`text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full border ${badge.color} shrink-0`}>
+                              {badge.label}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      Reintroducing elms to Britain
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 shrink-0">
-                    ENVIRONMENT
-                  </span>
-                </div>
-
-                {/* Passage 3 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      3
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      How stress affects our judgement
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 shrink-0">
-                    PSYCHOLOGY
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => setComingSoonTest("Cambridge 20 - Test 1")}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#008060] bg-white px-5 py-3.5 text-sm font-extrabold text-[#008060] hover:bg-[#edf7f4] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                LUYỆN TẬP
-              </button>
-              <button
-                onClick={() => setComingSoonTest("Cambridge 20 - Test 1")}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#008060] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_6px_16px_rgba(0,128,96,0.15)] hover:bg-[#006b50] hover:shadow-[0_8px_20px_rgba(0,128,96,0.25)] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <Clock className="w-4 h-4 shrink-0" />
-                ĐI THI
-              </button>
-            </div>
-          </div>
-
-          {/* Card 3: Cambridge 20 - Test 2 (DEMO) */}
-          <div className="bg-white rounded-[32px] border border-gray-150 p-6 md:p-8 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300">
-            <div>
-              {/* Header section with book cover & metadata */}
-              <div className="flex gap-6 items-start relative">
-                {/* Cambridge tag pill */}
-                <div className="absolute top-0 right-0 bg-[#fefdf0] border border-[#f5e0aa] text-[#b07d0a] text-[10px] font-black uppercase px-3 py-1 rounded-full">
-                  CAM 20
-                </div>
-
-                <div className="relative w-[100px] h-[138px] sm:w-[120px] sm:h-[166px] shrink-0 rounded-2xl overflow-hidden shadow-md">
-                  <img 
-                    src="/assets/cambridge/cam-20.jpeg" 
-                    alt="Cambridge 20 Academic Reading" 
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2.5 pt-1">
-                  <h3 className="text-xl sm:text-2xl font-black text-[#0f1738] leading-tight">
-                    Cambridge 20 - Test 2
-                  </h3>
-                  
-                  <div className="inline-flex w-fit items-center gap-1 bg-amber-50 border border-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[11px] font-bold">
-                    <span className="text-xs">★</span> BAND 6.0-9.0
                   </div>
 
-                  <div className="inline-flex w-fit items-center gap-1.5 bg-[#008060] text-white px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wide">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    Giao diện chuẩn thi thật 100%
+                  {/* Actions */}
+                  <div className="flex gap-4">
+                    <Link
+                      href={`/${locale}/reading/${exam.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#008060] bg-white px-5 py-3.5 text-sm font-extrabold text-[#008060] hover:bg-[#edf7f4] active:scale-[0.98] transition-all cursor-pointer select-none"
+                    >
+                      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      LUYỆN TẬP
+                    </Link>
+                    <Link
+                      href={`/${locale}/reading/${exam.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#008060] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_6px_16px_rgba(0,128,96,0.15)] hover:bg-[#006b50] hover:shadow-[0_8px_20px_rgba(0,128,96,0.25)] active:scale-[0.98] transition-all cursor-pointer select-none"
+                    >
+                      <Clock className="w-4 h-4 shrink-0" />
+                      ĐI THI
+                    </Link>
                   </div>
                 </div>
-              </div>
-
-              {/* Passages List */}
-              <div className="flex flex-col gap-3.5 my-8">
-                {/* Passage 1 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      1
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      Manatees
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-100 text-orange-600 shrink-0">
-                    NATURAL SCIENCE
-                  </span>
-                </div>
-
-                {/* Passage 2 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      2
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      Procrastination
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-600 shrink-0">
-                    PSYCHOLOGY
-                  </span>
-                </div>
-
-                {/* Passage 3 */}
-                <div className="flex items-center justify-between py-2.5 px-4 bg-[#f8f9fa] rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-emerald-500 text-emerald-600 flex items-center justify-center font-black text-xs shrink-0">
-                      3
-                    </div>
-                    <span className="text-sm font-extrabold text-[#1b3d1e] truncate pr-2">
-                      Invasion of the Robot Umpires
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 shrink-0">
-                    TECHNOLOGY
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => setComingSoonTest("Cambridge 20 - Test 2")}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#008060] bg-white px-5 py-3.5 text-sm font-extrabold text-[#008060] hover:bg-[#edf7f4] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                LUYỆN TẬP
-              </button>
-              <button
-                onClick={() => setComingSoonTest("Cambridge 20 - Test 2")}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#008060] px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_6px_16px_rgba(0,128,96,0.15)] hover:bg-[#006b50] hover:shadow-[0_8px_20px_rgba(0,128,96,0.25)] active:scale-[0.98] transition-all cursor-pointer select-none"
-              >
-                <Clock className="w-4 h-4 shrink-0" />
-                ĐI THI
-              </button>
-            </div>
-          </div>
+              );
+            })
+          )}
         </div>
 
         {/* Question types */}

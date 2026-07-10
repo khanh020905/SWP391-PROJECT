@@ -59,12 +59,6 @@ async function gradeWithGemini(prompt: string): Promise<any> {
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "GEMINI_API_KEY chưa được cấu hình trên server." },
-      { status: 500 }
-    );
-  }
 
   try {
     const body = await request.json();
@@ -80,6 +74,69 @@ export async function POST(request: NextRequest) {
     };
 
     const user = await getAuthenticatedUser(request);
+
+    if (!apiKey) {
+      console.warn("[Gemini Writing] GEMINI_API_KEY is not configured. Returning mock grade.");
+      const mockFeedbackResult = {
+        attemptId,
+        estimatedBand: 6.5,
+        overallFeedbackVi: "Đây là kết quả mẫu (Mock Grade) do GEMINI_API_KEY chưa được cấu hình trên server. Khi cấu hình khóa, Gemini AI sẽ đánh giá bài viết chi tiết dựa trên tiêu chí IELTS.",
+        taskFeedback: [
+          {
+            taskId: "task1",
+            wordCount: wordCounts.task1,
+            estimatedBand: 6.0,
+            criteria: {
+              ta_tr: { score: 6.0, explanationVi: "Bài viết Task 1 đáp ứng được các yêu cầu cơ bản của đề bài." },
+              cc: { score: 6.0, explanationVi: "Cấu trúc mạch lạc, liên kết ý ở mức trung bình." },
+              lr: { score: 6.0, explanationVi: "Từ vựng khá đa dạng, tuy nhiên cần cải thiện từ vựng học thuật." },
+              gra: { score: 6.0, explanationVi: "Cấu trúc câu đơn giản chính xác, cần tăng cường câu phức." }
+            },
+            strengths: ["Bố cục rõ ràng", "Nêu được các xu hướng chính"],
+            improvements: ["Sử dụng thêm từ nối đa dạng", "Tránh lặp từ"],
+            grammarCorrections: [],
+            modelAnswer: "Đây là bài mẫu viết lại cho Task 1..."
+          },
+          {
+            taskId: "task2",
+            wordCount: wordCounts.task2,
+            estimatedBand: 6.5,
+            criteria: {
+              ta_tr: { score: 6.5, explanationVi: "Trả lời đầy đủ luận đề Task 2, phát triển ý tốt." },
+              cc: { score: 6.5, explanationVi: "Sử dụng từ nối mạch lạc giữa các đoạn." },
+              lr: { score: 6.5, explanationVi: "Từ vựng phù hợp chủ đề luận." },
+              gra: { score: 6.5, explanationVi: "Kiểm soát tốt lỗi ngữ pháp." }
+            },
+            strengths: ["Ý kiến rõ ràng xuyên suốt", "Có ví dụ thực tế hỗ trợ"],
+            improvements: ["Mở rộng thêm phần giải thích sâu hơn", "Sử dụng cấu trúc đảo ngữ hoặc câu điều kiện nâng cao"],
+            grammarCorrections: [],
+            modelAnswer: "Đây là bài mẫu viết lại cho Task 2..."
+          }
+        ],
+        gradedAt: new Date().toISOString(),
+      };
+
+      if (user) {
+        const { error: dbError } = await supabaseAdmin.from("user_submissions").insert({
+          user_id: user.id,
+          exam_id: null,
+          score: mockFeedbackResult.estimatedBand,
+          answers: {
+            answers,
+            wordCounts,
+            feedback: mockFeedbackResult,
+          },
+          started_at: new Date(Date.now() - (60 * 60 * 1000 - (timeRemaining || 0) * 1000)).toISOString(),
+          completed_at: new Date().toISOString(),
+        });
+
+        if (dbError) {
+          console.error("❌ Lỗi khi lưu kết quả mock vào bảng user_submissions:", dbError);
+        }
+      }
+
+      return NextResponse.json({ grade: mockFeedbackResult, source: "fallback" });
+    }
 
     const prompt = `Bạn là một giám khảo chấm thi IELTS chuyên nghiệp. Hãy đánh giá chi tiết bài thi viết IELTS sau đây.
 Bài thi bao gồm 2 phần: Task 1 và Task 2.

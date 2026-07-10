@@ -46,15 +46,45 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 // POST: Giả lập / nhận webhook từ Sepay (Mô phỏng tự động đối khớp)
 export async function POST(request: NextRequest) {
-  const auth = await requireRole(request, ADMIN_ONLY);
-  if (!auth) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  const authHeader = request.headers.get("Authorization");
+  const hasSepayToken = authHeader && process.env.SEPAY_API_KEY && 
+    (authHeader === `Bearer ${process.env.SEPAY_API_KEY}` || authHeader === `Apikey ${process.env.SEPAY_API_KEY}`);
+
+  if (!hasSepayToken) {
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+    let isAuthorized = false;
+
+    if (token) {
+      try {
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+        if (user) {
+          const role = user.user_metadata?.role;
+          if (role === "ADMIN" || process.env.NODE_ENV === "development") {
+            isAuthorized = true;
+          }
+        }
+      } catch (err) {
+        console.warn("Error verifying user session for simulation:", err);
+      }
+    }
+
+    if (!isAuthorized) {
+      const auth = await requireRole(request, ADMIN_ONLY);
+      if (!auth) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+  }
 
   try {
     const body = await request.json();
-    const { amount, transferContent, senderAccount, senderBank, bankTransactionId } = body;
+    
+    // Support both real Sepay webhook payload keys and local simulation keys
+    const amount = Number(body.transferAmount || body.amount);
+    const transferContent = String(body.content || body.transferContent || "");
+    const senderAccount = String(body.accountNumber || body.senderAccount || "");
+    const senderBank = String(body.gateway || body.senderBank || "");
+    const bankTransactionId = String(body.referenceCode || body.bankTransactionId || body.id || "");
 
     if (!amount || !transferContent) {
       return NextResponse.json(
@@ -66,7 +96,7 @@ export async function POST(request: NextRequest) {
     const txId = "tx_" + Math.random().toString(36).substring(2, 9);
     const newTx = {
       id: txId,
-      amount: Number(amount),
+      amount: amount,
       transactionDate: new Date().toISOString(),
       transferContent,
       senderAccount: senderAccount || "0123456789",
@@ -122,16 +152,22 @@ export async function POST(request: NextRequest) {
             const matchUser = users.find(u => u.email?.toLowerCase() === invoice.userEmail.toLowerCase());
             if (matchUser) {
               const currentMetadata = matchUser.user_metadata || {};
-              const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
-                user_metadata: {
-                  ...currentMetadata,
-                  role: "STUDENT"
-                }
-              });
+              if (currentMetadata.role === "ADMIN") {
+                console.log(`🛡️ [Sepay Webhook] Giữ nguyên vai trò ADMIN cho người dùng ${invoice.userEmail} (Bỏ qua hạ cấp xuống STUDENT).`);
+                upgradeMessage = `Giữ nguyên vai trò ADMIN cho người dùng '${invoice.userName}'.`;
+              } else {
+                const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
+                  user_metadata: {
+                    ...currentMetadata,
+                    role: "STUDENT",
+                    packageId: invoice.packageId,
+                    packageName: invoice.packageName
+                  }
+                });
 
-              if (updateError) throw new Error(updateError.message);
-
-              upgradeMessage = `Đã tự động nâng cấp vai trò của '${invoice.userName}' thành STUDENT trên Supabase.`;
+                if (updateError) throw new Error(updateError.message);
+                upgradeMessage = `Đã tự động nâng cấp vai trò của '${invoice.userName}' thành STUDENT trên Supabase.`;
+              }
 
               // Log activity log cho nâng cấp học viên tự động
               await logActivity(
@@ -266,17 +302,24 @@ export async function PATCH(request: NextRequest) {
       const matchUser = users.find(u => u.email?.toLowerCase() === invoice.userEmail.toLowerCase());
       if (matchUser) {
         const currentMetadata = matchUser.user_metadata || {};
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
-          user_metadata: {
-            ...currentMetadata,
-            role: "STUDENT"
-          }
-        });
+        if (currentMetadata.role === "ADMIN") {
+          console.log(`🛡️ [Sepay Webhook Manual] Giữ nguyên vai trò ADMIN cho người dùng ${invoice.userEmail} (Bỏ qua hạ cấp xuống STUDENT).`);
+          upgradeMessage = `Giữ nguyên vai trò ADMIN cho người dùng '${invoice.userName}'.`;
+        } else {
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
+            user_metadata: {
+              ...currentMetadata,
+              role: "STUDENT",
+              packageId: invoice.packageId,
+              packageName: invoice.packageName
+            }
+          });
 
-        if (updateError) throw new Error(updateError.message);
+          if (updateError) throw new Error(updateError.message);
 
-        userUpgraded = true;
-        upgradeMessage = `Đã nâng cấp vai trò của '${invoice.userName}' thành STUDENT trên Supabase Auth.`;
+          userUpgraded = true;
+          upgradeMessage = `Đã nâng cấp vai trò của '${invoice.userName}' thành STUDENT trên Supabase Auth.`;
+        }
 
         // Ghi nhận log hoạt động nâng cấp
         await logActivity(

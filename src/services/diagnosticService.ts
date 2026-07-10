@@ -3,30 +3,56 @@ import { supabase } from "@/lib/supabase";
 export async function fetchDiagnosticQuestions() {
   let listening: any[] = [];
   try {
-    const { data: tasks } = await supabase
-      .from("listening_tasks")
-      .select("*");
+    // 1. Fetch listening exams from exams table that contain an audio_url
+    const { data: exams, error: examErr } = await supabase
+      .from("exams")
+      .select("id, title, audio_url")
+      .eq("category", "listening")
+      .not("audio_url", "is", null);
+
+    if (exams && exams.length > 0) {
+      // Pick a random listening exam
+      const randomExam = exams[Math.floor(Math.random() * exams.length)];
       
-    if (tasks && tasks.length > 0) {
-      const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
-      const challenges = randomTask.challenges || [];
-      listening = challenges.slice(0, 3).map((q: any, idx: number) => ({
-        id: `l${idx + 1}`,
-        skill: "listening",
-        content: {
-          test_name: randomTask.lesson_name,
-          transcript: q.transcript || `Listen to the audio segment to answer: "${q.text || q.statement || ''}"`
-        },
-        extra_data: {
-          type: q.type === "multiple_choice" ? "multiple_choice" : "fill_in_blank",
-          questionText: q.text || q.statement || "",
-          options: q.options || [],
-          correctAnswer: q.correct_answer || (q.answers ? q.answers[0] : "")
-        }
-      }));
+      // 2. Fetch sections for this exam
+      const { data: dbSections } = await supabase
+        .from("exam_sections")
+        .select("id, section_no, title, content, answers")
+        .eq("exam_id", randomExam.id)
+        .order("section_no", { ascending: true });
+
+      if (dbSections && dbSections.length > 0) {
+        // Use Section 1 questions
+        const section1 = dbSections[0];
+        const answersObj = section1.answers || {};
+        const keys = Object.keys(answersObj).sort((a, b) => parseInt(a) - parseInt(b));
+        
+        // Take the first 3 questions from Section 1
+        const targetKeys = keys.slice(0, 3);
+        
+        listening = targetKeys.map((key, idx) => {
+          const correctAns = answersObj[key];
+          return {
+            id: `l${idx + 1}`,
+            skill: "listening",
+            content: {
+              test_name: randomExam.title,
+              transcript: section1.content || ""
+            },
+            extra_data: {
+              type: "fill_in_blank",
+              questionText: `Fill in the blank for Question ${key}.`,
+              options: [],
+              correctAnswer: correctAns,
+              answers: [correctAns],
+              audioSrc: randomExam.audio_url
+            }
+          };
+        });
+      }
     }
   } catch (err) {
-    console.error("Listening diagnostic random query failed:", err);
+    console.error("Listening diagnostic Cambridge query failed:", err);
   }
 
   let reading: any[] = [];
@@ -76,7 +102,8 @@ export async function fetchDiagnosticQuestions() {
         extra_data: {
           type: "multiple_choice",
           questionText: p2Question ? (p2Question.statement || p2Question.text || p2Question.prompt || "") : "",
-          options: p2Question ? (p2Question.options || []) : []
+          options: p2Question ? (p2Question.options || []) : [],
+          correctAnswer: p2Question ? (p2Question.correct_answer || p2Question.correctAnswer || "") : ""
         }
       });
     }

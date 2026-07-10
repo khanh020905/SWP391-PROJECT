@@ -78,7 +78,7 @@ const getSkillCards = (t: any) => [
   {
     src: "/assets/skill-choose-section/vocab-grammar.jpeg",
     alt: "Vocab & Grammar",
-    href: "/profile",
+    href: "/vocab-grammar",
     title: t("skills.vocabGrammar.title"),
     desc: t("skills.vocabGrammar.desc"),
     badge: t("skills.vocabGrammar.count"),

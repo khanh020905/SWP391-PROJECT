@@ -136,65 +136,38 @@ function bandValue(attempt: SpeakingAttempt) {
   return Number.isFinite(value) ? value : 0;
 }
 
+import { Search, Copy, Check, ChevronDown, ChevronUp, ArrowLeft, Loader2, Sparkles as SparklesIcon, X } from "lucide-react";
+
 export default function SpeakingDashboard() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [attempts, setAttempts] = useState<SpeakingAttempt[]>([]);
-  const [selectedMode, setSelectedMode] = useState<SpeakingMode>("mock");
-  const [selectedTopic, setSelectedTopic] = useState("study");
   const [view, setView] = useState<"select" | "dashboard">("select");
-  const [topics, setTopics] = useState<any[]>(TOPICS);
+  const [activeTab, setActiveTab] = useState<"part1_req" | "part1_topics" | "part2_3">("part1_req");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [exams, setExams] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Accordion lists
+  const [expandedPart1, setExpandedPart1] = useState<Record<string, boolean>>({});
+  const [expandedPart3, setExpandedPart3] = useState<Record<string, boolean>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Practice modal state
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [modalExam, setModalExam] = useState<any>(null);
+
+  // Load user status and attempts
   useEffect(() => {
     let mounted = true;
-
-    fetchSpeakingTopics().then(data => {
-      if (mounted && data && data.length > 0) {
-        const mapped = data.map((t: any, idx: number) => {
-          let part2Prompt = t.part2Prompt || "";
-          let part3Focus = t.part3Focus || "";
-          
-          if (t.questions) {
-            const q = typeof t.questions === 'string' ? JSON.parse(t.questions) : t.questions;
-            if (t.part === 2 && q.cue_card) {
-              part2Prompt = q.cue_card;
-            }
-          }
-
-          const tones = [
-            "bg-[#edf3e8] text-[#3B5C37] border-[#d8e4ce]",
-            "bg-[#f4efe5] text-[#8a682e] border-[#e7dac1]",
-            "bg-[#eef2f0] text-[#43675d] border-[#d8e2de]"
-          ];
-
-          return {
-            id: t.id || String(t.topic || "").toLowerCase(),
-            title: t.topic || t.title || "Speaking Topic",
-            viTitle: t.topic || t.title || "Chủ đề Speaking",
-            desc: t.description || `Luyện nói chủ đề ${t.topic || t.title} Part ${t.part || 1}`,
-            part2Prompt: part2Prompt || "Describe a subject you enjoyed studying in high school.",
-            part3Focus: part3Focus || "The future of education and changes in rural communities.",
-            difficulty: t.part === 1 ? "Dễ" : t.part === 2 ? "Trung bình" : "Khó",
-            icon: BookOpen,
-            tone: tones[(t.part || 1) - 1] || tones[idx % tones.length]
-          };
-        });
-        setTopics(mapped);
-      }
-    }).catch(err => {
-      console.warn("Failed to load speaking topics from DB:", err);
-    });
-
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) setUser(session?.user ?? null);
+    }).catch((err) => console.warn(err));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (mounted) setUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    queueMicrotask(() => {
-      if (mounted) setAttempts(parseAttempts());
-    });
+    setAttempts(parseAttempts());
 
     return () => {
       mounted = false;
@@ -202,14 +175,173 @@ export default function SpeakingDashboard() {
     };
   }, []);
 
-  const selectedTopicInfo =
-    topics.find((topic) => topic.id === selectedTopic) ?? topics[0] ?? TOPICS[0];
-  const recentAttempts = attempts.slice(0, 5);
-  const averageBand = useMemo(() => {
-    if (!attempts.length) return 0;
-    const total = attempts.reduce((sum, attempt) => sum + bandValue(attempt), 0);
-    return total / attempts.length;
-  }, [attempts]);
+  // Fetch Speaking Exams dynamically
+  useEffect(() => {
+    async function loadSpeakingExams() {
+      try {
+        setIsLoading(true);
+        // Get published speaking exams
+        const { data: examsData, error: examsError } = await supabase
+          .from("exams")
+          .select("id, title, category, status, cambridge_no, test_no")
+          .eq("category", "speaking")
+          .eq("status", "published");
+
+        if (examsError) throw examsError;
+
+        if (examsData && examsData.length > 0) {
+          const examIds = examsData.map(e => e.id);
+          // Get sections
+          const { data: sectionsData, error: sectionsError } = await supabase
+            .from("exam_sections")
+            .select("*")
+            .in("exam_id", examIds);
+
+          if (sectionsError) throw sectionsError;
+
+          const mapped = examsData.map(exam => {
+            const sections = (sectionsData || []).filter(s => s.exam_id === exam.id);
+            const part1Sec = sections.find(s => s.section_no === 1);
+            const part2Sec = sections.find(s => s.section_no === 2);
+            const part3Sec = sections.find(s => s.section_no === 3);
+
+            let part1Qs: string[] = [];
+            if (part1Sec?.answers) {
+              part1Qs = Array.isArray(part1Sec.answers)
+                ? part1Sec.answers
+                : typeof part1Sec.answers === 'string'
+                  ? JSON.parse(part1Sec.answers)
+                  : [];
+            }
+
+            let part2CueCard = "";
+            let part2Bullets: string[] = [];
+            if (part2Sec?.answers) {
+              const ans = typeof part2Sec.answers === 'string' ? JSON.parse(part2Sec.answers) : part2Sec.answers;
+              if (ans && typeof ans === 'object') {
+                part2CueCard = ans.cue_card || "";
+                part2Bullets = ans.bullet_points || [];
+              }
+            }
+            if (!part2CueCard && part2Sec?.content) {
+              part2CueCard = part2Sec.content;
+            }
+
+            let part3Qs: string[] = [];
+            if (part3Sec?.answers) {
+              part3Qs = Array.isArray(part3Sec.answers)
+                ? part3Qs = part3Sec.answers
+                : typeof part3Sec.answers === 'string'
+                  ? JSON.parse(part3Sec.answers)
+                  : [];
+            }
+
+            let part1Topic = "General Intro";
+            if (part1Sec?.content) {
+              const match = part1Sec.content.match(/Topic:\s*(.*)/i);
+              if (match && match[1]) {
+                part1Topic = match[1].trim();
+              } else {
+                part1Topic = part1Sec.content.replace("Part 1 Topic:", "").trim();
+              }
+            }
+
+            return {
+              id: exam.id,
+              title: exam.title,
+              cambridge_no: exam.cambridge_no,
+              test_no: exam.test_no,
+              part1: {
+                topicName: part1Topic,
+                questions: part1Qs
+              },
+              part2: {
+                cue_card: part2CueCard,
+                bullet_points: part2Bullets
+              },
+              part3: {
+                questions: part3Qs
+              }
+            };
+          });
+
+          // Sort alphabetically / by Cambridge number & test number
+          mapped.sort((a, b) => {
+            if (a.cambridge_no && b.cambridge_no) {
+              if (a.cambridge_no !== b.cambridge_no) {
+                return a.cambridge_no - b.cambridge_no;
+              }
+            }
+            if (a.test_no && b.test_no) {
+              return a.test_no - b.test_no;
+            }
+            return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
+          });
+
+          setExams(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load speaking exams:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSpeakingExams();
+  }, []);
+
+  const isRequiredPart1 = (topicName: string, testNo?: number) => {
+    const name = topicName.toLowerCase();
+    return (
+      name.includes("hometown") ||
+      name.includes("home") ||
+      name.includes("live") ||
+      name.includes("study") ||
+      name.includes("work") ||
+      name.includes("accommodation") ||
+      testNo === 1
+    );
+  };
+
+  // Filter exams based on tab and search term
+  const filteredItems = useMemo(() => {
+    return exams.filter(exam => {
+      const matchSearch = 
+        exam.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exam.part1.topicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exam.part2.cue_card.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (!matchSearch) return false;
+
+      if (activeTab === "part1_req") {
+        return isRequiredPart1(exam.part1.topicName, exam.test_no);
+      } else if (activeTab === "part1_topics") {
+        return !isRequiredPart1(exam.part1.topicName, exam.test_no);
+      } else {
+        // part2_3
+        return true;
+      }
+    });
+  }, [exams, activeTab, searchTerm]);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const togglePart1 = (id: string) => {
+    setExpandedPart1(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const togglePart3 = (id: string) => {
+    setExpandedPart3(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const openPractice = (exam: any) => {
+    setModalExam(exam);
+    setShowPracticeModal(true);
+  };
 
   if (view === "select") {
     return (
@@ -218,7 +350,7 @@ export default function SpeakingDashboard() {
         <main className="flex-1 flex flex-col items-center justify-center px-6 pt-28 pb-20">
           <div className="text-center mb-12">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c7d1b8] bg-[#ebefe0]/85 px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-[#3B5C37] mb-6">
-              <Sparkles className="h-4 w-4" />
+              <SparklesIcon className="h-4 w-4" />
               Chọn chế độ luyện tập
             </span>
             <h1 className="text-4xl md:text-5xl font-black text-[#1b3d1e] tracking-tight leading-[1.1]">
@@ -253,7 +385,6 @@ export default function SpeakingDashboard() {
               href="/speaking/roulette" 
               className="group relative flex flex-col rounded-[32px] bg-gradient-to-br from-[#16352a] to-[#204a3b] p-8 text-left border-2 border-[#2a503f] hover:border-[#437d63] shadow-sm hover:shadow-[0_24px_54px_rgba(22,53,42,0.25)] transition-all duration-300 active:scale-[0.98] outline-none no-underline overflow-hidden"
             >
-              {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
               
               <div className="relative h-16 w-16 bg-white/10 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
@@ -276,7 +407,6 @@ export default function SpeakingDashboard() {
               href="/speaking/shadowing" 
               className="group relative flex flex-col rounded-[32px] bg-gradient-to-br from-[#0f1738] to-[#1a2552] p-8 text-left border-2 border-[#1a2552] hover:border-[#2a3a78] shadow-sm hover:shadow-[0_24px_54px_rgba(15,23,56,0.25)] transition-all duration-300 active:scale-[0.98] outline-none no-underline overflow-hidden"
             >
-              {/* Decorative elements */}
               <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#4a65e0]/20 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#4a65e0]/10 to-transparent" />
               
@@ -296,276 +426,362 @@ export default function SpeakingDashboard() {
             </Link>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
 
+  // Dashboard layout with the requested style:
+  // Yellow/emerald palettes, heavy black borders & offset shadows.
   return (
-    <div className="min-h-screen bg-[#f4f5f9] text-[#0f1738]">
+    <div className="min-h-screen bg-[#FAF9F5] text-black flex flex-col font-sans">
       <Navbar />
-
-      <main>
-        <section
-          className="relative min-h-[620px] overflow-hidden bg-[#e5ebd8] bg-cover bg-center pt-28"
-          style={{
-            backgroundImage: "url('/assets/hero-background-new.jpeg')",
-          }}
+      
+      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 pt-28 pb-20">
+        
+        {/* Navigation back */}
+        <button
+          onClick={() => setView("select")}
+          className="flex items-center gap-2 text-black font-extrabold text-sm hover:underline mb-8"
         >
-          <div className="mx-auto grid w-full max-w-[1160px] gap-8 px-6 pb-10 md:grid-cols-[0.92fr_1.08fr] md:px-9">
-            <div className="flex flex-col justify-center pb-3 md:min-h-[500px]">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#c7d1b8] bg-[#ebefe0]/85 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
-                <Mic className="h-3.5 w-3.5" />
-                IELTS Speaking AI
-              </span>
-              <h1 className="mt-5 max-w-[560px] text-4xl font-black leading-[1.08] tracking-tight text-[#1b3d1e] md:text-6xl">
-                Luyện Speaking giống phòng thi thật
-              </h1>
-              <p className="mt-5 max-w-[520px] text-sm font-medium leading-7 text-[#4e5c4c] md:text-[17px]">
-                Chọn phần thi, chọn chủ đề, vào phòng nói với AI examiner và xem
-                lịch sử band ngay sau khi hoàn thành bài.
-              </p>
+          <ArrowLeft className="h-4 w-4 stroke-[3px]" />
+          Về trang Speaking
+        </button>
 
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                {[
-                  "Part 1-3 flow",
-                  "Cue card timer",
-                  "AI feedback",
-                ].map((item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-[11px] font-black text-[#3B5C37]"
+        {/* Heading section */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded border-2 border-black bg-[#3B5C37] px-3.5 py-1 text-xs font-black uppercase text-white shadow-[2px_2px_0px_0px_#000] mb-4">
+              THE IELTS DICTIONARY • QUÝ 2 • 2026
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none text-black uppercase">
+              Bộ dự đoán đề thi IELTS
+            </h1>
+            <h2 className="text-3xl md:text-4xl font-black text-black mt-2">
+              SPEAKING QUÝ 2 <span className="text-[#3B5C37] text-2xl md:text-3xl font-medium block md:inline md:ml-3">(THÁNG 5 - THÁNG 8) NĂM 2026</span>
+            </h2>
+          </div>
+
+          {/* Search Input box */}
+          <div className="relative w-full max-w-[340px] shrink-0">
+            <input
+              type="text"
+              placeholder="Tìm kiếm chủ đề..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full border-2 border-black bg-white px-4 py-3.5 pr-10 text-sm font-bold text-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none"
+            />
+            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-black stroke-[2.5px]" />
+          </div>
+        </div>
+
+        {/* Tabs switcher */}
+        <div className="flex flex-wrap items-center gap-3.5 mb-10 border-b border-black/10 pb-6">
+          <button
+            onClick={() => setActiveTab("part1_req")}
+            className={`px-5 py-3 font-extrabold rounded-lg border-2 border-black text-sm transition-all duration-150 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] ${
+              activeTab === "part1_req"
+                ? "bg-[#3B5C37] text-white shadow-[3px_3px_0px_0px_#000]"
+                : "bg-white text-black hover:bg-[#FAF9F5] shadow-[3px_3px_0px_0px_#000]"
+            }`}
+          >
+            PART 1 BẮT BUỘC ({exams.filter(e => isRequiredPart1(e.part1.topicName, e.test_no)).length})
+          </button>
+          <button
+            onClick={() => setActiveTab("part1_topics")}
+            className={`px-5 py-3 font-extrabold rounded-lg border-2 border-black text-sm transition-all duration-150 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] ${
+              activeTab === "part1_topics"
+                ? "bg-[#3B5C37] text-white shadow-[3px_3px_0px_0px_#000]"
+                : "bg-white text-black hover:bg-[#FAF9F5] shadow-[3px_3px_0px_0px_#000]"
+            }`}
+          >
+            PART 1 CHỦ ĐỀ ({exams.filter(e => !isRequiredPart1(e.part1.topicName, e.test_no)).length})
+          </button>
+          <button
+            onClick={() => setActiveTab("part2_3")}
+            className={`px-5 py-3 font-extrabold rounded-lg border-2 border-black text-sm transition-all duration-150 active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] ${
+              activeTab === "part2_3"
+                ? "bg-[#3B5C37] text-white shadow-[3px_3px_0px_0px_#000]"
+                : "bg-white text-black hover:bg-[#FAF9F5] shadow-[3px_3px_0px_0px_#000]"
+            }`}
+          >
+            PART 2 + 3 ({exams.length})
+          </button>
+        </div>
+
+        {/* Loading Spinner */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-10 w-10 animate-spin text-[#3B5C37] stroke-[3px] mb-3" />
+            <p className="font-extrabold text-sm text-[#3B5C37]">Đang tải kho đề thi Speaking...</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-16 border-2 border-dashed border-black/20 rounded-2xl bg-white/40">
+            <p className="text-base font-extrabold text-gray-500">Không tìm thấy chủ đề nào phù hợp.</p>
+          </div>
+        ) : (
+          <div className={activeTab === "part2_3" ? "grid md:grid-cols-2 gap-8" : "flex flex-col gap-6"}>
+            
+            {/* Render Items */}
+            {filteredItems.map((exam, index) => {
+              const examKey = exam.id;
+              
+              if (activeTab === "part1_req" || activeTab === "part1_topics") {
+                const hasQs = exam.part1.questions && exam.part1.questions.length > 0;
+                const isExpanded = !!expandedPart1[examKey];
+                
+                return (
+                  <div 
+                    key={examKey} 
+                    className="border-2 border-black bg-white rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="self-end rounded-2xl border border-white/70 bg-white/88 p-5 shadow-[0_16px_40px_rgba(28,48,24,0.12)] backdrop-blur md:p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
-                    Start setup
-                  </p>
-                  <h2 className="mt-1 text-xl font-black text-[#1b3d1e]">
-                    Bài luyện hôm nay
-                  </h2>
-                </div>
-                {user && (
-                  <div className="rounded-full border border-[#d8e0cc] bg-[#f7f9f2] px-3 py-1 text-[10px] font-black text-[#4e5c4c]">
-                    {user.user_metadata?.name || user.email?.split("@")[0]}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {MODES.map((mode) => {
-                  const Icon = mode.icon;
-                  const active = selectedMode === mode.id;
-
-                  return (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setSelectedMode(mode.id)}
-                      className={`min-h-[126px] rounded-xl border p-4 text-left transition ${
-                        active
-                          ? "border-[#3B5C37] bg-[#edf3e8] shadow-sm"
-                          : "border-[#e4e8dc] bg-white hover:border-[#c7d1b8]"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                            active
-                              ? "bg-[#3B5C37] text-white"
-                              : "bg-[#f0f3ea] text-[#3B5C37]"
-                          }`}
-                        >
-                          <Icon className="h-4.5 w-4.5" />
+                    <div className="flex items-center justify-between p-5 gap-4">
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-lg text-black">
+                          {index + 1}. {exam.part1.topicName}
                         </span>
-                        <div>
-                          <h3 className="text-sm font-black text-[#0f1738]">
-                            {mode.title}
-                          </h3>
-                          <p className="mt-1 text-xs font-semibold leading-5 text-[#5d6a5a]">
-                            {mode.desc}
-                          </p>
+                        <span className="hidden sm:inline-block rounded bg-[#FAF9F5] border border-black/20 px-2 py-0.5 text-[10px] font-black uppercase text-gray-500">
+                          {exam.title.replace("Speaking Test", "Test")}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Practice Button */}
+                        <button
+                          onClick={() => openPractice(exam)}
+                          className="flex items-center gap-2 rounded-lg border-2 border-black bg-[#3B5C37] hover:bg-[#2d472a] px-4.5 py-2 text-xs font-black text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all"
+                        >
+                          <Play className="h-3 w-3 fill-white text-white" />
+                          Luyện tập
+                        </button>
+
+                        {/* Copy Questions Button */}
+                        {hasQs && (
+                          <button
+                            onClick={() => copyToClipboard(exam.part1.questions.join("\n"), examKey)}
+                            title="Sao chép danh sách câu hỏi"
+                            className="p-2 border-2 border-black rounded-lg bg-white hover:bg-gray-100 text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]"
+                          >
+                            {copiedId === examKey ? (
+                              <Check className="h-4 w-4 text-green-600 stroke-[3px]" />
+                            ) : (
+                              <Copy className="h-4 w-4 stroke-[2.5px]" />
+                            )}
+                          </button>
+                        )}
+
+                        {/* Accordion Expand Button */}
+                        {hasQs && (
+                          <button
+                            onClick={() => togglePart1(examKey)}
+                            title="Xem chi tiết câu hỏi"
+                            className="p-2 border-2 border-black rounded-lg bg-white hover:bg-gray-100 text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4 stroke-[3px]" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 stroke-[3px]" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Part 1 Expanded Questions */}
+                    {isExpanded && hasQs && (
+                      <div className="bg-[#FAF9F5] border-t-2 border-black p-5">
+                        <p className="text-xs font-black uppercase text-gray-500 tracking-wider mb-3">Danh sách câu hỏi Part 1 ({exam.part1.questions.length})</p>
+                        <ul className="space-y-2.5">
+                          {exam.part1.questions.map((q: string, qIdx: number) => (
+                            <li key={qIdx} className="flex gap-2.5 text-sm font-semibold text-gray-800 leading-relaxed">
+                              <span className="font-extrabold text-[#3B5C37]">{qIdx + 1}.</span>
+                              <span>{q}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                // PART 2 + 3 Cards style
+                const isPart3Expanded = !!expandedPart3[examKey];
+                const hasPart3 = exam.part3.questions && exam.part3.questions.length > 0;
+                
+                return (
+                  <div 
+                    key={examKey} 
+                    className="border-2 border-black bg-white rounded-xl shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <span className="rounded bg-[#FAF9F5] border border-black px-2 py-0.5 text-[9px] font-black uppercase text-gray-500">
+                          {exam.title}
+                        </span>
+                        
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => openPractice(exam)}
+                            className="flex items-center gap-1.5 rounded-lg border-2 border-black bg-[#3B5C37] hover:bg-[#2d472a] px-3.5 py-1.5 text-xs font-black text-white shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]"
+                          >
+                            <Play className="h-3 w-3 fill-white text-white" />
+                            Luyện tập
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              const textToCopy = `Part 2 Cue Card:\n${exam.part2.cue_card}\n\nBullet points:\n${exam.part2.bullet_points.map((b: string) => `- ${b}`).join("\n")}`;
+                              copyToClipboard(textToCopy, examKey);
+                            }}
+                            title="Sao chép Cue Card"
+                            className="p-1.5 border-2 border-black rounded-lg bg-white hover:bg-gray-100 text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]"
+                          >
+                            {copiedId === examKey ? (
+                              <Check className="h-3.5 w-3.5 text-green-600 stroke-[3px]" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5 stroke-[2.5px]" />
+                            )}
+                          </button>
                         </div>
                       </div>
-                      <p className="mt-3 text-[10px] font-black uppercase tracking-wider text-[#8a682e]">
-                        {mode.duration}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
 
+                      {/* Part 2 Card Content */}
+                      <h3 className="text-base font-black text-black mb-4 leading-snug">
+                        {index + 1}. {exam.part2.cue_card}
+                      </h3>
+                      
+                      <div className="border border-black/10 rounded-lg bg-[#FAF9F5]/70 p-4.5 mb-2">
+                        <p className="text-[10px] font-black uppercase text-[#B38F4D] tracking-wider mb-2">You should say:</p>
+                        <ul className="space-y-1.5">
+                          {exam.part2.bullet_points.map((bullet: string, bIdx: number) => (
+                            <li key={bIdx} className="flex gap-2 text-xs font-bold text-gray-700">
+                              <span className="text-[#3B5C37] font-black">•</span>
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Part 3 Expandable Footer Accordion */}
+                    {hasPart3 && (
+                      <div className="border-t-2 border-black">
+                        <button
+                          onClick={() => togglePart3(examKey)}
+                          className="w-full flex items-center justify-between px-6 py-4 bg-[#FAF9F5] hover:bg-[#F2EFE8] transition-colors text-left"
+                        >
+                          <span className="text-xs font-black uppercase tracking-wider text-black">
+                            Part 3 Questions ({exam.part3.questions.length})
+                          </span>
+                          {isPart3Expanded ? (
+                            <ChevronUp className="h-4 w-4 stroke-[3px] text-black" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 stroke-[3px] text-black" />
+                          )}
+                        </button>
+
+                        {isPart3Expanded && (
+                          <div className="px-6 pb-6 pt-2 bg-white">
+                            <ul className="space-y-3.5">
+                              {exam.part3.questions.map((q: string, qIdx: number) => (
+                                <li key={qIdx} className="flex gap-2.5 text-xs font-bold text-gray-800 leading-relaxed">
+                                  <span className="font-extrabold text-[#3B5C37]">{qIdx + 1}.</span>
+                                  <span>{q}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+            })}
+          </div>
+        )}
+      </main>
+
+      {/* Select Practice Mode Dialog Modal */}
+      {showPracticeModal && modalExam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-[480px] bg-white border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_#000] p-6 animate-in fade-in zoom-in-95 duration-150">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPracticeModal(false)}
+              className="absolute right-4 top-4 p-1.5 border-2 border-black rounded-lg bg-white hover:bg-gray-100 text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000]"
+            >
+              <X className="h-4 w-4 stroke-[3px]" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="mb-6">
+              <span className="inline-flex rounded border-2 border-black bg-[#FAF9F5] px-2 py-0.5 text-[9px] font-black uppercase text-gray-500">
+                {modalExam.title}
+              </span>
+              <h3 className="text-xl font-black text-black mt-2.5 leading-snug">
+                Bắt đầu luyện Speaking
+              </h3>
+              <p className="text-xs font-semibold text-gray-500 mt-1 leading-relaxed">
+                Chọn phần mà bạn muốn AI examiner bắt đầu phỏng vấn bạn.
+              </p>
+            </div>
+
+            {/* Selection Grid */}
+            <div className="flex flex-col gap-3">
+              {/* Full Test Mode */}
               <Link
-                href={`/speaking/test?mode=${selectedMode}&topic=${selectedTopic}`}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3B5C37] px-5 py-3.5 text-sm font-black text-white shadow-md transition hover:bg-[#1f3e1b] active:scale-[0.99]"
+                href={`/speaking/test?examId=${modalExam.id}&mode=mock`}
+                className="w-full flex items-center justify-between rounded-xl border-2 border-black bg-[#3B5C37] hover:bg-[#2d472a] p-4 text-left shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] transition-all no-underline text-white"
               >
-                <Play className="h-4 w-4 fill-white" />
-                Bắt đầu Speaking
-                <ArrowRight className="h-4 w-4" />
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wider">Thi thử đầy đủ (Mock Test)</h4>
+                  <p className="text-xs font-bold text-white/75 mt-0.5">Trải nghiệm toàn bộ Part 1, Part 2, và Part 3 liền mạch.</p>
+                </div>
+                <ArrowRight className="h-5 w-5 stroke-[3px]" />
+              </Link>
+
+              {/* Part 1 Mode */}
+              <Link
+                href={`/speaking/test?examId=${modalExam.id}&mode=part1`}
+                className="w-full flex items-center justify-between rounded-xl border-2 border-black bg-white hover:bg-gray-100 p-4 text-left shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] transition-all no-underline text-black"
+              >
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wider">Luyện tập Part 1</h4>
+                  <p className="text-xs font-bold text-gray-500 mt-0.5">Trả lời các câu hỏi phỏng vấn ngắn về chủ đề: {modalExam.part1.topicName}.</p>
+                </div>
+                <ArrowRight className="h-5 w-5 stroke-[3px]" />
+              </Link>
+
+              {/* Part 2 Mode */}
+              <Link
+                href={`/speaking/test?examId=${modalExam.id}&mode=part2`}
+                className="w-full flex items-center justify-between rounded-xl border-2 border-black bg-white hover:bg-gray-100 p-4 text-left shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] transition-all no-underline text-black"
+              >
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wider">Luyện tập Part 2</h4>
+                  <p className="text-xs font-bold text-gray-500 mt-0.5">Đọc Cue card, chuẩn bị 1 phút và trình bày bài nói 2 phút.</p>
+                </div>
+                <ArrowRight className="h-5 w-5 stroke-[3px]" />
+              </Link>
+
+              {/* Part 3 Mode */}
+              <Link
+                href={`/speaking/test?examId=${modalExam.id}&mode=part3`}
+                className="w-full flex items-center justify-between rounded-xl border-2 border-black bg-white hover:bg-gray-100 p-4 text-left shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_#000] transition-all no-underline text-black"
+              >
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wider">Luyện tập Part 3</h4>
+                  <p className="text-xs font-bold text-gray-500 mt-0.5">Thảo luận sâu sắc, nâng cao phản xạ học thuật.</p>
+                </div>
+                <ArrowRight className="h-5 w-5 stroke-[3px]" />
               </Link>
             </div>
           </div>
-        </section>
+        </div>
+      )}
 
-        <section className="mx-auto grid w-full max-w-[1160px] gap-8 px-6 py-10 md:px-9 lg:grid-cols-[1.35fr_0.65fr]">
-          <div>
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#3B5C37]">
-                  Topic bank
-                </p>
-                <h2 className="mt-1 text-2xl font-black text-[#141c41]">
-                  Chọn chủ đề Speaking
-                </h2>
-              </div>
-              <span className="hidden text-xs font-bold text-[#667064] sm:block">
-                {selectedTopicInfo.title}
-              </span>
-            </div>
-
-            <div className="grid gap-4">
-              {topics.map((topic) => {
-                const Icon = topic.icon;
-                const active = selectedTopic === topic.id;
-
-                return (
-                  <button
-                    key={topic.id}
-                    type="button"
-                    onClick={() => setSelectedTopic(topic.id)}
-                    className={`w-full rounded-xl border bg-white p-5 text-left transition ${
-                      active
-                        ? "border-[#3B5C37] shadow-[0_10px_28px_rgba(59,92,55,0.10)]"
-                        : "border-[#e8ebf3] hover:border-[#c7d1b8]"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="flex gap-4">
-                        <span
-                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${topic.tone}`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-base font-black text-[#0f1738]">
-                              {topic.title}
-                            </h3>
-                            <span className="rounded-full bg-[#f7f8f3] px-2 py-0.5 text-[10px] font-black text-[#667064]">
-                              {topic.viTitle}
-                            </span>
-                            <span className="rounded-full bg-[#ebefe0] px-2 py-0.5 text-[10px] font-black text-[#3B5C37]">
-                              {topic.difficulty}
-                            </span>
-                          </div>
-                          <p className="mt-2 text-sm font-medium leading-6 text-[#5c6488]">
-                            {topic.desc}
-                          </p>
-                          <div className="mt-3 grid gap-2 text-xs font-semibold text-[#667064] md:grid-cols-2">
-                            <p>
-                              <span className="font-black text-[#3B5C37]">Part 2:</span>{" "}
-                              {topic.part2Prompt}
-                            </p>
-                            <p>
-                              <span className="font-black text-[#8a682e]">Part 3:</span>{" "}
-                              {topic.part3Focus}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
-                          active
-                            ? "border-[#3B5C37] bg-[#3B5C37] text-white"
-                            : "border-[#dce1d5] text-transparent"
-                        }`}
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <aside className="space-y-5">
-            <div className="rounded-2xl border border-[#e8ebf3] bg-white p-6">
-              <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#5c6488]">
-                <TrendingUp className="h-4 w-4 text-[#3B5C37]" />
-                Tiến trình của bạn
-              </h2>
-              {attempts.length ? (
-                <div className="mt-5">
-                  <p className="text-4xl font-black text-[#1b3d1e]">
-                    {averageBand.toFixed(1)}
-                  </p>
-                  <p className="mt-1 text-xs font-bold text-[#667064]">
-                    Band trung bình từ {attempts.length} lần luyện
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-5 rounded-xl border border-dashed border-[#dfe4ed] bg-[#fafbfe] p-5 text-center">
-                  <Mic className="mx-auto h-7 w-7 text-[#9aa39a]" />
-                  <p className="mt-3 text-xs font-semibold leading-5 text-[#667064]">
-                    Chưa có lịch sử Speaking. Làm bài đầu tiên để bắt đầu theo
-                    dõi band.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-2xl border border-[#e8ebf3] bg-white p-6">
-              <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#5c6488]">
-                <History className="h-4 w-4 text-[#3B5C37]" />
-                Lịch sử gần đây
-              </h2>
-              {recentAttempts.length ? (
-                <div className="mt-4 space-y-3">
-                  {recentAttempts.map((attempt, index) => (
-                    <Link
-                      key={attempt.id ?? index}
-                      href={`/speaking/feedback?id=${attempt.id ?? ""}`}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-[#edf0f5] bg-[#fafbfe] p-3 transition hover:border-[#3B5C37]/40 hover:bg-white"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3B5C37] text-xs font-black text-white">
-                          {bandValue(attempt).toFixed(1)}
-                        </span>
-                        <div>
-                          <p className="text-xs font-black text-[#0f1738]">
-                            {attempt.mode === "mock"
-                              ? "Mock Test"
-                              : `Part ${String(attempt.mode ?? "part1").replace("part", "")}`}
-                          </p>
-                          <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-[#8a91a8]">
-                            <Calendar className="h-3 w-3" />
-                            {attempt.timestamp
-                              ? new Date(attempt.timestamp).toLocaleDateString("vi-VN")
-                              : "Chưa rõ ngày"}
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-[#9aa39a]" />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-4 rounded-xl border border-dashed border-[#dfe4ed] bg-[#fafbfe] p-5 text-center text-xs font-semibold text-[#8a91a8]">
-                  Lịch sử bài nói sẽ hiển thị tại đây.
-                </div>
-              )}
-            </div>
-          </aside>
-        </section>
-      </main>
+      <Footer />
     </div>
   );
 }

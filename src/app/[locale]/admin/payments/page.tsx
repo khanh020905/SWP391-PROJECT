@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/authFetch";
+import { useLocale } from "next-intl";
 import {
   Search,
   Plus,
@@ -66,7 +67,175 @@ interface SepayTransaction {
 }
 
 export default function PaymentManagementPage() {
-  const [activeTab, setActiveTab] = useState<"sepay" | "invoices" | "packages">("sepay");
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    toastErrorLoad: isEn ? "Failed to load data from server." : "Không thể kết nối máy chủ để tải dữ liệu.",
+    toastPkgSaveSuccess: isEn ? "Package saved successfully!" : "Đã lưu gói thanh toán thành công!",
+    toastPkgSaveError: isEn ? "Error saving payment package." : "Lỗi lưu gói thanh toán.",
+    toastConnError: isEn ? "Connection error." : "Lỗi kết nối mạng.",
+    toastPkgDeleteConfirm: (name: string) => isEn ? `Are you sure you want to delete payment package '${name}'?` : `Bạn có chắc chắn muốn xóa gói thanh toán '${name}' không?`,
+    toastPkgDeleteSuccess: (name: string) => isEn ? `Deleted package '${name}' successfully!` : `Đã xóa gói '${name}' thành công!`,
+    toastPkgDeleteError: isEn ? "Failed to delete package." : "Lỗi xóa gói cước.",
+    toastPkgToggleSuccess: (active: boolean) => isEn ? `Successfully ${active ? "activated" : "deactivated"} package!` : `Đã ${active ? "kích hoạt" : "tắt kích hoạt"} gói cước thành công!`,
+    toastPkgToggleError: isEn ? "Error toggling package state." : "Lỗi đổi trạng thái gói cước.",
+    toastInvFillFields: isEn ? "Please fill in all invoice fields." : "Vui lòng điền đầy đủ thông tin hóa đơn.",
+    toastInvCreateSuccess: (id: string, name: string) => isEn ? `Successfully created invoice ${id} for ${name}!` : `Tạo thành công hóa đơn ${id} cho ${name}!`,
+    toastInvCreateError: isEn ? "Error creating invoice." : "Lỗi tạo hóa đơn.",
+    toastInvApproveConfirm: (id: string, pkg: string, name: string) => isEn
+      ? `Confirm manual payment approval for invoice ${id} (${pkg}) of ${name}?`
+      : `Xác nhận duyệt thanh toán thủ công cho hóa đơn ${id} (${pkg}) của ${name}?`,
+    toastInvApproveSuccess: isEn ? "Approved invoice successfully!" : "Duyệt hóa đơn thành công!",
+    toastInvApproveError: isEn ? "Error approving invoice." : "Lỗi duyệt hóa đơn.",
+    toastInvCancelConfirm: (id: string) => isEn ? `Cancel invoice ${id}?` : `Hủy bỏ hóa đơn ${id}?`,
+    toastInvCancelSuccess: (id: string) => isEn ? `Cancelled invoice ${id} successfully!` : `Đã hủy hóa đơn ${id} thành công!`,
+    toastInvCancelError: isEn ? "Error cancelling invoice." : "Lỗi hủy hóa đơn.",
+    toastSimFillFields: isEn ? "Please enter amount and transfer content." : "Vui lòng nhập số tiền và nội dung chuyển khoản.",
+    toastSimAutoMatch: (id: string, msg: string) => isEn
+      ? `Simulation successful: Auto-match complete! Invoice ${id} paid. ${msg}`
+      : `Mô phỏng thành công: Khớp tự động hoàn tất! Hóa đơn ${id} đã thanh toán. ${msg}`,
+    toastSimNoMatch: isEn
+      ? "Simulation successful: No auto-match. Transaction saved for manual review."
+      : "Mô phỏng thành công: Không khớp tự động. Giao dịch đã được lưu và chuyển sang trạng thái chờ đối soát thủ công.",
+    toastSimError: isEn ? "Error simulating gateway transaction." : "Lỗi mô phỏng cổng thanh toán.",
+    toastMatchSuccess: (id: string, msg: string) => isEn
+      ? `Matched & approved successfully! Linked transaction with invoice ${id}. ${msg}`
+      : `Đối soát & duyệt thành công! Giao dịch được liên kết thành công với hóa đơn ${id}. ${msg}`,
+    toastMatchError: isEn ? "Error matching transaction." : "Lỗi đối soát.",
+    toastDataRefreshed: isEn ? "Data reloaded successfully." : "Đã tải lại dữ liệu mới nhất.",
+
+    // KPIs
+    kpiTotalRevenue: isEn ? "Total Revenue" : "Tổng doanh thu",
+    kpiPaidInvoices: isEn ? "Paid Invoices" : "Hóa đơn đã thu",
+    kpiPendingInvoices: isEn ? "Pending Invoices" : "Hóa đơn chờ duyệt",
+    kpiNeedsMatch: isEn ? "Needs Matching" : "Cần đối soát",
+
+    // Tabs
+    tabSepay: isEn ? "Sepay Transactions" : "Giao dịch Sepay",
+    tabInvoices: isEn ? "Invoices" : "Hóa đơn",
+    tabPackages: isEn ? "Learning Packages" : "Gói cước học tập",
+
+    // Titles
+    titleSepay: isEn ? "Sepay Transaction History" : "Lịch sử giao dịch Sepay",
+    titleInvoices: isEn ? "Invoice & Enrollment List" : "Danh sách Hóa đơn & Đăng ký",
+    titlePackages: isEn ? "IELTS Study Packages" : "Gói cước học tập IELTS",
+
+    // Placeholders & Searches
+    searchSepayPlaceholder: isEn ? "Search transaction code, content, bank..." : "Tìm mã GD, nội dung, bank...",
+    searchInvoicesPlaceholder: isEn ? "Search invoice ID, email, student name..." : "Tìm mã hóa đơn, email, học viên...",
+    statusAll: isEn ? "All statuses" : "Tất cả trạng thái",
+    statusMatched: isEn ? "Matched Successfully" : "Khớp thành công",
+    statusUnmatched: isEn ? "Unmatched (Manual)" : "Chưa khớp (Duyệt tay)",
+    statusPending: isEn ? "Pending Review / Payment" : "Chờ xử lý / thanh toán",
+    statusPaid: isEn ? "Paid" : "Đã thanh toán",
+    statusCancelled: isEn ? "Cancelled" : "Đã hủy",
+
+    // Actions button
+    btnSimulate: isEn ? "Simulate Sepay GD" : "Giả lập GD Sepay",
+    btnCreateManualInvoice: isEn ? "Create Manual Invoice" : "Tạo Hóa đơn tay",
+    btnAddNewPackage: isEn ? "Add New Package" : "Thêm gói mới",
+
+    // Table Columns & UI Elements
+    colSystemTxId: isEn ? "System Tx ID" : "Mã GD Hệ thống",
+    colTxDate: isEn ? "Transaction Date" : "Ngày GD",
+    colAmount: isEn ? "Amount" : "Số tiền chuyển",
+    colTransferContent: isEn ? "Transfer Content" : "Nội dung chuyển khoản",
+    colSenderBank: isEn ? "Sender & Bank" : "Người gửi & Ngân hàng",
+    colStatus: isEn ? "Status" : "Trạng thái",
+    colMatchAction: isEn ? "Match" : "Đối soát",
+    colActions: isEn ? "Actions" : "Hành động",
+    noTransactionsFound: isEn ? "No matching transactions found." : "Không tìm thấy giao dịch nào phù hợp.",
+    btnManualMatch: isEn ? "Manual Match" : "Đối soát tay",
+
+    // Invoices list
+    colInvoiceId: isEn ? "Invoice ID" : "Mã Hóa Đơn",
+    colStudent: isEn ? "Student" : "Học viên",
+    colPackageName: isEn ? "Package Name" : "Gói cước",
+    colAmountBill: isEn ? "Billed Amount" : "Số tiền",
+    colPaidAt: isEn ? "Paid At" : "Thời gian thanh toán",
+    colPaymentMethod: isEn ? "Payment Method" : "Phương thức",
+    noInvoicesFound: isEn ? "No invoices found." : "Không tìm thấy hóa đơn nào.",
+    btnApprovePayment: isEn ? "Approve Payment" : "Duyệt thanh toán",
+    btnCancelInvoice: isEn ? "Cancel" : "Hủy",
+    methodSepay: isEn ? "Sepay Auto" : "Sepay Tự Động",
+    methodManual: isEn ? "Manual Bank" : "Chuyển khoản tay",
+
+    // Packages list
+    colPackageTitle: isEn ? "Package Title & Duration" : "Tên gói & Thời hạn",
+    colFeatures: isEn ? "Features included" : "Tính năng nổi bật",
+    colPackagePrice: isEn ? "Price" : "Giá tiền",
+    colPkgActions: isEn ? "Toggle / Actions" : "Trạng thái / Thao tác",
+    activeStatus: isEn ? "Active" : "Kích hoạt",
+    inactiveStatus: isEn ? "Inactive" : "Đã tắt",
+    pkgDurationMonths: (m: number) => isEn ? `${m} months` : `${m} tháng`,
+    noFeaturesListed: isEn ? "No specific features listed." : "Chưa có tính năng đặc biệt nào.",
+    noPackagesFound: isEn ? "No learning packages configured." : "Chưa có cấu hình gói học nào.",
+
+    // Pkg Modal
+    modalPkgAddTitle: isEn ? "Create New Study Package" : "Tạo gói thanh toán học tập mới",
+    modalPkgEditTitle: isEn ? "Edit Study Package" : "Chỉnh sửa gói thanh toán",
+    labelPkgName: isEn ? "Package Name" : "Tên gói cước",
+    placeholderPkgName: isEn ? "e.g. 6 Months Premium IELTS" : "VD: Gói IELTS Premium 6 Tháng",
+    labelPkgPrice: isEn ? "Price (VND)" : "Giá tiền (VND)",
+    labelPkgDuration: isEn ? "Duration (Months)" : "Thời hạn (Tháng)",
+    labelPkgDesc: isEn ? "Description" : "Mô tả ngắn gọn",
+    placeholderPkgDesc: isEn ? "Enter package summary..." : "Nhập tóm tắt giới thiệu gói cước...",
+    labelPkgFeatures: isEn ? "Outstanding Features List" : "Danh sách tính năng nổi bật",
+    placeholderPkgFeature: isEn ? "e.g. Access 100+ IELTS Listening tests" : "VD: Học hơn 100 đề thi IELTS Listening",
+    btnAddFeature: isEn ? "Add" : "Thêm",
+    labelPkgStatus: isEn ? "Package Status" : "Trạng thái gói cước",
+    pkgStatusActiveDesc: isEn ? "Allow students to view and register this package" : "Cho phép học viên nhìn thấy và đăng ký gói cước này",
+    btnCancel: isEn ? "Cancel" : "Hủy bỏ",
+    btnSave: isEn ? "Save Configuration" : "Lưu cấu hình",
+
+    // Invoice Modal
+    modalInvTitle: isEn ? "Create Manual Payment Invoice" : "Tạo Hóa đơn Đăng ký Học thủ công",
+    modalInvDesc: isEn
+      ? "Create an invoice for users who transfer manually. Once created, you can approve it to grant permissions."
+      : "Tạo hóa đơn cho học viên chuyển khoản tay hoặc học viên đặc biệt. Sau khi tạo, bạn có thể bấm Duyệt thanh toán để kích hoạt tài khoản học viên.",
+    labelInvEmail: isEn ? "Registration Email" : "Email tài khoản Đăng ký",
+    placeholderInvEmail: isEn ? "e.g. student@gmail.com" : "VD: hocvien@gmail.com",
+    labelInvName: isEn ? "Student Full Name" : "Họ tên Học viên",
+    placeholderInvName: isEn ? "e.g. John Doe" : "VD: Nguyễn Văn A",
+    labelInvPkg: isEn ? "Select Study Package" : "Chọn Gói cước Học tập",
+    selectPkgPlaceholder: isEn ? "-- Select learning package --" : "-- Chọn gói học viên đăng ký --",
+    labelInvAmount: isEn ? "Bill Price (VND)" : "Số tiền thanh toán thực tế (VND)",
+    btnCreate: isEn ? "Create Invoice" : "Tạo hóa đơn",
+
+    // Simulate Modal
+    modalSimTitle: isEn ? "Simulate Sepay Webhook Call" : "Giả lập cổng thanh toán Sepay Webhook",
+    modalSimDesc: isEn
+      ? "Simulate a transfer to bank. Sepay will trigger a webhook to QualiCode API to auto-match using syntax context."
+      : "Giả lập một giao dịch chuyển khoản thực tế qua tài khoản ngân hàng. Sepay sẽ gọi Webhook về API QualiCode để tự động kiểm tra cú pháp và kích hoạt tự động.",
+    labelSimAmount: isEn ? "Transfer Amount (VND)" : "Số tiền chuyển khoản (VND)",
+    placeholderSimAmount: isEn ? "e.g. 500000" : "VD: 500000",
+    labelSimContent: isEn ? "Transfer Message (Content)" : "Nội dung chuyển khoản (Cú pháp)",
+    placeholderSimContent: isEn ? "e.g. QLC INVOICE123" : "VD: QLC MAHOADON",
+    labelSimSenderAcc: isEn ? "Sender Bank Account Number" : "Số tài khoản người gửi (Giả lập)",
+    labelSimSenderBank: isEn ? "Sender Bank Name" : "Ngân hàng người gửi (Giả lập)",
+    btnSimulateAction: isEn ? "Simulate Webhook Trigger" : "Kích hoạt Webhook giả lập",
+
+    // Match Modal
+    modalMatchTitle: isEn ? "Manual Transaction Reconciliation" : "Đối soát giao dịch chuyển khoản thủ công",
+    modalMatchDesc: (id: string, amount: number, content: string) => isEn
+      ? `Link transaction ${id} (Amount: ${amount.toLocaleString()} VND, Msg: "${content}") to an active unpaid invoice.`
+      : `Liên kết giao dịch ${id} (Số tiền: ${amount.toLocaleString()} đ, Cú pháp: "${content}") với một hóa đơn đang chờ thanh toán trên hệ thống.`,
+    labelMatchInvoice: isEn ? "Select invoice to apply" : "Chọn hóa đơn khớp lệnh thanh toán",
+    selectInvoicePlaceholder: isEn ? "-- Select pending invoice --" : "-- Chọn hóa đơn đang chờ thanh toán --",
+    btnMatchAction: isEn ? "Confirm Reconciliation & Approve" : "Xác nhận đối soát & Duyệt học viên",
+  };
+
+  const [activeTab, setActiveTab] = useState<"sepay" | "invoices" | "packages">("invoices");
+  const [showRevenueChart, setShowRevenueChart] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<"7days" | "30days">("7days");
+  const [hoveredPoint, setHoveredPoint] = useState<{
+    x: number;
+    y: number;
+    amount: number;
+    dateLabel: string;
+    fullDate: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error"; subMessage?: string } | null>(null);
 
@@ -144,11 +313,11 @@ export default function PaymentManagementPage() {
       if (txRes.ok) setSepayTransactions(txData.transactions || []);
     } catch (error) {
       console.error(error);
-      showToast("Không thể kết nối máy chủ để tải dữ liệu.", "error");
+      showToast(t.toastErrorLoad, "error");
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, t.toastErrorLoad]);
 
   useEffect(() => {
     fetchData();
@@ -201,7 +370,7 @@ export default function PaymentManagementPage() {
   const handleSavePackage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pkgName || !pkgPrice) {
-      showToast("Vui lòng nhập tên gói và giá tiền.", "error");
+      showToast(isEn ? "Please enter package name and price." : "Vui lòng nhập tên gói và giá tiền.", "error");
       return;
     }
 
@@ -228,25 +397,21 @@ export default function PaymentManagementPage() {
 
       const data = await response.json();
       if (response.ok) {
-        showToast(
-          pkgModalMode === "add" 
-            ? "Đã tạo gói thanh toán thành công!" 
-            : "Đã cập nhật gói thanh toán thành công!"
-        );
+        showToast(t.toastPkgSaveSuccess);
         setShowPkgModal(false);
         fetchData();
       } else {
-        showToast(data.message || "Lỗi lưu gói thanh toán.", "error");
+        showToast(data.message || t.toastPkgSaveError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối mạng.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeletePackage = async (pkg: PaymentPackage) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa gói thanh toán '${pkg.name}' không?`)) return;
+    if (!confirm(t.toastPkgDeleteConfirm(pkg.name))) return;
     
     setActionLoading(true);
     try {
@@ -256,13 +421,13 @@ export default function PaymentManagementPage() {
 
       const data = await response.json();
       if (response.ok) {
-        showToast(`Đã xóa gói '${pkg.name}' thành công!`);
+        showToast(t.toastPkgDeleteSuccess(pkg.name));
         fetchData();
       } else {
-        showToast(data.message || "Lỗi xóa gói cước.", "error");
+        showToast(data.message || t.toastPkgDeleteError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối mạng.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
@@ -280,13 +445,13 @@ export default function PaymentManagementPage() {
       });
 
       if (response.ok) {
-        showToast(`Đã ${!pkg.isActive ? "kích hoạt" : "tắt kích hoạt"} gói cước thành công!`);
+        showToast(t.toastPkgToggleSuccess(!pkg.isActive));
         fetchData();
       } else {
-        showToast("Lỗi đổi trạng thái gói cước.", "error");
+        showToast(t.toastPkgToggleError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối.", "error");
+      showToast(t.toastConnError, "error");
     }
   };
 
@@ -302,7 +467,7 @@ export default function PaymentManagementPage() {
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!invUserEmail || !invUserName || !invPkgId || !invAmount) {
-      showToast("Vui lòng điền đầy đủ thông tin hóa đơn.", "error");
+      showToast(t.toastInvFillFields, "error");
       return;
     }
 
@@ -325,7 +490,7 @@ export default function PaymentManagementPage() {
 
       const data = await response.json();
       if (response.ok) {
-        showToast(`Tạo thành công hóa đơn ${data.invoice.id} cho ${invUserName}!`);
+        showToast(t.toastInvCreateSuccess(data.invoice.id, invUserName));
         setShowInvoiceModal(false);
         // Clear Form
         setInvUserEmail("");
@@ -334,17 +499,17 @@ export default function PaymentManagementPage() {
         setInvAmount("");
         fetchData();
       } else {
-        showToast(data.message || "Lỗi tạo hóa đơn.", "error");
+        showToast(data.message || t.toastInvCreateError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối mạng.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleApproveInvoiceDirectly = async (invoice: PaymentInvoice) => {
-    if (!confirm(`Xác nhận duyệt thanh toán thủ công cho hóa đơn ${invoice.id} (${invoice.packageName}) của ${invoice.userName}?`)) return;
+    if (!confirm(t.toastInvApproveConfirm(invoice.id, invoice.packageName, invoice.userName))) return;
 
     setActionLoading(true);
     try {
@@ -360,23 +525,23 @@ export default function PaymentManagementPage() {
       const data = await response.json();
       if (response.ok) {
         showToast(
-          "Duyệt hóa đơn thành công!",
+          t.toastInvApproveSuccess,
           "success",
           data.upgradeMessage
         );
         fetchData();
       } else {
-        showToast(data.message || "Lỗi duyệt hóa đơn.", "error");
+        showToast(data.message || t.toastInvApproveError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối mạng.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleCancelInvoice = async (invoice: PaymentInvoice) => {
-    if (!confirm(`Hủy bỏ hóa đơn ${invoice.id}?`)) return;
+    if (!confirm(t.toastInvCancelConfirm(invoice.id))) return;
 
     setActionLoading(true);
     try {
@@ -389,13 +554,13 @@ export default function PaymentManagementPage() {
       });
 
       if (response.ok) {
-        showToast(`Đã hủy hóa đơn ${invoice.id} thành công!`);
+        showToast(t.toastInvCancelSuccess(invoice.id));
         fetchData();
       } else {
-        showToast("Lỗi hủy hóa đơn.", "error");
+        showToast(t.toastInvCancelError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
@@ -405,7 +570,7 @@ export default function PaymentManagementPage() {
   const handleSimulateWebhook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!simAmount || !simContent) {
-      showToast("Vui lòng nhập số tiền và nội dung chuyển khoản.", "error");
+      showToast(t.toastSimFillFields, "error");
       return;
     }
 
@@ -426,15 +591,11 @@ export default function PaymentManagementPage() {
       if (response.ok) {
         if (data.autoMatched) {
           showToast(
-            "Mô phỏng thành công: Khớp tự động hoàn tất!",
-            "success",
-            `Hóa đơn ${data.matchedInvoice.id} đã thanh toán. ${data.upgradeMessage}`
+            t.toastSimAutoMatch(data.matchedInvoice.id, data.upgradeMessage)
           );
         } else {
           showToast(
-            "Mô phỏng thành công: Không khớp tự động.",
-            "success",
-            "Giao dịch đã được lưu và chuyển sang trạng thái chờ đối soát thủ công."
+            t.toastSimNoMatch
           );
         }
         setShowSimulateModal(false);
@@ -442,10 +603,10 @@ export default function PaymentManagementPage() {
         setSimContent("");
         fetchData();
       } else {
-        showToast(data.message || "Lỗi mô phỏng cổng thanh toán.", "error");
+        showToast(data.message || t.toastSimError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
@@ -476,19 +637,17 @@ export default function PaymentManagementPage() {
       const data = await response.json();
       if (response.ok) {
         showToast(
-          "Đối soát & duyệt thành công!",
-          "success",
-          `Giao dịch được liên kết thành công với hóa đơn ${matchInvoiceId}. ${data.upgradeMessage}`
+          t.toastMatchSuccess(matchInvoiceId, data.upgradeMessage)
         );
         setShowMatchModal(false);
         setSelectedTx(null);
         setMatchInvoiceId("");
         fetchData();
       } else {
-        showToast(data.message || "Lỗi đối soát.", "error");
+        showToast(data.message || t.toastMatchError, "error");
       }
     } catch (error) {
-      showToast("Lỗi kết nối.", "error");
+      showToast(t.toastConnError, "error");
     } finally {
       setActionLoading(false);
     }
@@ -526,36 +685,74 @@ export default function PaymentManagementPage() {
     });
   };
 
-  return (
-    <div className="space-y-8 relative pb-16">
-      {/* Toast Notification Custom */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-1 bg-white px-5 py-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15)] border-l-4 border-l-[#3B5C37] border border-slate-100 animate-slide-in max-w-md">
-          <div className="flex items-center gap-3">
-            {toast.type === "success" ? (
-              <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-6 h-6 text-rose-500 flex-shrink-0" />
-            )}
-            <span className="text-sm font-bold text-slate-800 leading-tight">{toast.message}</span>
-          </div>
-          {toast.subMessage && (
-            <p className="text-[11px] text-slate-400 font-semibold pl-9 mt-0.5 leading-relaxed">{toast.subMessage}</p>
-          )}
-        </div>
-      )}
+  // Generate chart data dynamically
+  const chartData = (() => {
+    const daysCount = chartPeriod === "7days" ? 7 : 30;
+    const list = [];
+    const now = new Date();
 
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toLocaleDateString(isEn ? "en-US" : "vi-VN", { month: "2-digit", day: "2-digit" });
+      const fullDateStr = d.toDateString();
+      
+      // Sum revenue for this day
+      const dailySum = invoices
+        .filter(inv => {
+          if (inv.status !== "PAID") return false;
+          const dateToUse = inv.paidAt ? new Date(inv.paidAt) : new Date(inv.createdAt);
+          return dateToUse.toDateString() === fullDateStr;
+        })
+        .reduce((sum, item) => sum + item.amount, 0);
+
+      list.push({
+        dateLabel: dateStr,
+        amount: dailySum,
+        fullDate: d.toLocaleDateString(isEn ? "en-US" : "vi-VN", { year: "numeric", month: "long", day: "numeric" })
+      });
+    }
+    return list;
+  })();
+
+  const maxAmount = Math.max(...chartData.map(d => d.amount), 100000);
+  
+  const points = chartData.map((d, index) => {
+    const x = 50 + (index * 520) / (chartData.length - 1);
+    const y = 200 - (d.amount / maxAmount) * 160;
+    return { x, y, data: d };
+  });
+
+  let pathD = "";
+  if (points.length > 0) {
+    pathD = "M " + points[0].x + " " + points[0].y;
+    for (let i = 1; i < points.length; i++) {
+      pathD += " L " + points[i].x + " " + points[i].y;
+    }
+  }
+
+  const fillD = pathD ? `${pathD} L ${points[points.length - 1].x} 200 L ${points[0].x} 200 Z` : "";
+
+  return (
+    <div className="space-y-8 relative">
       {/* KPI Row */}
-      <section className="grid gap-5 grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-5 grid-cols-1 md:grid-cols-3">
         {/* KPI: Doanh thu */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5 transition-transform duration-200 hover:-translate-y-0.5">
+        <div 
+          onClick={() => setShowRevenueChart(!showRevenueChart)}
+          className={`bg-white p-6 rounded-2xl border shadow-sm flex items-center gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer select-none ${
+            showRevenueChart 
+              ? "border-[#3B5C37] ring-2 ring-[#3B5C37]/10" 
+              : "border-slate-200/80"
+          }`}
+        >
           <div className="w-12 h-12 rounded-xl bg-[#e8ede6] flex items-center justify-center text-[#3B5C37] flex-shrink-0">
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Tổng doanh thu</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiTotalRevenue}</div>
             <div className="text-2xl font-black text-[#0d153a] mt-0.5">
-              {totalRevenue.toLocaleString("vi-VN")} <span className="text-xs font-bold text-slate-500">đ</span>
+              {totalRevenue.toLocaleString(isEn ? "en-US" : "vi-VN")} <span className="text-xs font-bold text-slate-500">{isEn ? "VND" : "đ"}</span>
             </div>
           </div>
         </div>
@@ -566,7 +763,7 @@ export default function PaymentManagementPage() {
             <CheckSquare className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Hóa đơn đã thu</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiPaidInvoices}</div>
             <div className="text-2xl font-black text-emerald-600 mt-0.5">{paidInvoicesCount}</div>
           </div>
         </div>
@@ -577,40 +774,193 @@ export default function PaymentManagementPage() {
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Hóa đơn chờ duyệt</div>
+            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">{t.kpiPendingInvoices}</div>
             <div className="text-2xl font-black text-amber-600 mt-0.5">{pendingInvoicesCount}</div>
-          </div>
-        </div>
-
-        {/* KPI: Giao dịch cần đối khớp */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5 transition-transform duration-200 hover:-translate-y-0.5">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 flex-shrink-0">
-            <ArrowRightLeft className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Cần đối soát</div>
-            <div className="text-2xl font-black text-rose-500 mt-0.5">{unmatchedTxCount}</div>
           </div>
         </div>
       </section>
 
+      {/* Revenue Chart Section */}
+      {showRevenueChart && (
+        <section className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm relative overflow-hidden animate-fade-in">
+          {/* Chart Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h3 className="text-base font-black text-[#0d153a] flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-500" />
+                <span>{isEn ? "Incoming Revenue Chart" : "Biểu đồ dòng tiền doanh thu"}</span>
+              </h3>
+              <p className="text-xs text-slate-400 font-semibold mt-1">
+                {isEn ? "Visual statistics of paid invoices over time" : "Thống kê trực quan các hóa đơn đã thanh toán thành công"}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Period Buttons */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setChartPeriod("7days")}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                    chartPeriod === "7days"
+                      ? "bg-white text-[#0d153a] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {isEn ? "7 Days" : "7 ngày qua"}
+                </button>
+                <button
+                  onClick={() => setChartPeriod("30days")}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                    chartPeriod === "30days"
+                      ? "bg-white text-[#0d153a] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {isEn ? "30 Days" : "30 ngày qua"}
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowRevenueChart(false)}
+                className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Chart Summary Row */}
+          <div className="grid grid-cols-3 gap-4 mb-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+            <div className="text-center sm:text-left">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Total Period" : "Tổng doanh thu kỳ"}</span>
+              <span className="text-lg font-black text-[#0d153a] mt-1 block">
+                {chartData.reduce((sum, item) => sum + item.amount, 0).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+            <div className="text-center sm:text-left border-l border-slate-200 pl-4">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Daily Average" : "Doanh thu trung bình"}</span>
+              <span className="text-lg font-black text-[#3b5c37] mt-1 block">
+                {Math.round(chartData.reduce((sum, item) => sum + item.amount, 0) / chartData.length).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+            <div className="text-center sm:text-left border-l border-slate-200 pl-4">
+              <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{isEn ? "Peak Day" : "Ngày cao điểm nhất"}</span>
+              <span className="text-lg font-black text-emerald-600 mt-1 block">
+                {Math.max(...chartData.map(d => d.amount)).toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+              </span>
+            </div>
+          </div>
+
+          {/* SVG Area Chart */}
+          <div className="relative w-full overflow-hidden">
+            <svg viewBox="0 0 600 240" className="w-full h-auto overflow-visible">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b5c37" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#3b5c37" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid Lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                const y = 40 + ratio * 160;
+                const valueLabel = maxAmount - ratio * maxAmount;
+                return (
+                  <g key={i} className="opacity-45">
+                    <line x1="50" y1={y} x2="570" y2={y} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 4" />
+                    <text x="40" y={y + 4} textAnchor="end" className="text-[9px] fill-slate-400 font-extrabold font-mono">
+                      {valueLabel >= 1000000 
+                        ? `${(valueLabel / 1000000).toFixed(1)}M` 
+                        : valueLabel >= 1000 
+                          ? `${Math.round(valueLabel / 1000)}k` 
+                          : valueLabel}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Area Path */}
+              {fillD && <path d={fillD} fill="url(#chartGradient)" />}
+
+              {/* Line Path */}
+              {pathD && (
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke="#3b5c37"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Data points */}
+              {points.map((pt, idx) => (
+                <g key={idx}>
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={hoveredPoint?.x === pt.x ? "6" : "4"}
+                    fill={hoveredPoint?.x === pt.x ? "#ffffff" : "#3b5c37"}
+                    stroke="#3b5c37"
+                    strokeWidth="2.5"
+                    className="transition-all duration-150"
+                  />
+                  {/* Hover Target Circle */}
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r="16"
+                    fill="transparent"
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredPoint({
+                      x: pt.x,
+                      y: pt.y,
+                      amount: pt.data.amount,
+                      dateLabel: pt.data.dateLabel,
+                      fullDate: pt.data.fullDate
+                    })}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  />
+                </g>
+              ))}
+
+              {/* X Axis Labels */}
+              {chartData.map((d, index) => {
+                const showLabel = chartPeriod === "7days" || index % 4 === 0 || index === chartData.length - 1;
+                if (!showLabel) return null;
+                const x = 50 + (index * 520) / (chartData.length - 1);
+                return (
+                  <text key={index} x={x} y="220" textAnchor="middle" className="text-[9px] fill-slate-400 font-extrabold font-mono">
+                    {d.dateLabel}
+                  </text>
+                );
+              })}
+            </svg>
+
+            {/* Custom Tooltip */}
+            {hoveredPoint && (
+              <div
+                className="absolute bg-slate-900/95 backdrop-blur-sm text-white text-[10px] p-2.5 rounded-xl shadow-lg border border-slate-800 pointer-events-none transition-all duration-150 z-10 font-bold"
+                style={{
+                  left: `${(hoveredPoint.x / 600) * 100}%`,
+                  top: `${(hoveredPoint.y / 240) * 100 - 15}%`,
+                  transform: 'translate(-50%, -100%)'
+                }}
+              >
+                <div className="text-slate-400 font-semibold">{hoveredPoint.fullDate}</div>
+                <div className="text-emerald-400 text-xs font-black mt-1">
+                  {hoveredPoint.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} đ
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 gap-1 bg-white p-1.5 rounded-2xl border max-w-md">
-        <button
-          onClick={() => {
-            setActiveTab("sepay");
-            setSearchQuery("");
-            setStatusFilter("ALL");
-          }}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all ${
-            activeTab === "sepay"
-              ? "bg-[#0d153a] text-white shadow-sm"
-              : "text-slate-500 hover:text-[#0d153a] hover:bg-slate-50"
-          }`}
-        >
-          <Coins className="w-4 h-4" />
-          <span>Giao dịch Sepay</span>
-        </button>
+      <div className="flex border-b border-slate-200 gap-1 bg-white p-1.5 rounded-2xl border max-w-xs">
         <button
           onClick={() => {
             setActiveTab("invoices");
@@ -624,7 +974,7 @@ export default function PaymentManagementPage() {
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Hóa đơn</span>
+          <span>{t.tabInvoices}</span>
         </button>
         <button
           onClick={() => {
@@ -639,7 +989,7 @@ export default function PaymentManagementPage() {
           }`}
         >
           <Layers className="w-4 h-4" />
-          <span>Gói cước học tập</span>
+          <span>{t.tabPackages}</span>
         </button>
       </div>
 
@@ -650,9 +1000,9 @@ export default function PaymentManagementPage() {
         <div className="p-6 border-b border-slate-200/80 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center bg-slate-50/50">
           <h2 className="text-base font-black text-[#0d153a] flex items-center gap-2">
             <span>
-              {activeTab === "sepay" && "Lịch sử giao dịch Sepay"}
-              {activeTab === "invoices" && "Danh sách Hóa đơn & Đăng ký"}
-              {activeTab === "packages" && "Gói cước học tập IELTS"}
+              {activeTab === "sepay" && t.titleSepay}
+              {activeTab === "invoices" && t.titleInvoices}
+              {activeTab === "packages" && t.titlePackages}
             </span>
             {isLoading && <Loader2 className="w-4 h-4 text-[#3B5C37] animate-spin" />}
           </h2>
@@ -666,7 +1016,7 @@ export default function PaymentManagementPage() {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     type="text"
-                    placeholder={activeTab === "sepay" ? "Tìm mã GD, nội dung, bank..." : "Tìm mã hóa đơn, email, học viên..."}
+                    placeholder={activeTab === "sepay" ? t.searchSepayPlaceholder : t.searchInvoicesPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-white pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] focus:ring-1 focus:ring-[#3B5C37] transition-all text-slate-700 font-medium"
@@ -679,18 +1029,18 @@ export default function PaymentManagementPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="bg-white px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-600 font-bold"
                 >
-                  <option value="ALL">Tất cả trạng thái</option>
+                  <option value="ALL">{t.statusAll}</option>
                   {activeTab === "sepay" ? (
                     <>
-                      <option value="MATCHED">Khớp thành công</option>
-                      <option value="UNMATCHED">Chưa khớp (Duyệt tay)</option>
-                      <option value="PENDING">Chờ xử lý</option>
+                      <option value="MATCHED">{t.statusMatched}</option>
+                      <option value="UNMATCHED">{t.statusUnmatched}</option>
+                      <option value="PENDING">{t.statusPending}</option>
                     </>
                   ) : (
                     <>
-                      <option value="PENDING">Chờ thanh toán</option>
-                      <option value="PAID">Đã thanh toán</option>
-                      <option value="CANCELLED">Đã hủy</option>
+                      <option value="PENDING">{t.statusPending}</option>
+                      <option value="PAID">{t.statusPaid}</option>
+                      <option value="CANCELLED">{t.statusCancelled}</option>
                     </>
                   )}
                 </select>
@@ -701,10 +1051,10 @@ export default function PaymentManagementPage() {
             <button
               onClick={() => {
                 fetchData();
-                showToast("Đã tải lại dữ liệu mới nhất.");
+                showToast(t.toastDataRefreshed);
               }}
               className="p-2 text-slate-500 hover:text-[#3B5C37] hover:bg-slate-100 rounded-xl transition-all"
-              title="Tải lại dữ liệu"
+              title={isEn ? "Reload data" : "Tải lại dữ liệu"}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -713,130 +1063,36 @@ export default function PaymentManagementPage() {
             {activeTab === "sepay" && (
               <button
                 onClick={() => setShowSimulateModal(true)}
-                className="bg-emerald-600 hover:bg-[#2f4a2b]merald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5" />
-                <span>Giả lập GD Sepay</span>
+                <span>{t.btnSimulate}</span>
               </button>
             )}
 
             {activeTab === "invoices" && (
               <button
                 onClick={() => setShowInvoiceModal(true)}
-                className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5"
+                className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Tạo Hóa đơn tay</span>
+                <span>{t.btnCreateManualInvoice}</span>
               </button>
             )}
 
             {activeTab === "packages" && (
               <button
                 onClick={openAddPkgModal}
-                className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5"
+                className="bg-[#3B5C37] hover:bg-[#2f4a2b] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Thêm gói mới</span>
+                <span>{t.btnAddNewPackage}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Tab Content: Sepay Transactions */}
-        {activeTab === "sepay" && (
-          <div className="overflow-x-auto">
-            {getFilteredTransactions().length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
-                <AlertCircle className="w-10 h-10 text-slate-300" />
-                <p className="text-xs font-bold">Không tìm thấy giao dịch nào phù hợp.</p>
-              </div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-100">
-                    <th className="px-6 py-4">Mã GD Hệ thống</th>
-                    <th className="px-6 py-4">Ngày GD</th>
-                    <th className="px-6 py-4">Số tiền chuyển</th>
-                    <th className="px-6 py-4">Nội dung chuyển khoản</th>
-                    <th className="px-6 py-4">Người gửi & Ngân hàng</th>
-                    <th className="px-6 py-4 text-center">Trạng thái</th>
-                    <th className="px-6 py-4 text-right">Đối soát</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700 text-xs font-medium">
-                  {getFilteredTransactions().map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono font-bold text-slate-500 whitespace-nowrap">
-                        {tx.id}
-                      </td>
-                      <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                          <span>
-                            {new Date(tx.transactionDate).toLocaleString("vi-VN", {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-extrabold text-[#0d153a] whitespace-nowrap">
-                        {tx.amount.toLocaleString("vi-VN")} đ
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-slate-600 max-w-xs truncate" title={tx.transferContent}>
-                        {tx.transferContent}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="font-bold text-slate-700">{tx.senderAccount}</div>
-                          <div className="text-[10px] text-slate-400 font-bold uppercase">{tx.senderBank} - {tx.bankTransactionId}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        {tx.status === "MATCHED" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 border border-emerald-200 text-emerald-700">
-                            <Check className="w-3 h-3" />
-                            <span>Đã khớp</span>
-                          </span>
-                        )}
-                        {tx.status === "UNMATCHED" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 border border-rose-200 text-rose-700">
-                            <AlertCircle className="w-3 h-3 animate-pulse" />
-                            <span>Chưa khớp</span>
-                          </span>
-                        )}
-                        {tx.status === "PENDING" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 border border-amber-200 text-amber-700">
-                            <span>Chờ xử lý</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {tx.status === "MATCHED" ? (
-                          <span className="text-[11px] text-emerald-600 font-bold block">
-                            Hóa đơn: {tx.matchedInvoiceId}
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => openMatchModal(tx)}
-                            disabled={actionLoading}
-                            className="bg-[#0d153a] hover:bg-[#2f4a2b] hover:text-white border border-[#0d153a]/25 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center gap-1.5 ml-auto"
-                          >
-                            <Sparkles className="w-3 h-3" />
-                            <span>Duyệt tay</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+
 
         {/* Tab Content: Invoices */}
         {activeTab === "invoices" && (
@@ -844,19 +1100,19 @@ export default function PaymentManagementPage() {
             {getFilteredInvoices().length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
                 <AlertCircle className="w-10 h-10 text-slate-300" />
-                <p className="text-xs font-bold">Không tìm thấy hóa đơn nào phù hợp.</p>
+                <p className="text-xs font-bold">{t.noInvoicesFound}</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border-b border-slate-100">
-                    <th className="px-6 py-4">Mã Hóa Đơn</th>
-                    <th className="px-6 py-4">Học Viên Đăng Ký</th>
-                    <th className="px-6 py-4">Gói Cước Mua</th>
-                    <th className="px-6 py-4">Số Tiền Hóa Đơn</th>
-                    <th className="px-6 py-4">Thời Gian Tạo</th>
-                    <th className="px-6 py-4 text-center">Trạng Thái</th>
-                    <th className="px-6 py-4 text-right">Duyệt Đơn</th>
+                    <th className="px-6 py-4">{t.colInvoiceId}</th>
+                    <th className="px-6 py-4">{t.colStudent}</th>
+                    <th className="px-6 py-4">{t.colPackageName}</th>
+                    <th className="px-6 py-4">{t.colAmountBill}</th>
+                    <th className="px-6 py-4">{isEn ? "Created At" : "Thời gian tạo"}</th>
+                    <th className="px-6 py-4 text-center">{t.colStatus}</th>
+                    <th className="px-6 py-4 text-right">{isEn ? "Actions" : "Duyệt đơn"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700 text-xs font-medium">
@@ -875,13 +1131,13 @@ export default function PaymentManagementPage() {
                         {inv.packageName}
                       </td>
                       <td className="px-6 py-4 font-extrabold text-[#0d153a] whitespace-nowrap">
-                        {inv.amount.toLocaleString("vi-VN")} đ
+                        {inv.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"}
                       </td>
                       <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-300" />
                           <span>
-                            {new Date(inv.createdAt).toLocaleDateString("vi-VN", {
+                            {new Date(inv.createdAt).toLocaleDateString(isEn ? "en-US" : "vi-VN", {
                               year: "numeric",
                               month: "2-digit",
                               day: "2-digit",
@@ -893,16 +1149,16 @@ export default function PaymentManagementPage() {
                         {inv.status === "PAID" ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 border border-emerald-100 text-emerald-600">
                             <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                            <span>Đã thu tiền ({inv.paymentMethod})</span>
+                            <span>{isEn ? "Paid" : "Đã thu tiền"} ({inv.paymentMethod === "SEPAY" ? t.methodSepay : t.methodManual})</span>
                           </span>
                         ) : inv.status === "PENDING" ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 border border-amber-100 text-amber-600">
                             <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-                            <span>Đang chờ</span>
+                            <span>{isEn ? "Pending" : "Đang chờ"}</span>
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 border border-slate-100 text-slate-500">
-                            <span>Đã hủy</span>
+                            <span>{isEn ? "Cancelled" : "Đã hủy"}</span>
                           </span>
                         )}
                       </td>
@@ -912,26 +1168,26 @@ export default function PaymentManagementPage() {
                             <button
                               onClick={() => handleApproveInvoiceDirectly(inv)}
                               disabled={actionLoading}
-                              className="bg-emerald-600 hover:bg-[#2f4a2b]merald-700 text-white p-1.5 rounded-lg transition-all"
-                              title="Duyệt thanh toán"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition-all cursor-pointer"
+                              title={t.btnApprovePayment}
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleCancelInvoice(inv)}
                               disabled={actionLoading}
-                              className="bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 p-1.5 rounded-lg transition-all"
-                              title="Hủy hóa đơn"
+                              className="bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 p-1.5 rounded-lg transition-all cursor-pointer"
+                              title={isEn ? "Cancel Invoice" : "Hủy hóa đơn"}
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : inv.status === "PAID" && inv.paidAt ? (
                           <span className="text-[10px] text-slate-400 font-bold block">
-                            {new Date(inv.paidAt).toLocaleDateString("vi-VN")}
+                            {new Date(inv.paidAt).toLocaleDateString(isEn ? "en-US" : "vi-VN")}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-300 font-bold block">Hủy bỏ</span>
+                          <span className="text-[10px] text-slate-300 font-bold block">{isEn ? "Cancelled" : "Hủy bỏ"}</span>
                         )}
                       </td>
                     </tr>
@@ -948,20 +1204,20 @@ export default function PaymentManagementPage() {
             {packages.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
                 <AlertCircle className="w-10 h-10 text-slate-300" />
-                <p className="text-xs font-bold">Không tìm thấy gói học tập nào.</p>
+                <p className="text-xs font-bold">{t.noPackagesFound}</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {packages.map((pkg) => (
                   <div
-                    key={pkg.id}
-                    className={`bg-white border rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md relative ${
-                      !pkg.isActive ? "border-slate-200 opacity-60" : "border-slate-200/80"
-                    }`}
+                     key={pkg.id}
+                     className={`bg-white border rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md relative ${
+                       !pkg.isActive ? "border-slate-200 opacity-60" : "border-slate-200/80"
+                     }`}
                   >
                     {!pkg.isActive && (
                       <span className="absolute top-3 right-3 bg-slate-100 border border-slate-300 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Đang tắt
+                        {t.inactiveStatus}
                       </span>
                     )}
                     
@@ -970,10 +1226,10 @@ export default function PaymentManagementPage() {
                       <h3 className="text-base font-extrabold text-[#0d153a]">{pkg.name}</h3>
                       <div className="mt-3 flex items-baseline">
                         <span className="text-2xl font-black text-[#3B5C37]">
-                          {pkg.price.toLocaleString("vi-VN")} đ
+                          {pkg.price.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"}
                         </span>
                         <span className="text-slate-400 text-xs font-bold ml-1.5">
-                          / {pkg.durationMonths} Tháng
+                          / {t.pkgDurationMonths(pkg.durationMonths)}
                         </span>
                       </div>
                       <p className="text-slate-400 text-[11px] leading-relaxed mt-2.5 font-semibold">
@@ -983,7 +1239,7 @@ export default function PaymentManagementPage() {
 
                     {/* Features List */}
                     <div className="p-6 flex-1 space-y-2">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tính năng đi kèm:</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t.colFeatures}:</div>
                       <ul className="space-y-2">
                         {pkg.features.map((feature, i) => (
                           <li key={i} className="flex items-start gap-2 text-xs text-slate-600 font-semibold leading-relaxed">
@@ -1002,17 +1258,17 @@ export default function PaymentManagementPage() {
                         className={`flex-1 py-2 text-center rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                           pkg.isActive 
                             ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100" 
-                            : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-[#2f4a2b]merald-100"
+                            : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
                         }`}
                       >
-                        {pkg.isActive ? "Tắt kích hoạt" : "Kích hoạt"}
+                        {pkg.isActive ? (isEn ? "Deactivate" : "Tắt kích hoạt") : (isEn ? "Activate" : "Kích hoạt")}
                       </button>
 
                       {/* Edit Button */}
                       <button
                         onClick={() => openEditPkgModal(pkg)}
-                        className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors"
-                        title="Sửa gói cước"
+                        className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors cursor-pointer"
+                        title={isEn ? "Edit Package" : "Sửa gói cước"}
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -1020,8 +1276,8 @@ export default function PaymentManagementPage() {
                       {/* Delete Button */}
                       <button
                         onClick={() => handleDeletePackage(pkg)}
-                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition-colors"
-                        title="Xóa gói cước"
+                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition-colors cursor-pointer"
+                        title={isEn ? "Delete Package" : "Xóa gói cước"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1041,7 +1297,7 @@ export default function PaymentManagementPage() {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <h3 className="font-extrabold text-[#0d153a] text-base">
-                {pkgModalMode === "add" ? "Thêm gói cước học tập mới" : "Chỉnh sửa gói cước"}
+                {pkgModalMode === "add" ? t.modalPkgAddTitle : t.modalPkgEditTitle}
               </h3>
               <button
                 onClick={() => setShowPkgModal(false)}
@@ -1055,11 +1311,11 @@ export default function PaymentManagementPage() {
             <form onSubmit={handleSavePackage} className="p-6 space-y-4">
               {/* Package Name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Tên gói cước</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelPkgName}</label>
                 <input
                   type="text"
                   required
-                  placeholder="IELTS VIP 3 Tháng..."
+                  placeholder={t.placeholderPkgName}
                   value={pkgName}
                   onChange={(e) => setPkgName(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
@@ -1069,7 +1325,7 @@ export default function PaymentManagementPage() {
               {/* Price & Duration */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Giá tiền (VNĐ)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelPkgPrice}</label>
                   <input
                     type="number"
                     required
@@ -1080,25 +1336,25 @@ export default function PaymentManagementPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Thời gian (Tháng)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelPkgDuration}</label>
                   <select
                     value={pkgDuration}
                     onChange={(e) => setPkgDuration(e.target.value)}
                     className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 bg-white font-semibold"
                   >
-                    <option value="1">1 Tháng</option>
-                    <option value="3">3 Tháng</option>
-                    <option value="6">6 Tháng</option>
-                    <option value="12">12 Tháng</option>
+                    <option value="1">1 {isEn ? "Month" : "Tháng"}</option>
+                    <option value="3">3 {isEn ? "Months" : "Tháng"}</option>
+                    <option value="6">6 {isEn ? "Months" : "Tháng"}</option>
+                    <option value="12">12 {isEn ? "Months" : "Tháng"}</option>
                   </select>
                 </div>
               </div>
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Mô tả tóm tắt</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelPkgDesc}</label>
                 <textarea
-                  placeholder="Nhập mô tả ngắn gọn về đối tượng mục tiêu..."
+                  placeholder={t.placeholderPkgDesc}
                   value={pkgDescription}
                   onChange={(e) => setPkgDescription(e.target.value)}
                   rows={2}
@@ -1109,12 +1365,12 @@ export default function PaymentManagementPage() {
               {/* Features Builder */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
-                  Xây dựng tính năng đi kèm ({pkgFeatures.length})
+                  {isEn ? `Build Features List (${pkgFeatures.length})` : `Xây dựng tính năng đi kèm (${pkgFeatures.length})`}
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Nhập tính năng (VD: AI chấm chữa)..."
+                    placeholder={t.placeholderPkgFeature}
                     value={newFeatureText}
                     onChange={(e) => setNewFeatureText(e.target.value)}
                     onKeyDown={(e) => {
@@ -1128,15 +1384,15 @@ export default function PaymentManagementPage() {
                   <button
                     type="button"
                     onClick={handleAddFeature}
-                    className="bg-[#0d153a] hover:bg-[#2f4a2b] text-white px-3 py-2 rounded-xl text-xs font-bold"
+                    className="bg-[#0d153a] hover:bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-bold cursor-pointer"
                   >
-                    Thêm
+                    {t.btnAddFeature}
                   </button>
                 </div>
 
                 <div className="bg-slate-50 p-3 rounded-xl max-h-32 overflow-y-auto space-y-1.5 border border-slate-100">
                   {pkgFeatures.length === 0 ? (
-                    <span className="text-[10px] text-slate-400 italic font-bold">Chưa tạo tính năng nào.</span>
+                    <span className="text-[10px] text-slate-400 italic font-bold">{isEn ? "No features built yet." : "Chưa tạo tính năng nào."}</span>
                   ) : (
                     pkgFeatures.map((feat, index) => (
                       <div key={index} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-100 text-[11px] text-slate-600 font-semibold">
@@ -1144,7 +1400,7 @@ export default function PaymentManagementPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveFeature(index)}
-                          className="text-rose-500 hover:text-rose-700 p-0.5 rounded-md hover:bg-slate-100"
+                          className="text-rose-500 hover:text-rose-700 p-0.5 rounded-md hover:bg-slate-100 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -1164,7 +1420,7 @@ export default function PaymentManagementPage() {
                   className="w-4 h-4 text-[#3B5C37] border-slate-300 rounded focus:ring-[#3B5C37]"
                 />
                 <label htmlFor="pkg_active" className="text-xs font-bold text-slate-600 cursor-pointer">
-                  Mở bán gói cước này ngay (Kích hoạt)
+                  {isEn ? "Activate this package for sale immediately" : "Mở bán gói cước này ngay (Kích hoạt)"}
                 </label>
               </div>
 
@@ -1175,7 +1431,7 @@ export default function PaymentManagementPage() {
                   onClick={() => setShowPkgModal(false)}
                   className="flex-1 py-2.5 text-center border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
@@ -1185,7 +1441,7 @@ export default function PaymentManagementPage() {
                   {actionLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <span>Lưu gói cước</span>
+                    <span>{t.btnSave}</span>
                   )}
                 </button>
               </div>
@@ -1199,7 +1455,7 @@ export default function PaymentManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-zoom-in">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="font-extrabold text-[#0d153a] text-base">Tạo hóa đơn đăng ký thủ công</h3>
+              <h3 className="font-extrabold text-[#0d153a] text-base">{t.modalInvTitle}</h3>
               <button
                 onClick={() => setShowInvoiceModal(false)}
                 className="p-1 hover:bg-slate-200 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
@@ -1209,13 +1465,17 @@ export default function PaymentManagementPage() {
             </div>
 
             <form onSubmit={handleCreateInvoice} className="p-6 space-y-4">
+              <div className="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                {t.modalInvDesc}
+              </div>
+
               {/* User Email */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Email Học viên</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelInvEmail}</label>
                 <input
                   type="email"
                   required
-                  placeholder="student@gmail.com..."
+                  placeholder={t.placeholderInvEmail}
                   value={invUserEmail}
                   onChange={(e) => setInvUserEmail(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
@@ -1224,11 +1484,11 @@ export default function PaymentManagementPage() {
 
               {/* User Name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Họ và tên</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelInvName}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Nguyễn Văn A..."
+                  placeholder={t.placeholderInvName}
                   value={invUserName}
                   onChange={(e) => setInvUserName(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700"
@@ -1237,17 +1497,17 @@ export default function PaymentManagementPage() {
 
               {/* Package Selector */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Chọn gói cước mua</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelInvPkg}</label>
                 <select
                   required
                   value={invPkgId}
                   onChange={(e) => handlePkgChangeForInvoice(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 bg-white font-semibold"
                 >
-                  <option value="">-- Chọn Gói --</option>
+                  <option value="">{t.selectPkgPlaceholder}</option>
                   {packages.filter(p => p.isActive).map(pkg => (
                     <option key={pkg.id} value={pkg.id}>
-                      {pkg.name} ({pkg.price.toLocaleString("vi-VN")} đ)
+                      {pkg.name} ({pkg.price.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"})
                     </option>
                   ))}
                 </select>
@@ -1255,7 +1515,7 @@ export default function PaymentManagementPage() {
 
               {/* Amount */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Số tiền thanh toán (VNĐ)</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelInvAmount}</label>
                 <input
                   type="number"
                   required
@@ -1273,7 +1533,7 @@ export default function PaymentManagementPage() {
                   onClick={() => setShowInvoiceModal(false)}
                   className="flex-1 py-2.5 text-center border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
@@ -1283,7 +1543,7 @@ export default function PaymentManagementPage() {
                   {actionLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <span>Tạo hóa đơn</span>
+                    <span>{t.btnCreate}</span>
                   )}
                 </button>
               </div>
@@ -1299,7 +1559,7 @@ export default function PaymentManagementPage() {
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <h3 className="font-extrabold text-[#0d153a] text-base flex items-center gap-2">
                 <Play className="w-4 h-4 text-emerald-600" />
-                <span>Giả lập giao dịch cổng Sepay Webhook</span>
+                <span>{t.modalSimTitle}</span>
               </h3>
               <button
                 onClick={() => setShowSimulateModal(false)}
@@ -1311,16 +1571,16 @@ export default function PaymentManagementPage() {
 
             <form onSubmit={handleSimulateWebhook} className="p-6 space-y-4">
               <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-[11px] leading-relaxed font-semibold">
-                🔔 Mô phỏng gửi dữ liệu từ ngân hàng về hệ thống cổng thanh toán Sepay. Hãy thử viết nội dung chuyển khoản có chứa mã hóa đơn (VD: <span className="font-mono bg-emerald-100 px-1 rounded text-emerald-800">INV-2849D2</span>) để xem hệ thống **Tự động đối khớp** & nâng cấp tài khoản STUDENT ngay lập tức!
+                {t.modalSimDesc}
               </div>
 
               {/* Amount */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Số tiền chuyển khoản</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelSimAmount}</label>
                 <input
                   type="number"
                   required
-                  placeholder="599000"
+                  placeholder="500000"
                   value={simAmount}
                   onChange={(e) => setSimAmount(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-extrabold"
@@ -1329,11 +1589,11 @@ export default function PaymentManagementPage() {
 
               {/* Content */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Nội dung chuyển khoản (Lưu ý mã INV-XXXXXX)</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelSimContent}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Thanh toan khoa hoc IELTS code INV-2849D2..."
+                  placeholder={t.placeholderSimContent}
                   value={simContent}
                   onChange={(e) => setSimContent(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-bold"
@@ -1343,7 +1603,7 @@ export default function PaymentManagementPage() {
               {/* Sender Details */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Số tài khoản gửi</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelSimSenderAcc}</label>
                   <input
                     type="text"
                     value={simSenderAcc}
@@ -1352,7 +1612,7 @@ export default function PaymentManagementPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Ngân hàng gửi</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">{t.labelSimSenderBank}</label>
                   <input
                     type="text"
                     value={simSenderBank}
@@ -1369,19 +1629,19 @@ export default function PaymentManagementPage() {
                   onClick={() => setShowSimulateModal(false)}
                   className="flex-1 py-2.5 text-center border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-[#2f4a2b]merald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   {actionLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
                       <Play className="w-3.5 h-3.5" />
-                      <span>Gửi giao dịch</span>
+                      <span>{t.btnSimulateAction}</span>
                     </>
                   )}
                 </button>
@@ -1398,7 +1658,7 @@ export default function PaymentManagementPage() {
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <h3 className="font-extrabold text-[#0d153a] text-base flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#3B5C37]" />
-                <span>Đối soát & Duyệt giao dịch thủ công</span>
+                <span>{t.modalMatchTitle}</span>
               </h3>
               <button
                 onClick={() => {
@@ -1413,15 +1673,15 @@ export default function PaymentManagementPage() {
 
             <form onSubmit={handleMatchManual} className="p-6 space-y-4">
               <div className="bg-[#e8ede6]/50 p-4 border border-orange-100 rounded-xl space-y-2">
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Thông tin giao dịch Sepay:</div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{isEn ? "Sepay Transaction Info:" : "Thông tin giao dịch Sepay:"}</div>
                 <div className="grid grid-cols-2 gap-y-1.5 text-xs text-slate-600 font-semibold">
-                  <div>Mã GD Sepay:</div>
+                  <div>{isEn ? "Sepay Tx ID:" : "Mã GD Sepay:"}</div>
                   <div className="font-mono text-slate-800">{selectedTx.id}</div>
-                  <div>Số tiền chuyển:</div>
-                  <div className="font-extrabold text-[#0d153a]">{selectedTx.amount.toLocaleString("vi-VN")} đ</div>
-                  <div>Nội dung CK:</div>
-                  <div className="italic text-slate-800 font-bold">"{selectedTx.transferContent}"</div>
-                  <div>Người gửi:</div>
+                  <div>{isEn ? "Transfer Amount:" : "Số tiền chuyển:"}</div>
+                  <div className="font-extrabold text-[#0d153a]">{selectedTx.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"}</div>
+                  <div>{isEn ? "Transfer Content:" : "Nội dung CK:"}</div>
+                  <div className="italic text-slate-800 font-bold">&quot;{selectedTx.transferContent}&quot;</div>
+                  <div>{isEn ? "Sender Account:" : "Người gửi:"}</div>
                   <div className="text-slate-700">{selectedTx.senderAccount} ({selectedTx.senderBank})</div>
                 </div>
               </div>
@@ -1429,7 +1689,7 @@ export default function PaymentManagementPage() {
               {/* Pending Invoices Dropdown */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
-                  Liên kết với Hóa đơn đang chờ (PENDING)
+                  {t.labelMatchInvoice}
                 </label>
                 <select
                   required
@@ -1437,17 +1697,17 @@ export default function PaymentManagementPage() {
                   onChange={(e) => setMatchInvoiceId(e.target.value)}
                   className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 bg-white font-extrabold"
                 >
-                  <option value="">-- Chọn Hóa Đơn Khớp --</option>
+                  <option value="">{t.selectInvoicePlaceholder}</option>
                   {invoices
                     .filter(i => i.status === "PENDING")
                     .map(inv => (
                       <option key={inv.id} value={inv.id}>
-                        {inv.id} - {inv.userName} ({inv.userEmail}) - {inv.packageName} ({inv.amount.toLocaleString("vi-VN")} đ)
+                        {inv.id} - {inv.userName} ({inv.userEmail}) - {inv.packageName} ({inv.amount.toLocaleString(isEn ? "en-US" : "vi-VN")} {isEn ? "VND" : "đ"})
                       </option>
                     ))}
                 </select>
                 <p className="text-[10px] text-slate-400 font-semibold leading-relaxed mt-1">
-                  💡 Sau khi liên kết, Hóa đơn được duyệt thành `PAID`, giao dịch đổi thành `MATCHED`. Hệ thống tự động nâng cấp vai trò của Học viên có email này lên **STUDENT** trong Supabase Auth và lưu nhật ký.
+                  {t.modalMatchDesc(selectedTx.id, selectedTx.amount, selectedTx.transferContent)}
                 </p>
               </div>
 
@@ -1461,7 +1721,7 @@ export default function PaymentManagementPage() {
                   }}
                   className="flex-1 py-2.5 text-center border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold cursor-pointer"
                 >
-                  Hủy bỏ
+                  {t.btnCancel}
                 </button>
                 <button
                   type="submit"
@@ -1473,7 +1733,7 @@ export default function PaymentManagementPage() {
                   ) : (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>Phê duyệt khớp</span>
+                      <span>{isEn ? "Approve Match" : "Phê duyệt khớp"}</span>
                     </>
                   )}
                 </button>
@@ -1485,3 +1745,5 @@ export default function PaymentManagementPage() {
     </div>
   );
 }
+
+

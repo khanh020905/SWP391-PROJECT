@@ -32,6 +32,9 @@ export function useAuth() {
       setSession(session);
       setUser((session?.user as AuthUser) ?? null);
       setLoading(false);
+    }).catch((err) => {
+      console.warn("Failed to get initial Supabase session in useAuth:", err);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

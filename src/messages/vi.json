@@ -256,5 +256,57 @@
       "admin": "Admin",
       "student": "Học viên"
     }
+  },
+  "admin": {
+    "sidebar": {
+      "brand": "QualiCode Admin",
+      "overview": "Tổng quan",
+      "users": "Quản lý User",
+      "exams": "Quản lý Đề Thi",
+      "payments": "Quản lý Thanh toán",
+      "activityLogs": "Lịch sử hoạt động",
+      "settings": "Cấu hình hệ thống",
+      "viewHome": "Xem trang chủ",
+      "logout": "Đăng xuất Admin",
+      "authenticating": "Đang xác thực quyền Admin..."
+    },
+    "header": {
+      "title": "Trang quản trị",
+      "breadcrumbs": {
+        "overview": "Tổng quan",
+        "users": "Quản lý người dùng",
+        "exams": "Quản lý đề thi",
+        "payments": "Quản lý thanh toán",
+        "activityLogs": "Lịch sử hoạt động",
+        "settings": "Cấu hình hệ thống"
+      },
+      "mainSystem": "Hệ thống chính"
+    }
+  },
+  "writingTranslation": {
+    "title": "Luyện dịch viết IELTS",
+    "subtitle": "Học dịch câu từ tiếng Việt sang tiếng Anh học thuật để nâng cao ngữ pháp & từ vựng.",
+    "check": "Kiểm tra",
+    "next": "Câu tiếp theo",
+    "explanation": "Giải thích chi tiết",
+    "correctAnswer": "Đáp án mẫu",
+    "yourAnswer": "Bài làm của bạn",
+    "vocabulary": "Từ vựng quan trọng",
+    "grammar": "Cấu trúc ngữ pháp",
+    "tips": "Mẹo & Lưu ý",
+    "selectTopic": "Chọn chủ đề luyện dịch",
+    "progress": "Tiến độ hoàn thành",
+    "difficulty": {
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "emptyInput": "Vui lòng nhập bản dịch của bạn trước khi kiểm tra.",
+    "noSentences": "Không có câu dịch nào cho chủ đề này.",
+    "term": "Từ/Cụm từ",
+    "meaning": "Ý nghĩa",
+    "structure": "Cấu trúc",
+    "usage": "Cách dùng",
+    "sidebarTitle": "Danh sách câu hỏi"
   }
 }
