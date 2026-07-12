@@ -54,15 +54,15 @@
     },
     "f9080ad5-09e8-4801-a0c6-d675219cbe57": {
       "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
-      "currentStreak": 1,
+      "currentStreak": 0,
       "longestStreak": 1,
       "lastStudyDate": "2026-06-30",
       "lastStudyTimestamp": "2026-06-30T06:04:46.554Z",
       "dailyGoalMinutes": 30,
-      "todayMinutes": 60,
+      "todayMinutes": 0,
       "lastGoalMetDate": "2026-06-30",
       "history": {
-        "2026-06-30": 60
+        "2026-06-30": 0
       }
     },
     "d2fd367f-1835-46e0-ab1c-358989f40d48": {
@@ -182,6 +182,15 @@
       "type": "STREAK_WARNING",
       "status": "UNREAD",
       "createdAt": "2026-06-25T08:20:01.948Z"
+    },
+    {
+      "id": "notify_amagn60",
+      "userId": "f9080ad5-09e8-4801-a0c6-d675219cbe57",
+      "title": "Lộ trình học mới đã bắt đầu! 🚀",
+      "content": "Chúc mừng bạn! Lộ trình học cá nhân hóa nâng Band từ 5 lên 6.5 đã sẵn sàng. Hãy bắt đầu chinh phục ngay hôm nay!",
+      "type": "SYSTEM",
+      "status": "UNREAD",
+      "createdAt": "2026-07-01T09:02:48.766Z"
     }
   ],
   "vocabularies": [

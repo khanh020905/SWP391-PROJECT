@@ -15,7 +15,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, email, role, isLocked } = body;
+    const { name, email, role, isLocked, packageId } = body;
 
     if (!name || !email || !role) {
       return NextResponse.json(
@@ -48,6 +48,7 @@ export async function PUT(
       name,
       role,
       isLocked: typeof isLocked === "boolean" ? isLocked : (currentUser.user_metadata?.isLocked === true),
+      packageId: packageId === "none" ? null : (packageId || currentUser.user_metadata?.packageId || null)
     };
 
     // Update email and metadata
@@ -60,6 +61,34 @@ export async function PUT(
 
     if (updateError || !user) {
       throw new Error(updateError?.message || "Không thể cập nhật thông tin người dùng.");
+    }
+
+    // Update subscriptions table in Supabase DB
+    if (packageId !== undefined) {
+      if (packageId === "none" || !packageId) {
+        await supabaseAdmin
+          .from("subscriptions")
+          .delete()
+          .eq("user_id", id);
+      } else {
+        const durationDays = packageId === "pkg_1" ? 90 : packageId === "pkg_2" ? 180 : 365;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + durationDays);
+
+        const planName = packageId === "pkg_1" ? "premium" : packageId === "pkg_2" ? "vip" : "master";
+        const { error: subError } = await supabaseAdmin
+          .from("subscriptions")
+          .upsert({
+            user_id: id,
+            plan: planName,
+            status: "active",
+            expires_at: expiresAt.toISOString()
+          }, { onConflict: "user_id" });
+
+        if (subError) {
+          console.error("⚠️ [Supabase DB] Không thể cập nhật subscriptions:", subError.message);
+        }
+      }
     }
 
     // Gửi email thông báo khóa/mở tài khoản nếu trạng thái thay đổi

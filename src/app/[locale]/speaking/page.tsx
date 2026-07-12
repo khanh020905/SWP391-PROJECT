@@ -136,9 +136,13 @@ function bandValue(attempt: SpeakingAttempt) {
   return Number.isFinite(value) ? value : 0;
 }
 
-import { Search, Copy, Check, ChevronDown, ChevronUp, ArrowLeft, Loader2, Sparkles as SparklesIcon, X } from "lucide-react";
+import { Search, Copy, Check, ChevronDown, ChevronUp, ArrowLeft, Loader2, Sparkles as SparklesIcon, X, Lock } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { VipUpgradeModal } from "@/components/VipGate";
 
 export default function SpeakingDashboard() {
+  const { isVip } = useSubscription();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [attempts, setAttempts] = useState<SpeakingAttempt[]>([]);
   const [view, setView] = useState<"select" | "dashboard">("select");
@@ -339,6 +343,12 @@ export default function SpeakingDashboard() {
   };
 
   const openPractice = (exam: any) => {
+    const isFirstExam = exams.length > 0 && exam.id === exams[0].id;
+    const isLocked = !isVip && !isFirstExam;
+    if (isLocked) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setModalExam(exam);
     setShowPracticeModal(true);
   };
@@ -537,7 +547,10 @@ export default function SpeakingDashboard() {
                   >
                     <div className="flex items-center justify-between p-5 gap-4">
                       <div className="flex items-center gap-3">
-                        <span className="font-black text-lg text-black">
+                        <span className="font-black text-lg text-black flex items-center gap-2">
+                          {!isVip && !(exams.length > 0 && exam.id === exams[0].id) && (
+                            <Lock className="w-4 h-4 text-gray-400 shrink-0" />
+                          )}
                           {index + 1}. {exam.part1.topicName}
                         </span>
                         <span className="hidden sm:inline-block rounded bg-[#FAF9F5] border border-black/20 px-2 py-0.5 text-[10px] font-black uppercase text-gray-500">
@@ -646,8 +659,11 @@ export default function SpeakingDashboard() {
                       </div>
 
                       {/* Part 2 Card Content */}
-                      <h3 className="text-base font-black text-black mb-4 leading-snug">
-                        {index + 1}. {exam.part2.cue_card}
+                      <h3 className="text-base font-black text-black mb-4 leading-snug flex items-start gap-2">
+                        {!isVip && !(exams.length > 0 && exam.id === exams[0].id) && (
+                          <Lock className="w-4 h-4 text-gray-400 shrink-0 mt-1" />
+                        )}
+                        <span>{index + 1}. {exam.part2.cue_card}</span>
                       </h3>
                       
                       <div className="border border-black/10 rounded-lg bg-[#FAF9F5]/70 p-4.5 mb-2">
@@ -782,6 +798,7 @@ export default function SpeakingDashboard() {
       )}
 
       <Footer />
+      {showUpgradeModal && <VipUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   );
 }

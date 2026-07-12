@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   Check,
   Zap,
@@ -49,6 +50,7 @@ const getPackageLevel = (id: string | null | undefined): number => {
 };
 
 export default function PricingPage() {
+  const { isVip } = useSubscription();
   const router = useRouter();
   const params = useParams();
   const locale = (params?.locale as string) || "vi";
@@ -399,9 +401,9 @@ export default function PricingPage() {
 
                   {/* Actions */}
                   <div>
-                    {sessionUser && userLevel >= pkgLevel ? (
+                    {isVip || (sessionUser && userLevel >= pkgLevel) ? (
                       <div className="w-full flex items-center justify-center p-3 text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                        ✓ {pkg.id === sessionUser.packageId || (sessionUser.role === "ADMIN" && pkg.id === "pkg_3") ? text.btnFree : (isEn ? "Owned" : "Đã sở hữu")}
+                        ✓ {sessionUser && (pkg.id === sessionUser.packageId || (sessionUser.role === "ADMIN" && pkg.id === "pkg_3")) ? text.btnFree : (isEn ? "Owned" : "Đã sở hữu")}
                       </div>
                     ) : (
                       <button

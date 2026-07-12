@@ -7,6 +7,7 @@ import { Book, Clock, Star, Lock, ChevronRight, ChevronDown, Search, Zap, Gradua
 import type { LucideIcon } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSubscription } from "@/hooks/useSubscription";
 import { cambridgeTests, essentialWordsUnits, tidPracticeTests, workbookUnits, deVolTests, getCambridgeByBook, questionTypes } from "@/data/reading-data";
 import type { CambridgeTest, ReadingUnit } from "@/data/reading-data";
 
@@ -28,7 +29,8 @@ export default function ReadingListPage() {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [showCamLockModal, setShowCamLockModal] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(true); // TEMP: lock disabled
+  const { isVip } = useSubscription();
+  const isAdmin = isVip;
   const daysLeft = Math.max(0, Math.ceil((new Date('2026-06-12').getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   const itemsPerPage = 6;
   const cambridgeByBook = getCambridgeByBook();

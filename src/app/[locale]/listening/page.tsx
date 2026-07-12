@@ -7,11 +7,13 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, BookOpen, BookHeadphones, ArrowRight, ClipboardList, Star, CheckCircle2, Pencil, Clock, ChevronRight, Headphones } from "lucide-react";
+import { Search, BookOpen, BookHeadphones, ArrowRight, ClipboardList, Star, CheckCircle2, Pencil, Clock, ChevronRight, Headphones, Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
 import { Bookshelf2D } from "@/components/listening/Bookshelf2D";
 import { parseListeningGroups, CamVolume, DictationIndexEntry } from "@/lib/listening/dictationParser";
+import { useSubscription } from "@/hooks/useSubscription";
+import { VipUpgradeModal } from "@/components/VipGate";
 
 interface CamTestEntry {
   testId: string;
@@ -22,6 +24,8 @@ interface CamTestEntry {
 }
 
 export default function ListeningDirectory() {
+  const { isVip } = useSubscription();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [volumes, setVolumes] = useState<CamVolume[]>([]);
   const [camTests, setCamTests] = useState<CamTestEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,7 +164,7 @@ export default function ListeningDirectory() {
             </p>
 
             {/* Group by volume */}
-            {Array.from(new Set(camTests.map((t) => t.volume))).map((vol) => {
+            {Array.from(new Set(camTests.map((t) => t.volume))).map((vol, volIdx) => {
               const testsInVol = camTests.filter((t) => t.volume === vol);
               return (
                 <div key={vol} className="mb-10">
@@ -174,7 +178,8 @@ export default function ListeningDirectory() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {testsInVol.map((t) => {
+                    {testsInVol.map((t, idx) => {
+                      const isLocked = !isVip && (volIdx > 0 || idx > 0);
                       const cardColors = [
                         { bg: "bg-[#d97736]", btnIconBg: "bg-orange-100", btnIconColor: "text-orange-600" },
                         { bg: "bg-[#cf6a93]", btnIconBg: "bg-pink-100", btnIconColor: "text-pink-600" },
@@ -256,7 +261,11 @@ export default function ListeningDirectory() {
                                   No audio
                                 </span>
                               )}
-                              <Headphones className="w-5 h-5 opacity-90" />
+                              {isLocked ? (
+                                <Lock className="w-5 h-5 opacity-90" />
+                              ) : (
+                                <Headphones className="w-5 h-5 opacity-90" />
+                              )}
                             </div>
                           </div>
 
@@ -280,31 +289,43 @@ export default function ListeningDirectory() {
 
                           {/* Buttons */}
                           <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
-                            <Link
-                              href={`/listening/cam-test/${t.testId}?mode=practice`}
-                              className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
-                                  <Pencil className="w-3 h-3" />
-                                </div>
-                                <span className="text-[11px] font-black whitespace-nowrap">Luyện tập</span>
-                              </div>
-                              <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                            </Link>
+                            {isLocked ? (
+                              <button
+                                onClick={() => setShowUpgradeModal(true)}
+                                className="col-span-2 flex items-center justify-center gap-2 bg-[#fdfaf6] text-slate-400 rounded-xl py-3 border border-gray-200 cursor-pointer hover:bg-slate-50 transition"
+                              >
+                                <Lock className="w-4 h-4 text-slate-400" />
+                                <span className="text-[11px] font-black uppercase">ĐÃ KHÓA (VIP ONLY)</span>
+                              </button>
+                            ) : (
+                              <>
+                                <Link
+                                  href={`/listening/cam-test/${t.testId}?mode=practice`}
+                                  className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+                                >
+                                  <div className="flex items-center gap-1.5">
+                                    <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
+                                      <Pencil className="w-3 h-3" />
+                                    </div>
+                                    <span className="text-[11px] font-black whitespace-nowrap">Luyện tập</span>
+                                  </div>
+                                  <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                                </Link>
 
-                            <Link
-                              href={`/listening/cam-test/${t.testId}?mode=real_test`}
-                              className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
-                                  <Clock className="w-3 h-3" />
-                                </div>
-                                <span className="text-[11px] font-black whitespace-nowrap">Thi thật</span>
-                              </div>
-                              <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                            </Link>
+                                <Link
+                                  href={`/listening/cam-test/${t.testId}?mode=real_test`}
+                                  className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+                                >
+                                  <div className="flex items-center gap-1.5">
+                                    <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
+                                      <Clock className="w-3 h-3" />
+                                    </div>
+                                    <span className="text-[11px] font-black whitespace-nowrap">Thi thật</span>
+                                  </div>
+                                  <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                                </Link>
+                              </>
+                            )}
                           </div>
                         </div>
                       );
@@ -396,6 +417,7 @@ export default function ListeningDirectory() {
           )}
         </div>
       </main>
+      {showUpgradeModal && <VipUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   );
 }

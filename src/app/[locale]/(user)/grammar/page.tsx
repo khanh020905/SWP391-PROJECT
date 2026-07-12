@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import { BookOpen, BookOpenCheck, Clock, Zap, RefreshCw, Hash, Star, Shield, HelpCircle, Layers } from "lucide-react";
+import { BookOpen, BookOpenCheck, Clock, Zap, RefreshCw, Hash, Star, Shield, HelpCircle, Layers, Lock } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { VipUpgradeModal } from "@/components/VipGate";
 
 interface LessonItem {
   id: string;
@@ -27,9 +29,11 @@ const ICONS = [Zap, Clock, RefreshCw, Hash, Star, Shield, HelpCircle, Layers];
 export default function GrammarListPage() {
   const router = useRouter();
   const locale = useLocale();
+  const { isVip } = useSubscription();
   const [lessons, setLessons] = useState<LessonItem[]>([]);
   const [selectedBand, setSelectedBand] = useState<string>("Tất cả");
   const [loading, setLoading] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     async function loadLessons() {
@@ -113,31 +117,54 @@ export default function GrammarListPage() {
                   □ BASIC GRAMMAR (BAND 5.0 - 5.5)
                 </p>
                 <div className="space-y-3">
-                  {basicLessons.map((lesson, idx) => (
-                    <div
-                      key={lesson.id}
-                      onClick={() => router.push(`/${locale}/grammar/${lesson.lesson_id}`)}
-                      className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center gap-4 hover:border-purple-400 cursor-pointer transition-all duration-200 hover:shadow-sm"
-                    >
-                      {/* Number Indicator */}
-                      <div className="w-10 h-10 rounded-full border border-purple-300 bg-purple-50/50 flex items-center justify-center text-sm font-black text-purple-700 shrink-0">
-                        {lesson.order_index}
-                      </div>
+                  {basicLessons.map((lesson) => {
+                    const isLocked = !isVip && lesson.order_index !== 1;
+                    return (
+                      <div
+                        key={lesson.id}
+                        onClick={() => {
+                          if (isLocked) {
+                            setShowUpgradeModal(true);
+                          } else {
+                            router.push(`/${locale}/grammar/${lesson.lesson_id}`);
+                          }
+                        }}
+                        className={`bg-white border rounded-2xl p-5 flex items-center gap-4 transition-all duration-200 ${
+                          isLocked 
+                            ? "opacity-60 cursor-not-allowed border-gray-150" 
+                            : "border-gray-200 hover:border-purple-400 cursor-pointer hover:shadow-sm"
+                        }`}
+                      >
+                        {/* Number Indicator */}
+                        <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-black shrink-0 ${
+                          isLocked 
+                            ? "border-gray-250 bg-gray-50 text-gray-400" 
+                            : "border-purple-300 bg-purple-50/50 text-purple-700"
+                        }`}>
+                          {isLocked ? <Lock className="w-4 h-4" /> : lesson.order_index}
+                        </div>
 
-                      {/* Title + Band */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-extrabold text-sm text-gray-900 truncate tracking-tight">{lesson.title}</p>
-                        <span className="inline-block text-[9.5px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded mt-1.5 uppercase tracking-wider">
-                          Band {lesson.band}
+                        {/* Title + Band */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-extrabold text-sm text-gray-900 truncate tracking-tight">{lesson.title}</p>
+                          <span className={`inline-block text-[9.5px] font-black px-2 py-0.5 rounded mt-1.5 uppercase tracking-wider ${
+                            isLocked 
+                              ? "bg-gray-100 text-gray-400" 
+                              : "bg-purple-100 text-purple-700"
+                          }`}>
+                            Band {lesson.band}
+                          </span>
+                        </div>
+
+                        {/* Action */}
+                        <span className={`font-extrabold text-xs shrink-0 flex items-center gap-1 transition-colors ${
+                          isLocked ? "text-gray-300" : "text-gray-400 group-hover:text-purple-600"
+                        }`}>
+                          {isLocked ? "Khóa" : "Học ngay"} <span className="text-sm">→</span>
                         </span>
                       </div>
-
-                      {/* Action */}
-                      <span className="text-gray-400 font-extrabold text-xs shrink-0 flex items-center gap-1 group-hover:text-purple-600 transition-colors">
-                        Học ngay <span className="text-sm">→</span>
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -152,19 +179,34 @@ export default function GrammarListPage() {
                   {advancedLessons.map((lesson, idx) => {
                     const ColorClass = PASTEL_COLORS[idx % PASTEL_COLORS.length];
                     const IconComponent = ICONS[idx % ICONS.length];
+                    const isLocked = !isVip && lesson.order_index !== 1;
                     return (
                       <div
                         key={lesson.id}
-                        onClick={() => router.push(`/${locale}/grammar/${lesson.lesson_id}`)}
-                        className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col justify-between hover:border-purple-400 cursor-pointer transition-all duration-200 hover:shadow-sm gap-4"
+                        onClick={() => {
+                          if (isLocked) {
+                            setShowUpgradeModal(true);
+                          } else {
+                            router.push(`/${locale}/grammar/${lesson.lesson_id}`);
+                          }
+                        }}
+                        className={`bg-white border rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 gap-4 ${
+                          isLocked 
+                            ? "opacity-60 cursor-not-allowed border-gray-150" 
+                            : "border-gray-200 hover:border-purple-400 cursor-pointer hover:shadow-sm"
+                        }`}
                       >
                         <div className="flex items-start gap-4">
                           {/* Icon with band overlay */}
                           <div className="relative shrink-0">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${ColorClass}`}>
-                              <IconComponent className="w-6 h-6" />
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${
+                              isLocked ? "bg-gray-100 border-gray-200 text-gray-400" : ColorClass
+                            }`}>
+                              {isLocked ? <Lock className="w-5 h-5" /> : <IconComponent className="w-6 h-6" />}
                             </div>
-                            <span className="absolute -top-2 -left-2 text-[8px] font-black bg-purple-600 text-white px-1.5 py-0.5 rounded-full uppercase border-2 border-white shadow-sm">
+                            <span className={`absolute -top-2 -left-2 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase border-2 border-white shadow-sm ${
+                              isLocked ? "bg-gray-400 text-white" : "bg-purple-600 text-white"
+                            }`}>
                               {lesson.band}
                             </span>
                           </div>
@@ -180,8 +222,10 @@ export default function GrammarListPage() {
                         </div>
 
                         <div className="flex justify-end pt-2 border-t border-gray-100">
-                          <span className="text-purple-600 font-extrabold text-xs flex items-center gap-1">
-                            Học ngay <span className="text-sm">→</span>
+                          <span className={`font-extrabold text-xs flex items-center gap-1 ${
+                            isLocked ? "text-gray-300" : "text-purple-600"
+                          }`}>
+                            {isLocked ? "Khóa" : "Học ngay"} <span className="text-sm">→</span>
                           </span>
                         </div>
                       </div>
@@ -194,6 +238,7 @@ export default function GrammarListPage() {
           </div>
         )}
       </div>
+      {showUpgradeModal && <VipUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   );
 }

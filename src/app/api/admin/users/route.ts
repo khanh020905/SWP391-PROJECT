@@ -26,11 +26,32 @@ export async function GET(request: NextRequest) {
       throw new Error(error.message);
     }
 
+    // Fetch subscription details
+    const { data: subs } = await supabaseAdmin
+      .from("subscriptions")
+      .select("user_id, status, plan, expires_at");
+
+    const subsMap = new Map();
+    if (subs) {
+      subs.forEach((s: any) => {
+        subsMap.set(s.user_id, s);
+      });
+    }
+
     // Format danh sách người dùng từ Supabase Auth thành định dạng mong muốn
     // Only include users who have confirmed their email
     let list = users.filter((user) => !!user.email_confirmed_at).map((user) => {
       const metadata = user.user_metadata || {};
       const isLocked = metadata.isLocked === true || !!user.banned_until;
+      const sub = subsMap.get(user.id);
+      
+      let planTier = null;
+      if (sub && sub.plan) {
+        if (sub.plan === "premium" || sub.plan === "pkg_1") planTier = "pkg_1";
+        else if (sub.plan === "vip" || sub.plan === "pkg_2") planTier = "pkg_2";
+        else if (sub.plan === "master" || sub.plan === "pkg_3") planTier = "pkg_3";
+      }
+
       return {
         id: user.id,
         name: metadata.name || user.email?.split("@")[0] || "Không tên",
@@ -39,6 +60,11 @@ export async function GET(request: NextRequest) {
         isLocked: isLocked,
         createdAt: user.created_at,
         updatedAt: user.updated_at || user.created_at,
+        subscription: sub ? {
+          status: sub.status,
+          plan_tier: planTier,
+          expires_at: sub.expires_at
+        } : null
       };
     });
 

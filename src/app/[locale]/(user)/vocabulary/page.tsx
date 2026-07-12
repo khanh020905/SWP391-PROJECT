@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Search, Volume2, Plus, Trash2, Heart, Sparkles, BookOpen } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useVocabLimit, VocabLimitModal } from "@/components/VocabLimitGate";
 
 interface VocabularyItem {
   id: string;
@@ -48,6 +50,8 @@ const LEVELS = ["Tất cả", "5.5", "6.0", "6.5", "7.0", "7.5", "B1", "B2", "C1
 
 export default function VocabularyPage() {
   const { user } = useAuth();
+  const { isVip } = useSubscription();
+  const { remaining, showModal, setShowModal, incrementCount } = useVocabLimit();
   
   // Tabs: "dictionary" | "notebook"
   const [activePageTab, setActivePageTab] = useState<"dictionary" | "notebook">("dictionary");
@@ -63,6 +67,13 @@ export default function VocabularyPage() {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [selectedLevel, setSelectedLevel] = useState("Tất cả");
   const [selectedWord, setSelectedWord] = useState<VocabularyItem | null>(null);
+
+  const handleSelectWord = (item: VocabularyItem) => {
+    if (selectedWord?.id === item.id) return;
+    const allowed = incrementCount();
+    if (!allowed) return;
+    setSelectedWord(item);
+  };
 
   // Flashcards state
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
@@ -330,8 +341,15 @@ export default function VocabularyPage() {
               
               {/* Left Column: Word List */}
               <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex flex-col h-[600px]">
-                <div className="text-xs font-black text-gray-400 uppercase tracking-wider pb-3 border-bottom border-gray-100 mb-2">
-                  Danh sách từ ({filteredWords.length})
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-2">
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-wider">
+                    Danh sách từ ({filteredWords.length})
+                  </span>
+                  {!isVip && (
+                    <span className="text-[11px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
+                      Hôm nay còn: {remaining}/10 từ
+                    </span>
+                  )}
                 </div>
                 {loading ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-gray-400 font-semibold text-xs">
@@ -347,7 +365,7 @@ export default function VocabularyPage() {
                     {filteredWords.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedWord(item)}
+                        onClick={() => handleSelectWord(item)}
                         className={`p-3.5 rounded-xl cursor-pointer hover:bg-green-50/50 transition border-l-3 ${
                           selectedWord?.id === item.id
                             ? "border-green-600 bg-green-50 text-gray-900"
@@ -588,6 +606,7 @@ export default function VocabularyPage() {
           </div>
         )}
       </div>
+      {showModal && <VocabLimitModal onClose={() => setShowModal(false)} />}
     </div>
   );
 }

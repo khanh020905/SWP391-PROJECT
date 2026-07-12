@@ -3,10 +3,14 @@
 import React, { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { ArrowLeft, Clock, FileText, PlayCircle, ArrowRight } from "lucide-react";
+import { ArrowLeft, Clock, FileText, PlayCircle, ArrowRight, Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { useSubscription } from "@/hooks/useSubscription";
+import { VipUpgradeModal } from "@/components/VipGate";
 
 export default function CategoryPage() {
+  const { isVip } = useSubscription();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const category = "writing-tests";
   const router = useRouter();
   
@@ -265,12 +269,21 @@ export default function CategoryPage() {
 
               const descriptionPreview = stripHtml(test.description || test.task1Description || test.task2Description);
               const hasImage = !!rawImage;
+              
+              const overallIdx = tests.findIndex(t => t.id === test.id);
+              const isLocked = !isVip && overallIdx > 0;
 
               return (
                 <div
                   key={test.id}
-                  onClick={() => router.push(`/writing/tests/${test.id}`)}
-                  className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-row group"
+                  onClick={() => {
+                    if (isLocked) {
+                      setShowUpgradeModal(true);
+                    } else {
+                      router.push(`/writing/tests/${test.id}`);
+                    }
+                  }}
+                  className={`bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-all cursor-pointer flex flex-row group relative ${isLocked ? 'border-slate-200 opacity-80' : 'border-slate-200 hover:border-indigo-300'}`}
                 >
                   {/* Left Thumbnail — only shown when an image exists */}
                   {hasImage && (
@@ -283,17 +296,32 @@ export default function CategoryPage() {
                       <div className={`absolute top-0 left-0 text-[11px] px-3 py-1 font-bold rounded-br-lg shadow-sm truncate max-w-[90%] ${badge.className}`}>
                         {badge.label}
                       </div>
+                      {isLocked && (
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
+                          <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center shadow-md">
+                            <Lock className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Content */}
                   <div className={`${hasImage ? 'w-[65%]' : 'w-full'} p-5 flex flex-col justify-start relative`}>
                     {!hasImage && (
-                      <div className={`inline-flex self-start text-[11px] px-3 py-1 font-bold rounded-lg shadow-sm mb-2 ${badge.className}`}>
-                        {badge.label}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`inline-flex self-start text-[11px] px-3 py-1 font-bold rounded-lg shadow-sm ${badge.className}`}>
+                          {badge.label}
+                        </div>
+                        {isLocked && (
+                          <div className="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold border border-red-100">
+                            <Lock className="w-3 h-3" /> Lock
+                          </div>
+                        )}
                       </div>
                     )}
-                    <h3 className="text-sm font-bold text-blue-600 hover:text-blue-700 mb-2 leading-snug line-clamp-2">
+                    <h3 className="text-sm font-bold text-blue-600 hover:text-blue-700 mb-2 leading-snug line-clamp-2 flex items-center gap-1.5">
+                      {isLocked && !hasImage && <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
                       {test.title || test.task1Title || test.task2Title}
                     </h3>
                     <p className="text-slate-600 text-[13px] leading-relaxed line-clamp-3">
@@ -363,6 +391,7 @@ export default function CategoryPage() {
           </div>
         )}
       </main>
+      {showUpgradeModal && <VipUpgradeModal onClose={() => setShowUpgradeModal(false)} />}
     </div>
   );
 }

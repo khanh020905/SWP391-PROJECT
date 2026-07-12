@@ -270,6 +270,7 @@
     "details": "Hóa đơn INV-JNAJLW đã được tự động thanh toán qua cổng Sepay API (Giao dịch: sepay_e003b4bf-77b4-11f1-b21a-a6006ab65aca)"
   },
   {
+<<<<<<< Updated upstream
     "id": "log_jkaqfty",
     "timestamp": "2026-07-05T16:02:50.349Z",
     "adminName": "Admin QualiCode",
@@ -308,5 +309,55 @@
     "targetName": "Test User",
     "targetEmail": "testuser-qualicode-123@mailinator.com",
     "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống (đồng bộ Auth + DB)"
+  },
+  {
+    "id": "log_3e8d8nu",
+    "timestamp": "2026-07-05T05:32:32.841Z",
+    "adminName": "Nguyễn Đình Long",
+    "adminEmail": "lngnguyen94@gmail.com",
+    "action": "DELETE",
+    "targetName": "Test User",
+    "targetEmail": "xs1xiq+4qmw1g9re7seo@sharklasers.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống (đồng bộ Auth + DB)"
+  },
+  {
+    "id": "log_951dr3b",
+    "timestamp": "2026-07-05T05:47:05.095Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Long Nguyễn",
+    "targetEmail": "lngnguyen2k5@gmail.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-LCAR5U"
+  },
+  {
+    "id": "log_t6ze01o",
+    "timestamp": "2026-07-05T05:47:05.099Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Long Nguyễn",
+    "targetEmail": "lngnguyen2k5@gmail.com",
+    "details": "Hóa đơn INV-LCAR5U đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_i2ujo96)"
+  },
+  {
+    "id": "log_28p2uga",
+    "timestamp": "2026-07-05T05:47:18.944Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPGRADE",
+    "targetName": "Long Nguyễn",
+    "targetEmail": "lngnguyen2k5@gmail.com",
+    "details": "Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn INV-RZZMNW"
+  },
+  {
+    "id": "log_10sfses",
+    "timestamp": "2026-07-05T05:47:18.948Z",
+    "adminName": "Admin QualiCode",
+    "adminEmail": "admin@qualicode.com",
+    "action": "UPDATE",
+    "targetName": "Long Nguyễn",
+    "targetEmail": "lngnguyen2k5@gmail.com",
+    "details": "Hóa đơn INV-RZZMNW đã được tự động thanh toán qua cổng Sepay (Giao dịch: tx_h903fcl)"
   }
 ]

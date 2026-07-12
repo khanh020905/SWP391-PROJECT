@@ -143,6 +143,7 @@ export default function AdminUsersPage() {
     instructorCount: 0,
     studentCount: 0,
     guestCount: 0,
+    vipCount: 0,
   });
 
   // Trạng thái lọc và phân trang
@@ -165,6 +166,7 @@ export default function AdminUsersPage() {
   const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<"ADMIN" | "INSTRUCTOR" | "STUDENT" | "GUEST">("STUDENT");
   const [formIsLocked, setFormIsLocked] = useState(false);
+  const [formPackageId, setFormPackageId] = useState<string>("none");
   const [formError, setFormError] = useState("");
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
 
@@ -222,8 +224,9 @@ export default function AdminUsersPage() {
         const instructorCount = list.filter((u) => u.role === "INSTRUCTOR").length;
         const studentCount = list.filter((u) => u.role === "STUDENT").length;
         const guestCount = list.filter((u) => u.role === "GUEST").length;
+        const vipCount = list.filter((u: any) => u.subscription && (u.subscription.status?.toLowerCase() === "active" || u.subscription.status?.toLowerCase() === "paid")).length;
 
-        setKpis({ total, active, locked, adminCount, instructorCount, studentCount, guestCount });
+        setKpis({ total, active, locked, adminCount, instructorCount, studentCount, guestCount, vipCount });
       }
     } catch (err) {
       console.error("Lỗi khi tải KPIs:", err);
@@ -247,6 +250,7 @@ export default function AdminUsersPage() {
     setFormPassword("");
     setFormRole("STUDENT");
     setFormIsLocked(false);
+    setFormPackageId("none");
     setFormError("");
     setSelectedUser(null);
   };
@@ -258,19 +262,9 @@ export default function AdminUsersPage() {
     setIsSubmitLoading(true);
 
     try {
-      const sessionRes = await supabase.auth.getSession();
-      const session = sessionRes.data.session;
-      const metadata = session?.user.user_metadata || {};
-      const adminName = metadata.name || "Admin";
-      const adminEmail = session?.user.email || "admin@qualicode.com";
-
       const response = await authFetch("/api/admin/users", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-name": encodeURIComponent(adminName),
-          "x-admin-email": adminEmail,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formName,
           email: formEmail,
@@ -282,13 +276,13 @@ export default function AdminUsersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(isEn ? `Successfully created new account for '${formName}'!` : `Tạo thành công tài khoản mới cho '${formName}'!`);
+        showToast(isEn ? `Successfully created user '${formName}'!` : `Tạo tài khoản '${formName}' thành công!`);
         setShowAddModal(false);
         resetForm();
         fetchUsers();
         fetchKpis();
       } else {
-        setFormError(data.message || (isEn ? "An error occurred while creating user." : "Đã xảy ra lỗi khi tạo người dùng."));
+        setFormError(data.message || (isEn ? "Failed to create user." : "Đã xảy ra lỗi khi tạo tài khoản."));
       }
     } catch (err) {
       setFormError(t.toastConnError);
@@ -304,6 +298,7 @@ export default function AdminUsersPage() {
     setFormEmail(user.email);
     setFormRole(user.role);
     setFormIsLocked(user.isLocked);
+    setFormPackageId((user as any).subscription?.plan_tier || "none");
     setFormError("");
     setShowEditModal(true);
   };
@@ -333,6 +328,7 @@ export default function AdminUsersPage() {
           email: formEmail,
           role: formRole,
           isLocked: formIsLocked,
+          packageId: formPackageId,
         }),
       });
 
@@ -556,10 +552,15 @@ export default function AdminUsersPage() {
               <span className="text-[10px] font-bold text-slate-400">Student</span>
               <div className="font-extrabold text-sm text-emerald-600">{kpis.studentCount}</div>
             </div>
-            <div className="h-6 w-px bg-slate-100" />
+             <div className="h-6 w-px bg-slate-100" />
             <div>
               <span className="text-[10px] font-bold text-slate-400">Guest</span>
               <div className="font-extrabold text-sm text-slate-500">{kpis.guestCount}</div>
+            </div>
+            <div className="h-6 w-px bg-slate-100" />
+            <div>
+              <span className="text-[10px] font-bold text-amber-500">👑 VIP</span>
+              <div className="font-extrabold text-sm text-amber-600">{kpis.vipCount}</div>
             </div>
           </div>
         </div>
@@ -678,6 +679,7 @@ export default function AdminUsersPage() {
                   <th className="px-6 py-4">{t.colName}</th>
                   <th className="px-6 py-4">{t.colEmail}</th>
                   <th className="px-6 py-4 text-center">{t.colRole}</th>
+                  <th className="px-6 py-4 text-center">{isEn ? "VIP/Plan" : "Gói VIP"}</th>
                   <th className="px-6 py-4 text-center">{t.colStatus}</th>
                   <th className="px-6 py-4">{t.colJoinDate}</th>
                   <th className="px-6 py-4 text-right">{t.colActions}</th>
@@ -733,6 +735,24 @@ export default function AdminUsersPage() {
                         {user.role === "STUDENT" && <User className="w-3 h-3" />}
                         <span>{user.role}</span>
                       </span>
+                    </td>
+
+                    {/* VIP/Plan status */}
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {(user as any).subscription ? (
+                        <div className="flex flex-col items-center">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 border border-amber-200 text-amber-700 uppercase">
+                            👑 {(user as any).subscription.plan_tier === "pkg_1" ? "PREMIUM" : (user as any).subscription.plan_tier === "pkg_2" ? "VIP" : (user as any).subscription.plan_tier === "pkg_3" ? "MASTER" : (user as any).subscription.plan_tier}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-bold block mt-1">
+                            Hết hạn: {new Date((user as any).subscription.expires_at).toLocaleDateString("vi-VN")}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 border border-slate-200 text-slate-400">
+                          Thường (Free)
+                        </span>
+                      )}
                     </td>
 
                     {/* Lock Status badge */}
@@ -1009,6 +1029,23 @@ export default function AdminUsersPage() {
                   <option value="INSTRUCTOR">{t.optionInstructor}</option>
                   <option value="GUEST">{t.optionGuest}</option>
                   <option value="ADMIN">{t.optionAdmin}</option>
+                </select>
+              </div>
+
+              {/* VIP Package Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                  {isEn ? "VIP Package Plan" : "Gói Đăng Ký VIP"}
+                </label>
+                <select
+                  value={formPackageId}
+                  onChange={(e) => setFormPackageId(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#3B5C37] text-slate-700 font-semibold"
+                >
+                  <option value="none">{isEn ? "None (Free)" : "Không có (Thường/Free)"}</option>
+                  <option value="pkg_1">Premium (3 Tháng)</option>
+                  <option value="pkg_2">VIP (6 Tháng)</option>
+                  <option value="pkg_3">Master (12 Tháng)</option>
                 </select>
               </div>
 
