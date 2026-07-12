@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      // Cloudflare R2 bucket serving book covers / media for the ported reading pages
+      { protocol: "https", hostname: "pub-c71988294a9b45099e83dad66bb73426.r2.dev" },
+    ],
+  },
   async redirects() {
     return [
       {
