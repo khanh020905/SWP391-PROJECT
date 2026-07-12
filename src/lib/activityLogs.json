@@ -298,5 +298,15 @@
     "targetName": "Admin QualiCode",
     "targetEmail": "admin@qualicode.com",
     "details": "Cập nhật trạng thái hóa đơn INV-1L8LCC: PENDING -> CANCELLED"
+  },
+  {
+    "id": "log_wuvyoyy",
+    "timestamp": "2026-07-12T02:54:19.812Z",
+    "adminName": "Quốc Khánh",
+    "adminEmail": "lenguyenquockhanh57@gmail.com",
+    "action": "DELETE",
+    "targetName": "Test User",
+    "targetEmail": "testuser-qualicode-123@mailinator.com",
+    "details": "Xóa vĩnh viễn tài khoản người dùng khỏi hệ thống (đồng bộ Auth + DB)"
   }
 ]

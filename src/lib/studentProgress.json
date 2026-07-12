@@ -86,6 +86,17 @@
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {}
+    },
+    "79122168-7431-406e-b54b-ccfdd9401789": {
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": null,
+      "lastStudyTimestamp": null,
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 0,
+      "lastGoalMetDate": null,
+      "history": {}
     }
   },
   "studyLogs": [
