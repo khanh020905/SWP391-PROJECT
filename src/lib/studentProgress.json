@@ -4,39 +4,39 @@
       "userId": "usr_2",
       "currentStreak": 5,
       "longestStreak": 12,
-      "lastStudyDate": "2026-06-15",
-      "lastStudyTimestamp": "2026-06-15T07:03:53.907Z",
+      "lastStudyDate": "2026-06-16",
+      "lastStudyTimestamp": "2026-06-16T08:13:26.884Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 35,
-      "lastGoalMetDate": "2026-06-15",
+      "lastGoalMetDate": "2026-06-16",
       "history": {
-        "2026-06-15": 35
+        "2026-06-16": 35
       }
     },
     "usr_4": {
       "userId": "usr_4",
       "currentStreak": 0,
       "longestStreak": 4,
-      "lastStudyDate": "2026-06-13",
-      "lastStudyTimestamp": "2026-06-13T07:03:53.908Z",
+      "lastStudyDate": "2026-06-14",
+      "lastStudyTimestamp": "2026-06-14T08:13:26.884Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {
-        "2026-06-13": 0
+        "2026-06-14": 0
       }
     },
     "usr_5": {
       "userId": "usr_5",
       "currentStreak": 3,
       "longestStreak": 3,
-      "lastStudyDate": "2026-06-16",
-      "lastStudyTimestamp": "2026-06-16T07:03:53.908Z",
+      "lastStudyDate": "2026-06-17",
+      "lastStudyTimestamp": "2026-06-17T08:13:26.884Z",
       "dailyGoalMinutes": 30,
       "todayMinutes": 45,
-      "lastGoalMetDate": "2026-06-16",
+      "lastGoalMetDate": "2026-06-17",
       "history": {
-        "2026-06-16": 45
+        "2026-06-17": 45
       }
     },
     "79122168-7431-406e-b54b-ccfdd9401789": {
@@ -49,42 +49,22 @@
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {}
-    },
-    "21f122e7-06c7-4df1-af22-4f2adca21c95": {
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "currentStreak": 0,
-      "longestStreak": 0,
-      "lastStudyDate": "2026-06-16",
-      "lastStudyTimestamp": "2026-06-16T15:09:34.330Z",
-      "dailyGoalMinutes": 30,
-      "todayMinutes": 0,
-      "lastGoalMetDate": null,
-      "history": {
-        "2026-06-16": 0
-      }
     }
   },
   "studyLogs": [
     {
       "id": "log_init_1",
       "userId": "usr_2",
-      "date": "2026-06-15",
-      "timestamp": "2026-06-15T07:03:53.908Z",
+      "date": "2026-06-16",
+      "timestamp": "2026-06-16T08:13:26.884Z",
       "activity": "Luyện đề Speaking - Study & Hometown (Part 1)"
     },
     {
       "id": "log_init_2",
       "userId": "usr_5",
-      "date": "2026-06-16",
-      "timestamp": "2026-06-16T07:03:53.908Z",
+      "date": "2026-06-17",
+      "timestamp": "2026-06-17T08:13:26.884Z",
       "activity": "Luyện tập IELTS Speaking Room"
-    },
-    {
-      "id": "log_mvxpm8j",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "date": "2026-06-16",
-      "timestamp": "2026-06-16T15:09:34.330Z",
-      "activity": "Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: Study & Hometown (Đạt điểm AI: 6.0)"
     }
   ],
   "notifications": [
@@ -95,7 +75,7 @@
       "content": "Chúc mừng bạn đã đạt chuỗi 5 ngày học liên tiếp. Hãy tiếp tục luyện tập hôm nay để nâng band điểm IELTS nhé!",
       "type": "STUDY_REMINDER",
       "status": "UNREAD",
-      "createdAt": "2026-06-16T05:03:53.908Z"
+      "createdAt": "2026-06-17T06:13:26.884Z"
     },
     {
       "id": "notify_init_2",
@@ -104,196 +84,13 @@
       "content": "Đã 3 ngày bạn chưa luyện tập IELTS. Hãy làm ngay một bài nói Speaking ngắn hôm nay để kích hoạt lại streak nhé!",
       "type": "STREAK_WARNING",
       "status": "UNREAD",
-      "createdAt": "2026-06-16T01:03:53.908Z"
-    }
-  ],
-  "roadmaps": {
-    "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9": {
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "currentBand": 8.5,
-      "targetBand": 9,
-      "targetDate": "2026-08-31",
-      "dailyHours": 2,
-      "focusSkills": [
-        "Listening",
-        "Reading",
-        "Writing",
-        "Speaking"
-      ],
-      "status": "PROPOSED",
-      "phases": [
-        {
-          "id": "phase_1",
-          "title": "Giai đoạn 1: Nâng cấp cấu trúc & Phản xạ từ vựng nâng cao (Tuần 1 - 4)",
-          "description": "Nâng band điểm bằng cách học các cụm từ collocation chất lượng, đa dạng cấu trúc ngữ pháp và làm quen chủ đề khó.",
-          "skills": [
-            "Vocabulary",
-            "Grammar",
-            "Listening",
-            "Reading",
-            "Writing",
-            "Speaking"
-          ],
-          "tasks": [
-            {
-              "id": "task_1_1",
-              "title": "Học 150 cụm từ Collocations & Idioms nâng cao theo chủ đề học thuật",
-              "completed": false,
-              "estimatedHours": 10
-            },
-            {
-              "id": "task_1_2",
-              "title": "Ứng dụng mệnh đề quan hệ rút gọn, câu đảo ngữ & câu điều kiện hỗn hợp",
-              "completed": false,
-              "estimatedHours": 10
-            },
-            {
-              "id": "task_1_3",
-              "title": "Luyện trả lời trôi chảy các chủ đề trừu tượng của Speaking Part 3 (Society, Technology)",
-              "completed": false,
-              "estimatedHours": 12
-            },
-            {
-              "id": "task_1_4",
-              "title": "Học cách viết câu chủ đề và phát triển ý tưởng đa chiều cho Writing Task 2",
-              "completed": false,
-              "estimatedHours": 12
-            },
-            {
-              "id": "task_1_5",
-              "title": "Master dạng bài Matching Headings và Matching Information có tính nhiễu cao",
-              "completed": false,
-              "estimatedHours": 8
-            }
-          ]
-        },
-        {
-          "id": "phase_2",
-          "title": "Giai đoạn 2: Luyện đề chuyên sâu & Kiểm soát thời gian (Tuần 5 - 8)",
-          "description": "Thực hành làm đề nâng cao, tập trung giải quyết các câu hỏi khó và kiểm soát thời gian làm bài chính xác.",
-          "skills": [
-            "Listening",
-            "Reading",
-            "Writing",
-            "Speaking"
-          ],
-          "tasks": [
-            {
-              "id": "task_2_1",
-              "title": "Làm đề Listening Section 3 & 4 và Reading Passage 3 (Cam 17-20)",
-              "completed": false,
-              "estimatedHours": 15
-            },
-            {
-              "id": "task_2_2",
-              "title": "Luyện viết Writing Task 1 trong 15 phút và Task 2 trong 35 phút",
-              "completed": false,
-              "estimatedHours": 14
-            },
-            {
-              "id": "task_2_3",
-              "title": "Luyện tập mở rộng câu trả lời Part 2 trong vòng đúng 2 phút với các thẻ từ gợi ý",
-              "completed": false,
-              "estimatedHours": 10
-            },
-            {
-              "id": "task_2_4",
-              "title": "Phân tích kỹ lưỡng các lỗi bẫy thông tin (distractors) trong bài nghe/đọc",
-              "completed": false,
-              "estimatedHours": 8
-            }
-          ]
-        },
-        {
-          "id": "phase_3",
-          "title": "Giai đoạn 3: Mô phỏng phòng thi thực tế & Tinh chỉnh (Tuần 9 - 12)",
-          "description": "Làm mock test đầy đủ dưới áp lực phòng thi, tinh chỉnh từ vựng học thuật và phát âm tự nhiên.",
-          "skills": [
-            "Listening",
-            "Reading",
-            "Writing",
-            "Speaking"
-          ],
-          "tasks": [
-            {
-              "id": "task_3_1",
-              "title": "Thực hiện 6 bài thi thử full 4 kỹ năng tính giờ như thi thật",
-              "completed": false,
-              "estimatedHours": 20
-            },
-            {
-              "id": "task_3_2",
-              "title": "Tập trung cải thiện ngữ điệu nói (intonation) và liên kết từ (connected speech)",
-              "completed": false,
-              "estimatedHours": 8
-            },
-            {
-              "id": "task_3_3",
-              "title": "Viết 8 bài luận nâng cao và áp dụng các liên từ Cohesion chất lượng cao",
-              "completed": false,
-              "estimatedHours": 12
-            },
-            {
-              "id": "task_3_4",
-              "title": "Đánh giá toàn diện và tinh chỉnh những phần thường mất điểm cùng AI",
-              "completed": false,
-              "estimatedHours": 6
-            }
-          ]
-        }
-      ],
-      "createdAt": "2026-06-02T15:07:45.560Z",
-      "updatedAt": "2026-06-02T15:07:45.560Z"
-    }
-  },
-  "collections": [
-    {
-      "id": "col_1",
-      "userId": "usr_2",
-      "name": "Urban Farming Vocab",
-      "description": "Từ vựng quan trọng rút ra từ bài đọc về Nông nghiệp đô thị",
-      "createdAt": "2026-06-02T15:10:00.000Z"
-    },
-    {
-      "id": "col_2",
-      "userId": "usr_2",
-      "name": "Speaking Boosters",
-      "description": "Từ vựng nâng band điểm trong phòng nói Speaking",
-      "createdAt": "2026-06-02T15:11:00.000Z"
-    },
-    {
-      "id": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "name": "Urban Farming Vocab",
-      "description": "Từ vựng quan trọng rút ra từ bài đọc về Nông nghiệp đô thị",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "col_2_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "name": "Speaking Boosters",
-      "description": "Từ vựng nâng band điểm trong phòng nói Speaking",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "name": "Urban Farming Vocab",
-      "description": "Từ vựng quan trọng rút ra từ bài đọc về Nông nghiệp đô thị",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "col_2_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "name": "Speaking Boosters",
-      "description": "Từ vựng nâng band điểm trong phòng nói Speaking",
-      "createdAt": "2026-06-12T06:39:19.460Z"
+      "createdAt": "2026-06-17T02:13:26.884Z"
     }
   ],
   "vocabularies": [
     {
-      "id": "vocab_1",
-      "userId": "usr_2",
+      "id": "vocab_1_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "proponents",
       "partOfSpeech": "noun",
       "definition": "A person who speaks publicly in support of a particular idea or plan of action.",
@@ -301,13 +98,13 @@
       "exampleSentence": "He is one of the leading proponents of urban agriculture and green buildings.",
       "ipa": "/prəˈpəʊ.nənt/",
       "isFavorite": true,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "Collocation quan trọng: leading proponents of...",
-      "createdAt": "2026-06-02T15:15:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_2",
-      "userId": "usr_2",
+      "id": "vocab_2_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "emissions",
       "partOfSpeech": "noun",
       "definition": "An amount of gas, heat, light, etc. that is sent out.",
@@ -315,13 +112,13 @@
       "exampleSentence": "Many countries are trying to reduce their greenhouse gas emissions to combat climate change.",
       "ipa": "/iˈmɪʃ.ən/",
       "isFavorite": false,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "greenhouse gas emissions",
-      "createdAt": "2026-06-02T15:16:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_3",
-      "userId": "usr_2",
+      "id": "vocab_3_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "yield",
       "partOfSpeech": "noun",
       "definition": "An amount of something positive, such as food or profit, that is produced or generated.",
@@ -329,13 +126,13 @@
       "exampleSentence": "Modern hydroponic farms can produce up to ten times the yield of traditional soil agriculture.",
       "ipa": "/jiːld/",
       "isFavorite": true,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "crop yield / high yield",
-      "createdAt": "2026-06-02T15:17:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_4",
-      "userId": "usr_2",
+      "id": "vocab_4_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "vital",
       "partOfSpeech": "adjective",
       "definition": "Necessary for the success or continued existence of something; extremely important.",
@@ -343,13 +140,13 @@
       "exampleSentence": "Good nutrition and regular exercise are vital for maintaining a healthy life.",
       "ipa": "/ˈvaɪ.təl/",
       "isFavorite": false,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "vital for / vital role",
-      "createdAt": "2026-06-02T15:18:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_5",
-      "userId": "usr_2",
+      "id": "vocab_5_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "accommodate",
       "partOfSpeech": "verb",
       "definition": "To provide with a place to live or to be stored; to have space for.",
@@ -357,13 +154,13 @@
       "exampleSentence": "The new conference room can easily accommodate up to eighty attendees.",
       "ipa": "/əˈcɒm.ə.deɪt/",
       "isFavorite": false,
-      "collectionId": "col_2",
+      "collectionId": "col_2_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "accommodate guests / attendees",
-      "createdAt": "2026-06-02T15:19:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_6",
-      "userId": "usr_2",
+      "id": "vocab_6_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "state-of-the-art",
       "partOfSpeech": "adjective",
       "definition": "Very modern and using the most recent ideas and methods.",
@@ -371,13 +168,13 @@
       "exampleSentence": "The Richmond Suite is equipped with a state-of-the-art sound system and projector.",
       "ipa": "/ˌsteɪt.əv.ði.ˈɑːt/",
       "isFavorite": true,
-      "collectionId": "col_2",
+      "collectionId": "col_2_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "Từ rất tốt để ghi điểm cao cho Speaking Part 2",
-      "createdAt": "2026-06-02T15:20:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_7",
-      "userId": "usr_2",
+      "id": "vocab_7_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "sustainable",
       "partOfSpeech": "adjective",
       "definition": "Able to continue over a period of time; causing little or no damage to the environment.",
@@ -385,13 +182,13 @@
       "exampleSentence": "Urban farming helps create a more sustainable urban ecosystem.",
       "ipa": "/səˈsteɪ.nə.bəl/",
       "isFavorite": false,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "sustainable development / ecosystem",
-      "createdAt": "2026-06-02T15:21:00.000Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     },
     {
-      "id": "vocab_8",
-      "userId": "usr_2",
+      "id": "vocab_8_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
       "word": "resilient",
       "partOfSpeech": "adjective",
       "definition": "Able to be happy, successful, etc. again after something difficult or bad has happened, or returning to original shape.",
@@ -399,233 +196,26 @@
       "exampleSentence": "Urban agriculture offers a resilient buffer against food supply chain disruptions.",
       "ipa": "/rɪˈzɪl.i.ənt/",
       "isFavorite": true,
-      "collectionId": "col_1",
+      "collectionId": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
       "notes": "resilient buffer / economy",
-      "createdAt": "2026-06-02T15:22:00.000Z"
-    },
-    {
-      "id": "vocab_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "proponents",
-      "partOfSpeech": "noun",
-      "definition": "A person who speaks publicly in support of a particular idea or plan of action.",
-      "translation": "Người ủng hộ, người đề xuất (Người ủng hộ)",
-      "exampleSentence": "He is one of the leading proponents of urban agriculture and green buildings.",
-      "ipa": "/prəˈpəʊ.nənt/",
-      "isFavorite": true,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "Collocation quan trọng: leading proponents of...",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_2_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "emissions",
-      "partOfSpeech": "noun",
-      "definition": "An amount of gas, heat, light, etc. that is sent out.",
-      "translation": "Sự phát thải, lượng khí thải (Sự phát thải)",
-      "exampleSentence": "Many countries are trying to reduce their greenhouse gas emissions to combat climate change.",
-      "ipa": "/iˈmɪʃ.ən/",
-      "isFavorite": false,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "greenhouse gas emissions",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_3_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "yield",
-      "partOfSpeech": "noun",
-      "definition": "An amount of something positive, such as food or profit, that is produced or generated.",
-      "translation": "Sản lượng, năng suất, lợi nhuận (Sản lượng)",
-      "exampleSentence": "Modern hydroponic farms can produce up to ten times the yield of traditional soil agriculture.",
-      "ipa": "/jiːld/",
-      "isFavorite": true,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "crop yield / high yield",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_4_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "vital",
-      "partOfSpeech": "adjective",
-      "definition": "Necessary for the success or continued existence of something; extremely important.",
-      "translation": "Sống còn, cực kỳ quan trọng, thiết yếu (Cực kỳ quan trọng)",
-      "exampleSentence": "Good nutrition and regular exercise are vital for maintaining a healthy life.",
-      "ipa": "/ˈvaɪ.təl/",
-      "isFavorite": false,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "vital for / vital role",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_5_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "accommodate",
-      "partOfSpeech": "verb",
-      "definition": "To provide with a place to live or to be stored; to have space for.",
-      "translation": "Chứa được, cung cấp chỗ ở, đáp ứng (Chứa được)",
-      "exampleSentence": "The new conference room can easily accommodate up to eighty attendees.",
-      "ipa": "/əˈcɒm.ə.deɪt/",
-      "isFavorite": false,
-      "collectionId": "col_2_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "accommodate guests / attendees",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_6_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "state-of-the-art",
-      "partOfSpeech": "adjective",
-      "definition": "Very modern and using the most recent ideas and methods.",
-      "translation": "Tối tân, hiện đại nhất, tiên tiến nhất (Tối tân)",
-      "exampleSentence": "The Richmond Suite is equipped with a state-of-the-art sound system and projector.",
-      "ipa": "/ˌsteɪt.əv.ði.ˈɑːt/",
-      "isFavorite": true,
-      "collectionId": "col_2_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "Từ rất tốt để ghi điểm cao cho Speaking Part 2",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_7_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "sustainable",
-      "partOfSpeech": "adjective",
-      "definition": "Able to continue over a period of time; causing little or no damage to the environment.",
-      "translation": "Bền vững, có tính bền vững (Bền vững)",
-      "exampleSentence": "Urban farming helps create a more sustainable urban ecosystem.",
-      "ipa": "/səˈsteɪ.nə.bəl/",
-      "isFavorite": false,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "sustainable development / ecosystem",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_8_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "word": "resilient",
-      "partOfSpeech": "adjective",
-      "definition": "Able to be happy, successful, etc. again after something difficult or bad has happened, or returning to original shape.",
-      "translation": "Kiên cường, bền bỉ, có khả năng phục hồi nhanh (Kiên cường)",
-      "exampleSentence": "Urban agriculture offers a resilient buffer against food supply chain disruptions.",
-      "ipa": "/rɪˈzɪl.i.ənt/",
-      "isFavorite": true,
-      "collectionId": "col_1_e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
-      "notes": "resilient buffer / economy",
-      "createdAt": "2026-06-03T08:26:32.280Z"
-    },
-    {
-      "id": "vocab_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "proponents",
-      "partOfSpeech": "noun",
-      "definition": "A person who speaks publicly in support of a particular idea or plan of action.",
-      "translation": "Người ủng hộ, người đề xuất (Người ủng hộ)",
-      "exampleSentence": "He is one of the leading proponents of urban agriculture and green buildings.",
-      "ipa": "/prəˈpəʊ.nənt/",
-      "isFavorite": true,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "Collocation quan trọng: leading proponents of...",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_2_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "emissions",
-      "partOfSpeech": "noun",
-      "definition": "An amount of gas, heat, light, etc. that is sent out.",
-      "translation": "Sự phát thải, lượng khí thải (Sự phát thải)",
-      "exampleSentence": "Many countries are trying to reduce their greenhouse gas emissions to combat climate change.",
-      "ipa": "/iˈmɪʃ.ən/",
-      "isFavorite": false,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "greenhouse gas emissions",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_3_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "yield",
-      "partOfSpeech": "noun",
-      "definition": "An amount of something positive, such as food or profit, that is produced or generated.",
-      "translation": "Sản lượng, năng suất, lợi nhuận (Sản lượng)",
-      "exampleSentence": "Modern hydroponic farms can produce up to ten times the yield of traditional soil agriculture.",
-      "ipa": "/jiːld/",
-      "isFavorite": true,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "crop yield / high yield",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_4_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "vital",
-      "partOfSpeech": "adjective",
-      "definition": "Necessary for the success or continued existence of something; extremely important.",
-      "translation": "Sống còn, cực kỳ quan trọng, thiết yếu (Cực kỳ quan trọng)",
-      "exampleSentence": "Good nutrition and regular exercise are vital for maintaining a healthy life.",
-      "ipa": "/ˈvaɪ.təl/",
-      "isFavorite": false,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "vital for / vital role",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_5_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "accommodate",
-      "partOfSpeech": "verb",
-      "definition": "To provide with a place to live or to be stored; to have space for.",
-      "translation": "Chứa được, cung cấp chỗ ở, đáp ứng (Chứa được)",
-      "exampleSentence": "The new conference room can easily accommodate up to eighty attendees.",
-      "ipa": "/əˈcɒm.ə.deɪt/",
-      "isFavorite": false,
-      "collectionId": "col_2_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "accommodate guests / attendees",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_6_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "state-of-the-art",
-      "partOfSpeech": "adjective",
-      "definition": "Very modern and using the most recent ideas and methods.",
-      "translation": "Tối tân, hiện đại nhất, tiên tiến nhất (Tối tân)",
-      "exampleSentence": "The Richmond Suite is equipped with a state-of-the-art sound system and projector.",
-      "ipa": "/ˌsteɪt.əv.ði.ˈɑːt/",
-      "isFavorite": true,
-      "collectionId": "col_2_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "Từ rất tốt để ghi điểm cao cho Speaking Part 2",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_7_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "sustainable",
-      "partOfSpeech": "adjective",
-      "definition": "Able to continue over a period of time; causing little or no damage to the environment.",
-      "translation": "Bền vững, có tính bền vững (Bền vững)",
-      "exampleSentence": "Urban farming helps create a more sustainable urban ecosystem.",
-      "ipa": "/səˈsteɪ.nə.bəl/",
-      "isFavorite": false,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "sustainable development / ecosystem",
-      "createdAt": "2026-06-12T06:39:19.460Z"
-    },
-    {
-      "id": "vocab_8_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "word": "resilient",
-      "partOfSpeech": "adjective",
-      "definition": "Able to be happy, successful, etc. again after something difficult or bad has happened, or returning to original shape.",
-      "translation": "Kiên cường, bền bỉ, có khả năng phục hồi nhanh (Kiên cường)",
-      "exampleSentence": "Urban agriculture offers a resilient buffer against food supply chain disruptions.",
-      "ipa": "/rɪˈzɪl.i.ənt/",
-      "isFavorite": true,
-      "collectionId": "col_1_21f122e7-06c7-4df1-af22-4f2adca21c95",
-      "notes": "resilient buffer / economy",
-      "createdAt": "2026-06-12T06:39:19.460Z"
+      "createdAt": "2026-06-17T08:13:26.885Z"
     }
-  ]
+  ],
+  "collections": [
+    {
+      "id": "col_1_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
+      "name": "Urban Farming Vocab",
+      "description": "Từ vựng quan trọng rút ra từ bài đọc về Nông nghiệp đô thị",
+      "createdAt": "2026-06-17T08:13:26.885Z"
+    },
+    {
+      "id": "col_2_79122168-7431-406e-b54b-ccfdd9401789",
+      "userId": "79122168-7431-406e-b54b-ccfdd9401789",
+      "name": "Speaking Boosters",
+      "description": "Từ vựng nâng band điểm trong phòng nói Speaking",
+      "createdAt": "2026-06-17T08:13:26.885Z"
+    }
+  ],
+  "roadmaps": {}
 }
