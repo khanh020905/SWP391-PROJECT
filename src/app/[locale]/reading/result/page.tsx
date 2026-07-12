@@ -14,12 +14,13 @@ import {
   Lightbulb,
   TrendingUp,
 } from "lucide-react";
-import { READING_PASSAGE_1, READING_TEST_META } from "@/lib/readingMockData";
+import { READING_PASSAGE_1, READING_PASSAGE_2, READING_PASSAGE_3, READING_TEST_META } from "@/lib/readingMockData";
 import {
   getReadingAttempt,
   updateReadingAttempt,
 } from "@/lib/readingStorage";
 import type { ReadingAttemptPayload, ReadingGradeResult } from "@/types/readingGrade";
+import { supabase } from "@/lib/supabaseClient";
 
 function ResultContent() {
   const searchParams = useSearchParams();
@@ -30,6 +31,7 @@ function ResultContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [gradeSource, setGradeSource] = useState<"gemini" | "fallback" | "">("");
+  const [questionsById, setQuestionsById] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (!attemptId) {
@@ -47,6 +49,38 @@ function ResultContent() {
 
     setAttempt(saved);
 
+    // Dynamic question mapping to display correct prompts
+    if (saved.testId && saved.testId !== "bc-road-to-ielts-reading-1") {
+      fetch(`/api/reading/exams/${saved.testId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.questions) {
+            let runningQId = 1;
+            const mapped = Object.fromEntries(
+              data.questions.map((q: any) => [
+                runningQId,
+                {
+                  id: runningQId++,
+                  prompt: q.text || "",
+                  options: q.options || [],
+                },
+              ])
+            );
+            setQuestionsById(mapped);
+          }
+        })
+        .catch((err) => console.error("Error loading questions for result:", err));
+    } else {
+      const mapped = Object.fromEntries(
+        [
+          ...READING_PASSAGE_1.questions,
+          ...READING_PASSAGE_2.questions,
+          ...READING_PASSAGE_3.questions,
+        ].map((q) => [q.id, q])
+      );
+      setQuestionsById(mapped);
+    }
+
     if (saved.grade) {
       setGrade(saved.grade);
       setLoading(false);
@@ -55,9 +89,22 @@ function ResultContent() {
 
     const gradeAttempt = async () => {
       try {
+        let session = null;
+        try {
+          const sessionRes = await supabase.auth.getSession();
+          session = sessionRes.data.session;
+        } catch (e) {
+          console.warn("[Reading Result] Failed to retrieve Supabase session:", e);
+        }
+
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (session) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+
         const res = await fetch("/api/reading/grade", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(saved),
         });
 
@@ -70,10 +117,30 @@ function ResultContent() {
         const result = data.grade as ReadingGradeResult;
         setGrade(result);
         setGradeSource(data.source === "gemini" ? "gemini" : "fallback");
+        
+        // Update local storage attempt status and grade
         updateReadingAttempt(attemptId, {
           grade: result,
           status: "graded",
         });
+
+        // Register learning activity to study log API
+        if (session?.user) {
+          try {
+            await fetch("/api/student/study-log", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify({
+                activity: `Hoàn thành bài Luyện đọc IELTS Reading - Kết quả: ${result.rawScore}/${result.totalQuestions} câu đúng (Band: ${result.bandScore})`
+              })
+            }).catch(e => console.error("❌ Không thể ghi nhận study log:", e));
+          } catch (dbErr) {
+            console.error("❌ Lỗi khi thực hiện lưu kết quả lên Supabase:", dbErr);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Lỗi khi chấm bài");
         updateReadingAttempt(attemptId, { status: "error" });
@@ -117,9 +184,7 @@ function ResultContent() {
     );
   }
 
-  const questionsById = Object.fromEntries(
-    READING_PASSAGE_1.questions.map((q) => [q.id, q])
-  );
+
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-slate-50 to-blue-50/30">

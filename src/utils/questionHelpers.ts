@@ -55,6 +55,7 @@ export interface NormalizedSection {
   audioDescription: string;     // transcript giả
   questions: NormalizedListeningQuestion[];
   questionRange: { from: number; to: number };  // VD: { from: 1, to: 5 }
+  imageUrl?: string;
 }
 
 export const normalizeListeningTest = (test: any): NormalizedSection[] => {
@@ -72,6 +73,7 @@ export const normalizeListeningTest = (test: any): NormalizedSection[] => {
         audioDescription: s.audio_description ?? "",
         questions,
         questionRange: { from, to: globalOrder - 1 },
+        imageUrl: s.image_url ?? "",
       };
     });
 };

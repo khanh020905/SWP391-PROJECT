@@ -62,7 +62,7 @@ class Component extends React.Component<any, any> {
       autoPlay:false, showStats:false, dark:false, navOpen:true,
       confetti:false,
       practice:null, mistakes:{},
-      view:'dashboard', targetBand:'7.0', bandMenuOpen:false, examDateStr:'2027-06-28',
+      view:this.props.initialView || 'dashboard', targetBand:'7.0', bandMenuOpen:false, examDateStr:'2027-06-28',
       datePickerOpen:false, pickerYM:null,
       known:[], unknown:[], reviewList:[], focus:null, focusPos:0, knownTab:null, setMenuOpen:false, currentSet:'0', listKind:'known',
       srsData:{}, personalFolders:[], importModalOpen: false, dashData: null as any, statsData: null as any,
@@ -75,7 +75,28 @@ class Component extends React.Component<any, any> {
       tidiansActive: false,
       tidiansSourceIdx: [] as number[],
       tidiansSelectionOpen: false,
-      tidiansCandidates: [] as number[]
+      tidiansCandidates: [] as number[],
+      profileName: '', profilePhone: '', profileBio: '',
+      profileInAppReminders: true, profileEmailReminders: true, profileStreakWarning: true,
+      profileLoading: false, profileError: '', profileSuccess: '',
+
+      roadmap: null,
+      roadmapLoading: true,
+      roadmapActionLoading: false,
+      roadmapCurrentBand: 5.0,
+      roadmapTargetBand: 6.5,
+      roadmapDailyHours: 2.0,
+      roadmapTargetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      roadmapFocusSkills: ["Listening", "Reading", "Writing", "Speaking"],
+      roadmapIsGenerating: false,
+      roadmapGenerationStep: 0,
+      roadmapGenerationProgress: 0,
+      roadmapActivePhaseTab: "phase_1",
+      roadmapIsEditingGoals: false,
+      dailyTasks: [],
+      dailyTasksLoading: true,
+      dailyTasksError: null,
+      dailyTasksCompletingId: null
     };
     // Mây 3D trôi quanh dashboard
     this.dashClouds = [
@@ -191,8 +212,12 @@ class Component extends React.Component<any, any> {
     this._fetchPersonalFolders();
     this._fetchDashboard();
     this._fetchStats();
-    // SRS hydration happens inside _fetchVocabSets once the deck is built (deck must
-    // exist before words can be mapped to indices), so it is not started here.
+    this._fetchUserProfile();
+    this._fetchRoadmap();
+    this._fetchDailyTasks();
+    if (typeof window !== 'undefined' && window.location.search.includes('edit=true')) {
+      this.setState({ view: 'editProfile' });
+    }
     this._kh = (e: any)=>{
       const p=this.state.practice;
       if(p){
@@ -574,6 +599,314 @@ class Component extends React.Component<any, any> {
       await this._fetchPersonalFolders();
     }catch(e){console.error(e);}
   }
+
+  async _fetchUserProfile() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        this.setState({
+          profileName: user.user_metadata?.name || user.email?.split('@')[0] || '',
+          profilePhone: user.user_metadata?.phone || '',
+          profileBio: user.user_metadata?.bio || '',
+          profileInAppReminders: user.user_metadata?.inAppReminders !== false,
+          profileEmailReminders: user.user_metadata?.emailReminders !== false,
+          profileStreakWarning: user.user_metadata?.streakWarning !== false,
+        });
+      }
+    } catch (e) {
+      console.error("Lỗi khi tải thông tin cá nhân:", e);
+    }
+  }
+
+  async _saveProfile(e: React.FormEvent) {
+    if (e) e.preventDefault();
+    this.setState({ profileLoading: true, profileError: '', profileSuccess: '' });
+    
+    if (!this.state.profileName.trim()) {
+      this.setState({ profileError: 'Họ và tên không được bỏ trống.', profileLoading: false });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          name: this.state.profileName.trim(), 
+          phone: this.state.profilePhone.trim(), 
+          bio: this.state.profileBio.trim(),
+          inAppReminders: this.state.profileInAppReminders,
+          emailReminders: this.state.profileEmailReminders,
+          streakWarning: this.state.profileStreakWarning
+        },
+      });
+
+      if (error) throw error;
+
+      this.setState({ profileSuccess: 'Cập nhật thông tin hồ sơ thành công!', profileLoading: false });
+      setTimeout(() => {
+        this.setState({ view: 'dashboard', profileSuccess: '' });
+      }, 1500);
+    } catch (err: any) {
+      this.setState({ profileError: err.message || 'Đã xảy ra lỗi khi cập nhật.', profileLoading: false });
+    }
+  }
+
+  _getLocaleUrl(path: string) {
+    const match = window.location.pathname.match(/^\/(en|vi)\b/);
+    const prefix = match ? `/${match[1]}` : '';
+    return `${prefix}${path}`;
+  }
+
+  _fetchDailyTasks = async () => {
+    try {
+      this.setState({ dailyTasksLoading: true, dailyTasksError: null });
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const headers: Record<string, string> = token 
+        ? { Authorization: `Bearer ${token}` } 
+        : { "x-mock-user-id": "usr_2" };
+
+      const res = await fetch("/api/student/daily-tasks", { headers });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Không thể tải danh sách nhiệm vụ");
+      }
+
+      const data = await res.json();
+      this.setState({ dailyTasks: data.dailyTasks || [], dailyTasksLoading: false });
+    } catch (err: any) {
+      console.error(err);
+      this.setState({ dailyTasksError: err.message || "Đã xảy ra lỗi khi tải dữ liệu", dailyTasksLoading: false });
+    }
+  };
+
+  _handleCompleteDailyTask = async (taskId: string) => {
+    if (this.state.dailyTasksCompletingId) return;
+    this.setState({ dailyTasksCompletingId: taskId });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const headers: Record<string, string> = token 
+        ? { Authorization: `Bearer ${token}` } 
+        : { "x-mock-user-id": "usr_2" };
+
+      const res = await fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+        method: "POST",
+        headers,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Không thể cập nhật trạng thái hoàn thành");
+      }
+
+      await this._fetchDailyTasks();
+    } catch (err: any) {
+      alert(err.message || "Lỗi khi cập nhật");
+    } finally {
+      this.setState({ dailyTasksCompletingId: null });
+    }
+  };
+
+  _fetchRoadmap = async () => {
+    try {
+      this.setState({ roadmapLoading: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/student/roadmap", {
+        headers: {
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.setState({
+          roadmap: data.roadmap,
+          roadmapCurrentBand: data.roadmap ? data.roadmap.currentBand : 5.0,
+          roadmapTargetBand: data.roadmap ? data.roadmap.targetBand : 6.5,
+          roadmapDailyHours: data.roadmap ? data.roadmap.dailyHours : 2.0,
+          roadmapTargetDate: data.roadmap ? data.roadmap.targetDate : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          roadmapFocusSkills: data.roadmap ? data.roadmap.focusSkills : ["Listening", "Reading", "Writing", "Speaking"],
+        });
+      }
+    } catch (err) {
+      console.error("Lỗi khi tải lộ trình:", err);
+    } finally {
+      this.setState({ roadmapLoading: false });
+    }
+  };
+
+  _handleRoadmapSkillsChange = (skill: string) => {
+    const focusSkills = this.state.roadmapFocusSkills;
+    if (focusSkills.includes(skill)) {
+      this.setState({ roadmapFocusSkills: focusSkills.filter(s => s !== skill) });
+    } else {
+      this.setState({ roadmapFocusSkills: [...focusSkills, skill] });
+    }
+  };
+
+  _startRoadmapAIGeneration = async (e: any) => {
+    if (e) e.preventDefault();
+    const { roadmapCurrentBand, roadmapTargetBand, roadmapFocusSkills } = this.state;
+    if (roadmapTargetBand <= roadmapCurrentBand) {
+      alert("Band mục tiêu phải lớn hơn Band hiện tại!");
+      return;
+    }
+    if (roadmapFocusSkills.length === 0) {
+      alert("Vui lòng chọn ít nhất một kỹ năng cần tập trung!");
+      return;
+    }
+
+    this.setState({
+      roadmapIsGenerating: true,
+      roadmapGenerationStep: 0,
+      roadmapGenerationProgress: 0
+    });
+
+    const stepsCount = 4;
+    const intervalTime = 600;
+
+    const progressInterval = setInterval(() => {
+      this.setState(s => ({
+        roadmapGenerationProgress: s.roadmapGenerationProgress >= 100 ? 100 : s.roadmapGenerationProgress + 4
+      }));
+    }, 100);
+
+    const stepInterval = setInterval(() => {
+      this.setState(s => ({
+        roadmapGenerationStep: s.roadmapGenerationStep >= stepsCount - 1 ? stepsCount - 1 : s.roadmapGenerationStep + 1
+      }));
+    }, intervalTime);
+
+    setTimeout(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch("/api/student/roadmap", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token || ""}`
+          },
+          body: JSON.stringify({
+            action: "GENERATE",
+            currentBand: this.state.roadmapCurrentBand,
+            targetBand: this.state.roadmapTargetBand,
+            dailyHours: this.state.roadmapDailyHours,
+            targetDate: this.state.roadmapTargetDate,
+            focusSkills: this.state.roadmapFocusSkills
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          this.setState({ roadmap: data.roadmap, roadmapIsEditingGoals: false });
+        }
+      } catch (err) {
+        console.error("Lỗi khi tạo lộ trình:", err);
+      } finally {
+        this.setState({ roadmapIsGenerating: false });
+        clearInterval(progressInterval);
+        clearInterval(stepInterval);
+      }
+    }, 2800);
+  };
+
+  _activateRoadmap = async () => {
+    try {
+      this.setState({ roadmapActionLoading: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/student/roadmap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        },
+        body: JSON.stringify({ action: "ACTIVATE" })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        this.setState({ roadmap: data.roadmap, roadmapActivePhaseTab: "phase_1" });
+        window.dispatchEvent(new Event("visibilitychange"));
+      }
+    } catch (err) {
+      console.error("Lỗi kích hoạt lộ trình:", err);
+    } finally {
+      this.setState({ roadmapActionLoading: false });
+    }
+  };
+
+  _toggleRoadmapTask = async (phaseId: string, taskId: string, completed: boolean) => {
+    const roadmap = this.state.roadmap;
+    if (!roadmap) return;
+
+    // Optimistic update
+    const updatedPhases = roadmap.phases.map((phase: any) => {
+      if (phase.id === phaseId) {
+        return {
+          ...phase,
+          tasks: phase.tasks.map((task: any) => {
+            if (task.id === taskId) {
+              return { ...task, completed };
+            }
+            return task;
+          })
+        };
+      }
+      return phase;
+    });
+
+    this.setState({ roadmap: { ...roadmap, phases: updatedPhases } });
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/student/roadmap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        },
+        body: JSON.stringify({
+          action: "TOGGLE_TASK",
+          phaseId,
+          taskId,
+          completed
+        })
+      });
+
+      if (!res.ok) {
+        this._fetchRoadmap();
+      }
+    } catch (err) {
+      console.error("Lỗi cập nhật tiến độ:", err);
+      this._fetchRoadmap();
+    }
+  };
+
+  _resetRoadmap = async () => {
+    if (!confirm("Bạn có chắc muốn đặt lại lộ trình học? Toàn bộ dữ liệu tiến trình hiện tại sẽ bị xóa.")) {
+      return;
+    }
+
+    try {
+      this.setState({ roadmapActionLoading: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/student/roadmap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        },
+        body: JSON.stringify({ action: "DELETE" })
+      });
+
+      if (res.ok) {
+        this.setState({ roadmap: null, roadmapIsEditingGoals: false });
+      }
+    } catch (err) {
+      console.error("Lỗi reset lộ trình:", err);
+    } finally {
+      this.setState({ roadmapActionLoading: false });
+    }
+  };
 
   _studyFolderWords(){
     const words=this.state.folderWords;
@@ -1071,6 +1404,31 @@ class Component extends React.Component<any, any> {
       radius: k%3===0?'50%':'2px'
     })):[];
     return {
+      navOverviewBg: this.state.view === 'dashboard' ? '#F6C453' : 'transparent',
+      navOverviewInk: this.state.view === 'dashboard' ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navOverviewWeight: this.state.view === 'dashboard' ? '800' : '600',
+      navOverviewShadow: this.state.view === 'dashboard' ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+
+      navSetsBg: this.state.view === 'sets' ? '#F6C453' : 'transparent',
+      navSetsInk: this.state.view === 'sets' ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navSetsWeight: this.state.view === 'sets' ? '800' : '600',
+      navSetsShadow: this.state.view === 'sets' ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+
+      navFlashBg: (this.state.view === 'study' || this.state.view === 'cards') ? '#F6C453' : 'transparent',
+      navFlashInk: (this.state.view === 'study' || this.state.view === 'cards') ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navFlashWeight: (this.state.view === 'study' || this.state.view === 'cards') ? '800' : '600',
+      navFlashShadow: (this.state.view === 'study' || this.state.view === 'cards') ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+
+      navStatsBg: this.state.view === 'stats' ? '#F6C453' : 'transparent',
+      navStatsInk: this.state.view === 'stats' ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navStatsWeight: this.state.view === 'stats' ? '800' : '600',
+      navStatsShadow: this.state.view === 'stats' ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+
+      navRoadmapBg: this.state.view === 'roadmap' ? '#F6C453' : 'transparent',
+      navRoadmapInk: this.state.view === 'roadmap' ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navRoadmapWeight: this.state.view === 'roadmap' ? '800' : '600',
+      navRoadmapShadow: this.state.view === 'roadmap' ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+
       word:card.word, ipa:card.ipa, posVi:card.posVi, vi:card.vi,
       exampleEn:card.exampleEn, exampleVi:card.exampleVi, tag:card.tag, syn:card.syn,
       flipped:this.state.flipped,
@@ -1156,25 +1514,85 @@ class Component extends React.Component<any, any> {
       reviewBadgeBg: reviewCount>0?'rgba(238,154,35,.32)':'rgba(255,255,255,.12)',
       isDashboard:this.state.view==='dashboard', isStudy:this.state.view==='study',
       isStats:this.state.view==='stats',
-      goDashboard:()=>this.setView('dashboard'),
-      goStats:()=>{ this._fetchStats(); this.setView('stats'); },
-      navStatsBg: this.state.view==='stats'?'#F6C453':'transparent',
-      navStatsInk: this.state.view==='stats'?'#2A3114':'#C9CFAE',
-      navStatsWeight: this.state.view==='stats'?'800':'600',
-      navStatsShadow: this.state.view==='stats'?'0 4px 0 rgba(0,0,0,.14)':'none',
-      navOverviewBg: this.state.view==='dashboard'?'#F6C453':'transparent',
-      navOverviewInk: this.state.view==='dashboard'?'#2A3114':'#C9CFAE',
-      navOverviewWeight: this.state.view==='dashboard'?'800':'600',
-      navOverviewShadow: this.state.view==='dashboard'?'0 4px 0 rgba(0,0,0,.14)':'none',
-      navSetsBg: (['sets','personal','folderDetail'].includes(this.state.view))?'#F6C453':'transparent',
-      navSetsInk: (['sets','personal','folderDetail'].includes(this.state.view))?'#2A3114':'#C9CFAE',
-      navSetsWeight: (['sets','personal','folderDetail'].includes(this.state.view))?'800':'600',
-      navSetsShadow: (['sets','personal','folderDetail'].includes(this.state.view))?'0 4px 0 rgba(0,0,0,.14)':'none',
-      navFlashBg: (this.state.view==='study'||this.state.view==='cards')?'#F6C453':'transparent',
-      navFlashInk: (this.state.view==='study'||this.state.view==='cards')?'#2A3114':'#C9CFAE',
-      navFlashWeight: (this.state.view==='study'||this.state.view==='cards')?'800':'600',
-      navFlashShadow: (this.state.view==='study'||this.state.view==='cards')?'0 4px 0 rgba(0,0,0,.14)':'none',
-      goStudy:this.goStudy,
+      isRoadmap: this.state.view === 'roadmap',
+      roadmap: this.state.roadmap,
+      roadmapLoading: this.state.roadmapLoading,
+      roadmapActionLoading: this.state.roadmapActionLoading,
+      roadmapCurrentBand: this.state.roadmapCurrentBand,
+      roadmapTargetBand: this.state.roadmapTargetBand,
+      roadmapDailyHours: this.state.roadmapDailyHours,
+      roadmapTargetDate: this.state.roadmapTargetDate,
+      roadmapFocusSkills: this.state.roadmapFocusSkills,
+      roadmapIsGenerating: this.state.roadmapIsGenerating,
+      roadmapGenerationStep: this.state.roadmapGenerationStep,
+      roadmapGenerationProgress: this.state.roadmapGenerationProgress,
+      roadmapActivePhaseTab: this.state.roadmapActivePhaseTab,
+      roadmapIsEditingGoals: this.state.roadmapIsEditingGoals,
+      
+      fetchRoadmap: this._fetchRoadmap,
+      handleRoadmapSkillsChange: this._handleRoadmapSkillsChange,
+      startRoadmapAIGeneration: this._startRoadmapAIGeneration,
+      activateRoadmap: this._activateRoadmap,
+      toggleRoadmapTask: this._toggleRoadmapTask,
+      resetRoadmap: this._resetRoadmap,
+      setRoadmapState: (updates: any) => this.setState(updates),
+
+      isDaily: this.state.view === 'daily',
+      dailyTasks: this.state.dailyTasks,
+      dailyTasksLoading: this.state.dailyTasksLoading,
+      dailyTasksError: this.state.dailyTasksError,
+      dailyTasksCompletingId: this.state.dailyTasksCompletingId,
+      fetchDailyTasks: this._fetchDailyTasks,
+      handleCompleteDailyTask: this._handleCompleteDailyTask,
+      
+      navDailyBg: this.state.view === 'daily' ? '#F6C453' : 'transparent',
+      navDailyInk: this.state.view === 'daily' ? '#2A3114' : (this.state.dark ? '#8A94B4' : '#C9D49C'),
+      navDailyWeight: this.state.view === 'daily' ? '800' : '600',
+      navDailyShadow: this.state.view === 'daily' ? '0 4px 0 rgba(0,0,0,.14)' : 'none',
+      goDaily: () => {
+        this.setView('daily');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/learning/daily'));
+        } catch(e) {}
+      },
+
+      goDashboard: () => {
+        this.setView('dashboard');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/profile'));
+        } catch(e) {}
+      },
+      goStats: () => {
+        this._fetchStats();
+        this.setView('stats');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/profile?view=stats'));
+        } catch(e) {}
+      },
+      goSets: () => {
+        this.setView('sets');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/profile?view=sets'));
+        } catch(e) {}
+      },
+      goStudy: () => {
+        this.goStudy();
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/profile?view=study'));
+        } catch(e) {}
+      },
+      goEditProfile: () => {
+        this.setView('editProfile');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/profile?edit=true'));
+        } catch(e) {}
+      },
+      goRoadmap: () => {
+        this.setView('roadmap');
+        try {
+          window.history.pushState(null, '', this._getLocaleUrl('/roadmap'));
+        } catch(e) {}
+      },
       isSets:this.state.view==='sets', goSets:this.goSets,
       setsSummary: this.wordSets.length+' bộ · '+this.wordSets.reduce((a,w)=>a+w.count,0)+' từ',
       setCards: [...this.wordSets.filter(w=>w.personal), ...this.wordSets.filter(w=>!w.personal)].map((ws,i)=>{
@@ -1221,12 +1639,13 @@ class Component extends React.Component<any, any> {
       navAvatarUrl: this.state.avatarUrlOverride || this.props.avatarUrl || '',
       openImportModal: () => this.setState({ importModalOpen: true }),
       createNewFolder: () => this.setState({ createFolderOpen: true, createFolderName: '', createFolderError: '' }),
-      goEditProfile:    () => { const lc=window.location.pathname.split('/')[1]||'en'; window.location.href=`/${lc}/profile/edit`; },
+      goEditProfile:    () => { this.setState({ view: 'editProfile' }); },
+      cancelEditProfile: () => { this.setState({ view: 'dashboard', profileError: '', profileSuccess: '' }); },
       isAdmin: this.state.isAdminLive || this.props.role === 'ADMIN' || this.props.role === 'INSTRUCTOR',
       goAdmin:          () => { const seg=window.location.pathname.split('/')[1]; const lc=(seg==='en'||seg==='vi')?`/${seg}`:''; window.location.href=`${lc}/admin`; },
-      goVocabNotebook:  () => { const lc=window.location.pathname.split('/')[1]||'en'; window.location.href=`/${lc}/practice/vocabulary/notebook`; },
-      goDiagnostic:     () => { const lc=window.location.pathname.split('/')[1]||'en'; window.location.href=`/${lc}/roadmap/diagnostic-test`; },
-      goRoadmap:        () => { const lc=window.location.pathname.split('/')[1]||'en'; window.location.href=`/${lc}/roadmap`; },
+      goVocabNotebook:  () => { window.location.href = this._getLocaleUrl('/practice/vocabulary/notebook'); },
+      goDiagnostic:     () => { window.location.href = this._getLocaleUrl('/orientation'); },
+      goRoadmap:        () => { window.location.href = this._getLocaleUrl('/roadmap'); },
       openProfilePanel:  () => this.setState({ activePanel: 'profile',   panelError: '', panelSuccess: '' }),
       openAvatarPanel:   () => this.setState({ activePanel: 'avatar',    panelError: '', panelSuccess: '' }),
       openPasswordPanel: () => this.setState({ activePanel: 'password',  panelError: '', panelSuccess: '' }),
@@ -1275,6 +1694,23 @@ class Component extends React.Component<any, any> {
         ink: ws.id===this.state.currentSet?'#5D6B2D':'#3E4A1B',
         weight: ws.id===this.state.currentSet?'800':'600' })),
       reviewMistakes:this.reviewMistakes,
+      isEditProfile: this.state.view==='editProfile',
+      profileName: this.state.profileName,
+      profilePhone: this.state.profilePhone,
+      profileBio: this.state.profileBio,
+      profileInAppReminders: this.state.profileInAppReminders,
+      profileEmailReminders: this.state.profileEmailReminders,
+      profileStreakWarning: this.state.profileStreakWarning,
+      profileLoading: this.state.profileLoading,
+      profileError: this.state.profileError,
+      profileSuccess: this.state.profileSuccess,
+      setProfileName: (v)=>this.setState({profileName:v}),
+      setProfilePhone: (v)=>this.setState({profilePhone:v}),
+      setProfileBio: (v)=>this.setState({profileBio:v}),
+      toggleProfileInAppReminders: ()=>this.setState(s=>({profileInAppReminders:!s.profileInAppReminders})),
+      toggleProfileEmailReminders: ()=>this.setState(s=>({profileEmailReminders:!s.profileEmailReminders})),
+      toggleProfileStreakWarning: ()=>this.setState(s=>({profileStreakWarning:!s.profileStreakWarning})),
+      saveProfile: (e)=>this._saveProfile(e),
       ...P
     };
   }

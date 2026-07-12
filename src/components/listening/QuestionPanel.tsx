@@ -35,6 +35,16 @@ export default function QuestionPanel() {
 
       {/* Questions Scrollable List */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin">
+        {currentSection.imageUrl && (
+          <div className="mb-5 bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex flex-col items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentSection.imageUrl}
+              alt="Section map/diagram"
+              className="max-w-full max-h-[380px] object-contain rounded-lg border border-slate-100/50"
+            />
+          </div>
+        )}
         {currentSection.questions.map((q) => (
           <ListeningQuestion key={q.id} question={q} />
         ))}

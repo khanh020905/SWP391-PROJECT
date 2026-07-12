@@ -35,7 +35,7 @@ export default function ListeningLayout() {
     ).length;
   }, [answers]);
 
-  const isSubmitDisabled = totalQuestions > 0 && answeredCount < Math.floor(totalQuestions * 0.5);
+  const isSubmitDisabled = false;
 
   const testName = selectedTest?.test_name || "IELTS Listening Practice";
 

@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const examTitle = formData.get("examTitle") as string | null;
+    const cambridgeNo = formData.get("cambridgeNo") as string | null;
+    const testNo = formData.get("testNo") as string | null;
 
     if (!file) {
       return Response.json({ error: "Không tìm thấy file audio" }, { status: 400 });
@@ -27,18 +30,53 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "File audio không được vượt quá 200MB" }, { status: 400 });
     }
 
-    // Generate unique filename
+    // Generate storage path under 'admin/Cambridge X/Test Y/' if available, otherwise try to extract it, falling back to 'admin/<examTitle>'
     const timestamp = Date.now();
+    const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     const ext = file.name.split(".").pop() || "mp3";
-    const fileName = `cambridge_exam_${timestamp}.${ext}`;
+    
+    let cam = cambridgeNo?.trim();
+    let test = testNo?.trim();
+
+    // 1. Try to extract from examTitle if not provided
+    if ((!cam || !test) && examTitle) {
+      const camMatch = examTitle.match(/Cam(?:bridge)?(?:\s*IELTS)?\s*(\d+)/i);
+      const testMatch = examTitle.match(/Test\s*(\d+)/i);
+
+      if (!cam && camMatch) cam = camMatch[1];
+      if (!test && testMatch) test = testMatch[1];
+    }
+
+    // 2. Try to extract from file.name if still not provided
+    if ((!cam || !test) && file.name) {
+      const camMatch = file.name.match(/Cam(?:bridge)?(?:\s*IELTS)?\s*(\d+)/i);
+      const testMatch = file.name.match(/Test\s*(\d+)/i);
+
+      if (!cam && camMatch) cam = camMatch[1];
+      if (!test && testMatch) test = testMatch[1];
+    }
+
+    let folderPath = "";
+    if (cam && test) {
+      const cleanCam = cam.replace(/[\/\\:\*\?"<>\|]/g, "_");
+      const cleanTest = test.replace(/[\/\\:\*\?"<>\|]/g, "_");
+      folderPath = `admin/Cambridge ${cleanCam}/Test ${cleanTest}`;
+    } else if (cam) {
+      const cleanCam = cam.replace(/[\/\\:\*\?"<>\|]/g, "_");
+      folderPath = `admin/Cambridge ${cleanCam}`;
+    } else {
+      const folderName = examTitle ? examTitle.trim().replace(/[\/\\:\*\?"<>\|]/g, "_") : originalName.trim();
+      folderPath = `admin/${folderName}`;
+    }
+    const storagePath = `${folderPath}/${originalName}_${timestamp}.${ext}`;
 
     // Convert File to ArrayBuffer then Uint8Array for Supabase upload
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = new Uint8Array(arrayBuffer);
 
     const { error: uploadError } = await supabaseAdmin.storage
-      .from("exam-audio")
-      .upload(fileName, fileBuffer, {
+      .from("audio")
+      .upload(storagePath, fileBuffer, {
         contentType: file.type || "audio/mpeg",
         upsert: false,
       });
@@ -50,13 +88,13 @@ export async function POST(request: NextRequest) {
 
     // Get public URL
     const { data: urlData } = supabaseAdmin.storage
-      .from("exam-audio")
-      .getPublicUrl(fileName);
+      .from("audio")
+      .getPublicUrl(storagePath);
 
     return Response.json({
       success: true,
       url: urlData.publicUrl,
-      fileName,
+      fileName: storagePath,
     });
   } catch (err) {
     console.error("POST /api/admin/exams/upload-audio error:", err);

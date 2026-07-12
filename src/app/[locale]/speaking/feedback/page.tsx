@@ -22,6 +22,18 @@ function SpeakingFeedbackContent() {
 
   // Attempt data
   const [attempt, setAttempt] = useState<any | null>(null);
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.settings) {
+          setSettings(data.settings);
+        }
+      })
+      .catch((err) => console.error("Lỗi lấy cấu hình:", err));
+  }, []);
   
   // Audio Player state
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
@@ -160,6 +172,27 @@ function SpeakingFeedbackContent() {
     }
 
     return corrections;
+  };
+
+  const getBandFeedback = (bandScore: number) => {
+    if (!settings || !settings.bandScore) {
+      // Fallback default feedback
+      if (bandScore <= 4.5) return "Bạn đang ở cấp độ cơ bản. Hãy tập trung cải thiện phát âm các từ đơn lẻ và mở rộng vốn từ vựng thông dụng cơ bản trước.";
+      if (bandScore <= 6.5) return "Kỹ năng Speaking ở mức khá. Cần tập trung liên kết các ý dài hơn, hạn chế lặp từ và sửa lỗi ngữ pháp thì chia động từ khi nói nhanh.";
+      return "Kỹ năng nói xuất sắc! Hãy tiếp tục duy trì độ trôi chảy, sử dụng thêm các thành ngữ (idiomatic expressions) và các cấu trúc câu phức tạp để đạt band điểm cao hơn nữa.";
+    }
+
+    const { beginnerMaxBand, intermediateMaxBand, advancedMinBand, beginnerFeedback, intermediateFeedback, advancedFeedback } = settings.bandScore;
+
+    if (bandScore <= Number(beginnerMaxBand)) {
+      return beginnerFeedback;
+    } else if (bandScore <= Number(intermediateMaxBand)) {
+      return intermediateFeedback;
+    } else if (bandScore >= Number(advancedMinBand)) {
+      return advancedFeedback;
+    } else {
+      return intermediateFeedback;
+    }
   };
 
   if (!attempt) {
@@ -488,6 +521,17 @@ function SpeakingFeedbackContent() {
           {/* Right Area: Detailed AI Diagnostics (1 Col) */}
           <div className="space-y-6">
             
+            {/* General AI Examiner Feedback */}
+            <div className="bg-white rounded-3xl p-6 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3] space-y-3">
+              <h2 className="text-sm font-black text-[#0f1738] flex items-center gap-2">
+                <Award className="w-4 h-4 text-[#3B5C37]" />
+                Nhận xét & Lời khuyên từ Giám khảo AI
+              </h2>
+              <p className="text-xs text-[#5c6488] leading-relaxed">
+                {getBandFeedback(parseFloat(attempt.band))}
+              </p>
+            </div>
+
             {/* Tabs navigator */}
             <div className="bg-white rounded-3xl p-6 shadow-[0_4px_32px_rgba(20,28,60,0.04)] border border-[#e8ebf3]">
               <div className="flex border-b border-slate-100 pb-3 mb-5 gap-2">

@@ -9,7 +9,21 @@ import { supabase } from "@/lib/supabase";
  * Any caller-supplied headers (e.g. Content-Type) are preserved.
  */
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
+  let session = null;
+  try {
+    const { data: { session: s }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.warn("authFetch: Failed to get Supabase session:", error);
+      if (error.message?.includes("Refresh Token") || error.message?.includes("refresh_token") || error.message?.includes("refresh token")) {
+        supabase.auth.signOut().catch(() => {});
+      }
+    } else {
+      session = s;
+    }
+  } catch (err) {
+    console.error("authFetch: Exception during getSession:", err);
+  }
+
   const headers = new Headers(init.headers);
   if (session?.access_token) {
     headers.set("Authorization", `Bearer ${session.access_token}`);

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/navigation";
 import { 
   Sparkles, Mic, MicOff, Square,
@@ -203,10 +203,25 @@ const EXAM_DATA: Record<string, ExamTopic> = {
 function SpeakingTestRoomContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
   
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.settings) {
+          setSettings(data.settings);
+        }
+      })
+      .catch((err) => console.error("Lỗi lấy cấu hình:", err));
+  }, []);
+
   // URL Params config
   const mode = (searchParams.get("mode") || "mock") as "mock" | "part1" | "part2" | "part3";
   const topicKey = searchParams.get("topic") || "study";
+  const examId = (searchParams.get("examId") || params?.examId) as string | undefined;
   const [currentExam, setCurrentExam] = useState<any>(null);
   const [isLoadingExam, setIsLoadingExam] = useState(true);
 
@@ -285,60 +300,168 @@ function SpeakingTestRoomContent() {
 
   useEffect(() => {
     let mounted = true;
-    fetchSpeakingTopics().then(data => {
-      if (!mounted) return;
-      if (data && data.length > 0) {
-        // Find matching topic rows
-        const rows = data.filter((t: any) => 
-          String(t.topic || "").toLowerCase() === topicKey.toLowerCase() || 
-          String(t.title || "").toLowerCase() === topicKey.toLowerCase()
-        );
 
-        if (rows.length > 0) {
-          const part1Row = rows.find((r: any) => r.part === 1);
-          const part2Row = rows.find((r: any) => r.part === 2);
-          const part3Row = rows.find((r: any) => r.part === 3);
+    const loadExamData = async () => {
+      try {
+        if (examId) {
+          const { data: examData } = await supabase
+            .from("exams")
+            .select("*")
+            .eq("id", examId)
+            .single();
 
-          const part1Questions = part1Row?.questions 
-            ? (typeof part1Row.questions === 'string' ? JSON.parse(part1Row.questions) : part1Row.questions) 
-            : [];
-          const part2Questions = part2Row?.questions 
-            ? (typeof part2Row.questions === 'string' ? JSON.parse(part2Row.questions) : part2Row.questions) 
-            : {};
-          const part3Questions = part3Row?.questions 
-            ? (typeof part3Row.questions === 'string' ? JSON.parse(part3Row.questions) : part3Row.questions) 
-            : [];
+          if (examData) {
+            const { data: sections } = await supabase
+              .from("exam_sections")
+              .select("*")
+              .eq("exam_id", examId)
+              .order("section_no", { ascending: true });
 
-          const exam: any = {
-            title: part1Row?.topic || topicKey,
-            part1: part1Questions.map((qText: string, idx: number) => ({ id: `s1_q${idx}`, text: qText, duration: 45 })),
-            part2: {
-              text: part2Questions.cue_card || "Describe a place you have always wanted to visit.",
-              bullets: part2Questions.bullet_points || ["Where it is", "Why you want to go there"],
-              duration: 120
-            },
-            part3: part3Questions.map((qText: string, idx: number) => ({ id: `s3_q${idx}`, text: qText, duration: 60 }))
-          };
-          setCurrentExam(exam);
+            const { data: qs } = await supabase
+              .from("questions")
+              .select("*")
+              .eq("exam_id", examId)
+              .order("order_index", { ascending: true });
+
+            const part1Sec = (sections || []).find(s => s.section_no === 1);
+            let part1Qs = (qs || []).filter(q => q.section === 1).map((q) => ({
+              id: q.id,
+              text: q.text || "",
+              duration: 45
+            }));
+            if (part1Qs.length === 0 && part1Sec?.answers) {
+              const arr = Array.isArray(part1Sec.answers)
+                ? part1Sec.answers
+                : typeof part1Sec.answers === 'string'
+                  ? JSON.parse(part1Sec.answers)
+                  : [];
+              part1Qs = arr.map((qText: string, idx: number) => ({
+                id: `s1_q${idx}`,
+                text: qText,
+                duration: 45
+              }));
+            }
+
+            const part2Sec = (sections || []).find(s => s.section_no === 2);
+            let part2Text = "Describe a subject you enjoyed studying in high school.";
+            let part2Bullets: string[] = ["Where it is", "Why you want to go there"];
+            if (part2Sec) {
+              if (part2Sec.answers) {
+                const ans = typeof part2Sec.answers === 'string' ? JSON.parse(part2Sec.answers) : part2Sec.answers;
+                if (ans && typeof ans === 'object') {
+                  if (ans.cue_card) part2Text = ans.cue_card;
+                  if (Array.isArray(ans.bullet_points)) part2Bullets = ans.bullet_points;
+                }
+              } else if (part2Sec.content) {
+                part2Text = part2Sec.content;
+                try {
+                  const contentBullets = JSON.parse(part2Sec.content);
+                  if (Array.isArray(contentBullets)) {
+                    part2Bullets = contentBullets;
+                  } else {
+                    part2Bullets = [part2Sec.content];
+                  }
+                } catch {
+                  part2Bullets = [part2Sec.content];
+                }
+              }
+            }
+
+            const part3Sec = (sections || []).find(s => s.section_no === 3);
+            let part3Qs = (qs || []).filter(q => q.section === 3).map((q) => ({
+              id: q.id,
+              text: q.text || "",
+              duration: 60
+            }));
+            if (part3Qs.length === 0 && part3Sec?.answers) {
+              const arr = Array.isArray(part3Sec.answers)
+                ? part3Sec.answers
+                : typeof part3Sec.answers === 'string'
+                  ? JSON.parse(part3Sec.answers)
+                  : [];
+              part3Qs = arr.map((qText: string, idx: number) => ({
+                id: `s3_q${idx}`,
+                text: qText,
+                duration: 60
+              }));
+            }
+
+            const exam = {
+              title: examData.title || "IELTS Speaking Test",
+              part1: part1Qs.length ? part1Qs : [{ id: "s1_q1", text: "Let's talk about your hometown. Where is your hometown located?", duration: 45 }],
+              part2: {
+                text: part2Text,
+                bullets: part2Bullets,
+                duration: 120
+              },
+              part3: part3Qs.length ? part3Qs : [{ id: "s3_q1", text: "Do you think technology makes people feel more isolated?", duration: 60 }]
+            };
+
+            if (mounted) {
+              setCurrentExam(exam);
+              setIsLoadingExam(false);
+              return;
+            }
+          }
+        }
+
+        // Fallback: topicKey
+        const data = await fetchSpeakingTopics();
+        if (!mounted) return;
+        if (data && data.length > 0) {
+          const rows = data.filter((t: any) => 
+            String(t.topic || "").toLowerCase() === topicKey.toLowerCase() || 
+            String(t.title || "").toLowerCase() === topicKey.toLowerCase()
+          );
+
+          if (rows.length > 0) {
+            const part1Row = rows.find((r: any) => r.part === 1);
+            const part2Row = rows.find((r: any) => r.part === 2);
+            const part3Row = rows.find((r: any) => r.part === 3);
+
+            const part1Questions = part1Row?.questions 
+              ? (typeof part1Row.questions === 'string' ? JSON.parse(part1Row.questions) : part1Row.questions) 
+              : [];
+            const part2Questions = part2Row?.questions 
+              ? (typeof part2Row.questions === 'string' ? JSON.parse(part2Row.questions) : part2Row.questions) 
+              : {};
+            const part3Questions = part3Row?.questions 
+              ? (typeof part3Row.questions === 'string' ? JSON.parse(part3Row.questions) : part3Row.questions) 
+              : [];
+
+            const exam: any = {
+              title: part1Row?.topic || topicKey,
+              part1: part1Questions.map((qText: string, idx: number) => ({ id: `s1_q${idx}`, text: qText, duration: 45 })),
+              part2: {
+                text: part2Questions.cue_card || "Describe a place you have always wanted to visit.",
+                bullets: part2Questions.bullet_points || ["Where it is", "Why you want to go there"],
+                duration: 120
+              },
+              part3: part3Questions.map((qText: string, idx: number) => ({ id: `s3_q${idx}`, text: qText, duration: 60 }))
+            };
+            setCurrentExam(exam);
+          } else {
+            setCurrentExam(EXAM_DATA[topicKey] || EXAM_DATA.study);
+          }
         } else {
           setCurrentExam(EXAM_DATA[topicKey] || EXAM_DATA.study);
         }
-      } else {
-        setCurrentExam(EXAM_DATA[topicKey] || EXAM_DATA.study);
-      }
-      setIsLoadingExam(false);
-    }).catch(err => {
-      console.error("Error loading speaking exam:", err);
-      if (mounted) {
-        setCurrentExam(EXAM_DATA[topicKey] || EXAM_DATA.study);
         setIsLoadingExam(false);
+      } catch (err) {
+        console.error("Error loading speaking exam:", err);
+        if (mounted) {
+          setCurrentExam(EXAM_DATA[topicKey] || EXAM_DATA.study);
+          setIsLoadingExam(false);
+        }
       }
-    });
+    };
+
+    loadExamData();
 
     return () => {
       mounted = false;
     };
-  }, [topicKey]);
+  }, [topicKey, examId]);
 
   // Helper: request mic permission and update state
   const requestMicPermission = useCallback(async () => {
@@ -837,8 +960,17 @@ function SpeakingTestRoomContent() {
       // Simulating a realistic score
       const pScore = parseFloat((6.5 + Math.random()).toFixed(1));
 
-      // Calculate overall band score (average of 4 components, rounded to nearest 0.5)
-      const exactAverage = (fcScore + lrScore + graScore + pScore) / 4;
+      // Calculate overall band score using dynamic weights if configured
+      const fluencyWeight = settings?.bandScore?.fluencyWeight ?? 0.25;
+      const lexicalWeight = settings?.bandScore?.lexicalWeight ?? 0.25;
+      const grammarWeight = settings?.bandScore?.grammarWeight ?? 0.25;
+      const pronunciationWeight = settings?.bandScore?.pronunciationWeight ?? 0.25;
+
+      const exactAverage = 
+        (fcScore * fluencyWeight) + 
+        (lrScore * lexicalWeight) + 
+        (graScore * grammarWeight) + 
+        (pScore * pronunciationWeight);
       const roundedBand = Math.round(exactAverage * 2) / 2;
 
       // Generate a mock ID
@@ -879,6 +1011,8 @@ function SpeakingTestRoomContent() {
             })
           }).catch(e => console.error("Không thể ghi nhận study log:", e));
         }
+      }).catch((err) => {
+        console.warn("Failed to get session for study log registration:", err);
       });
 
       // Redirection to the feedback dashboard
@@ -889,36 +1023,32 @@ function SpeakingTestRoomContent() {
 
   if (isLoadingExam || !currentExam) {
     return (
-      <div className="min-h-screen bg-[#0b0f19] flex flex-col items-center justify-center p-6 text-center text-white">
+      <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-6 text-center text-black">
         <div className="relative w-16 h-16 mb-4 mx-auto">
-          <div className="absolute inset-0 rounded-full border-4 border-violet-500/20 border-t-[#ff7a00] animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-black/10 border-t-[#3B5C37] animate-spin" />
         </div>
-        <p className="text-sm font-black text-slate-400">Đang tải chủ đề thi Speaking...</p>
+        <p className="text-sm font-black text-[#3B5C37]">Đang tải chủ đề thi Speaking...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0b0f19] text-[#e2e8f0] min-h-screen font-sans flex flex-col relative overflow-hidden">
+    <div className="bg-[#FAF9F5] text-black min-h-screen font-sans flex flex-col relative overflow-hidden">
       
-      {/* Background radial effects */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-[#7c3aed]/10 to-[#ff7a00]/5 blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tr from-[#0284c7]/5 to-[#7c3aed]/5 blur-[100px]" />
-
       {/* Header Bar */}
-      <header className="w-full border-b border-slate-800 bg-[#0e1322]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between z-20 relative">
+      <header className="w-full border-b-2 border-black bg-white px-6 py-4 flex items-center justify-between z-20 relative">
         <div className="flex items-center gap-2.5">
-          <Link href="/speaking" className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
-            <Home className="w-4 h-4 text-slate-300" />
+          <Link href="/speaking" className="flex items-center justify-center w-8 h-8 rounded-lg border-2 border-black bg-white hover:bg-gray-100 text-black shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all">
+            <Home className="w-4 h-4 text-black stroke-[2.5px]" />
           </Link>
-          <span className="text-xs font-bold text-slate-500">|</span>
-          <span className="text-sm font-black tracking-wide text-white">QualiCode AI speaking Examiner</span>
+          <span className="text-xs font-bold text-black/30">|</span>
+          <span className="text-sm font-black tracking-wide text-black uppercase">QualiCode AI speaking Examiner</span>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 bg-slate-800/40 border border-slate-700/50 rounded-lg px-2.5 py-1 text-xs">
-            <span className="w-2 h-2 rounded-full bg-[#ff7a00] animate-pulse" />
-            <span className="text-slate-300 font-bold capitalize">Chủ đề: {currentExam.title}</span>
+          <div className="hidden sm:flex items-center gap-1.5 bg-[#edf3e8] border-2 border-[#3B5C37] rounded-lg px-2.5 py-1 text-xs text-[#3B5C37] font-black shadow-[2px_2px_0px_0px_#000]">
+            <span className="w-2 h-2 rounded-full bg-[#3B5C37] animate-pulse" />
+            <span>Chủ đề: {currentExam.title}</span>
           </div>
           
           <button 
@@ -927,7 +1057,7 @@ function SpeakingTestRoomContent() {
                 router.push("/speaking");
               }
             }}
-            className="text-xs font-bold bg-rose-600 hover:bg-rose-500 active:scale-95 text-white px-3.5 py-1.5 rounded-lg border-none cursor-pointer transition-all"
+            className="text-xs font-black bg-white hover:bg-rose-50 text-black border-2 border-black px-3.5 py-1.5 rounded-lg shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] transition-all cursor-pointer"
           >
             Thoát phòng thi
           </button>
@@ -938,82 +1068,83 @@ function SpeakingTestRoomContent() {
       {currentStep === "intro" ? (
         // Mode 1: Intro Setup screen
         <div className="flex-1 flex flex-col items-center justify-center p-6 z-10">
-          <div className="w-full max-w-[540px] rounded-3xl bg-[#0f1424]/90 border border-slate-800/80 p-8 text-center shadow-[0_24px_64px_rgba(0,0,0,0.4)]">
+          <div className="w-full max-w-[540px] rounded-2xl bg-white border-4 border-black p-8 text-center shadow-[8px_8px_0px_0px_#000] my-8">
+            
             {/* Mic icon — color reflects permission status */}
-            <div className={`w-16 h-16 rounded-full text-white flex items-center justify-center mx-auto mb-6 shadow-[0_8px_24px_rgba(255,122,0,0.2)] transition-all duration-500 ${
+            <div className={`w-16 h-16 rounded-full border-2 border-black flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0px_0px_#000] transition-all duration-300 ${
               micPermission === "granted"
-                ? "bg-gradient-to-tr from-emerald-600 to-emerald-400 shadow-[0_8px_24px_rgba(16,185,129,0.25)]"
+                ? "bg-[#edf3e8] text-[#3B5C37]"
                 : micPermission === "denied" || micPermission === "unavailable"
-                ? "bg-gradient-to-tr from-rose-700 to-rose-500 shadow-[0_8px_24px_rgba(225,29,72,0.25)]"
+                ? "bg-rose-100 text-rose-700"
                 : micPermission === "checking"
-                ? "bg-gradient-to-tr from-amber-600 to-amber-400 shadow-[0_8px_24px_rgba(245,158,11,0.25)] animate-pulse"
-                : "bg-gradient-to-tr from-[#ff7a00] to-[#7c3aed]"
+                ? "bg-amber-100 text-amber-700 animate-pulse"
+                : "bg-[#FFD02C] text-black"
             }`}>
               {micPermission === "denied" || micPermission === "unavailable"
-                ? <MicOff className="w-8 h-8" />
-                : <Mic className={`w-8 h-8 ${micPermission === "granted" ? "" : "animate-pulse"}`} />
-              }
+                ? <MicOff className="w-7 h-7 stroke-[2.5px]" />
+                : <Mic className={`w-7 h-7 stroke-[2.5px] ${micPermission === "granted" ? "" : "animate-pulse"}`} />
+            }
             </div>
 
-            <span className="text-xs font-bold tracking-widest text-[#ff7a00] uppercase mb-2 block">IELTS SPEAKING EXAM ROOM</span>
-            <h2 className="text-2xl font-black text-white mb-3">Sẵn sàng luyện nói cùng Giám khảo AI?</h2>
+            <span className="text-xs font-black tracking-widest text-[#3B5C37] uppercase mb-2 block">IELTS SPEAKING EXAM ROOM</span>
+            <h2 className="text-2xl font-black text-black mb-3">Sẵn sàng luyện nói cùng Giám khảo AI?</h2>
             
-            <p className="text-xs text-slate-400 leading-relaxed mb-5 max-w-[420px] mx-auto">
+            <p className="text-xs text-gray-500 font-bold leading-relaxed mb-5 max-w-[420px] mx-auto">
               Nhấp vào bắt đầu bên dưới để bước vào phòng thi. Giám khảo AI sẽ đọc từng câu hỏi bằng giọng chuẩn bản xứ và tự động ghi âm câu trả lời của bạn.
             </p>
 
             {/* ── Microphone Permission Status Banner ── */}
             {micPermission === "unknown" && (
-              <div className="mb-5 p-3.5 rounded-2xl border border-slate-700/60 bg-slate-800/40 flex items-center gap-3 text-left">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-                  <Mic className="w-4 h-4 text-slate-400" />
+              <div className="mb-5 p-3.5 rounded-xl border-2 border-black bg-[#FAF9F5] flex items-center gap-3 text-left shadow-[2px_2px_0px_0px_#000]">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white flex items-center justify-center">
+                  <Mic className="w-4 h-4 text-black stroke-[2.5px]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-slate-300 leading-none mb-0.5">Đang kiểm tra quyền Microphone...</p>
-                  <p className="text-[10px] text-slate-500">Trình duyệt sẽ hỏi quyền mic ngay bây giờ.</p>
+                  <p className="text-[11px] font-black text-black leading-none mb-0.5">Đang kiểm tra quyền Microphone...</p>
+                  <p className="text-[10px] text-gray-500 font-bold">Trình duyệt sẽ hỏi quyền mic ngay bây giờ.</p>
                 </div>
               </div>
             )}
             {micPermission === "checking" && (
-              <div className="mb-5 p-3.5 rounded-2xl border border-amber-700/40 bg-amber-900/20 flex items-center gap-3 text-left">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-800/40 flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-amber-400/40 border-t-amber-400 rounded-full animate-spin" />
+              <div className="mb-5 p-3.5 rounded-xl border-2 border-black bg-amber-50 flex items-center gap-3 text-left shadow-[2px_2px_0px_0px_#000]">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-black bg-white flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-amber-300 leading-none mb-0.5">Đang yêu cầu quyền Microphone...</p>
-                  <p className="text-[10px] text-amber-500">Hãy nhấp &ldquo;Cho phép&rdquo; trong hộp thoại của trình duyệt.</p>
+                  <p className="text-[11px] font-black text-amber-800 leading-none mb-0.5">Đang yêu cầu quyền Microphone...</p>
+                  <p className="text-[10px] text-amber-600 font-bold">Hãy nhấp &ldquo;Cho phép&rdquo; trong hộp thoại của trình duyệt.</p>
                 </div>
               </div>
             )}
             {micPermission === "granted" && (
-              <div className="mb-5 p-3.5 rounded-2xl border border-emerald-700/40 bg-emerald-900/20 flex items-center gap-3 text-left">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-800/40 flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+              <div className="mb-5 p-3.5 rounded-xl border-2 border-black bg-[#edf3e8] flex items-center gap-3 text-left shadow-[2px_2px_0px_0px_#000]">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-[#3B5C37] bg-white flex items-center justify-center text-[#3B5C37]">
+                  <CheckCircle className="w-4 h-4 stroke-[3px]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-emerald-300 leading-none mb-0.5">Microphone đã được cấp quyền ✓</p>
-                  <p className="text-[10px] text-emerald-600">Hệ thống ghi âm đã sẵn sàng. Bạn có thể bắt đầu thi.</p>
+                  <p className="text-[11px] font-black text-[#3B5C37] leading-none mb-0.5">Microphone đã được cấp quyền ✓</p>
+                  <p className="text-[10px] text-[#3B5C37]/80 font-bold">Hệ thống ghi âm đã sẵn sàng. Bạn có thể bắt đầu thi.</p>
                 </div>
               </div>
             )}
             {(micPermission === "denied" || micPermission === "unavailable") && (
-              <div className="mb-5 p-3.5 rounded-2xl border border-rose-700/40 bg-rose-900/20 text-left">
+              <div className="mb-5 p-3.5 rounded-xl border-2 border-black bg-rose-50 text-left shadow-[2px_2px_0px_0px_#000]">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-rose-800/40 flex items-center justify-center">
-                    <MicOff className="w-4 h-4 text-rose-400" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 border-rose-600 bg-white flex items-center justify-center text-rose-600">
+                    <MicOff className="w-4 h-4 stroke-[2.5px]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-rose-300 leading-none mb-0.5">
+                    <p className="text-[11px] font-black text-rose-800 leading-none mb-0.5">
                       {micPermission === "denied" ? "Microphone bị từ chối quyền truy cập" : "Không tìm thấy Microphone"}
                     </p>
                   </div>
                 </div>
-                <p className="text-[10px] text-rose-400 leading-relaxed mb-3">{micErrorMsg}</p>
+                <p className="text-[10px] text-rose-700 font-bold leading-relaxed mb-3">{micErrorMsg}</p>
                 {micPermission === "denied" && (
                   <div className="grid gap-2 sm:grid-cols-2">
                     <button
                       onClick={requestMicPermission}
-                      className="w-full py-2 rounded-xl text-[11px] font-extrabold bg-rose-700/40 hover:bg-rose-700/60 border border-rose-600/50 text-rose-200 transition-colors cursor-pointer"
+                      className="w-full py-2 rounded-lg text-[11px] font-black bg-white hover:bg-gray-50 border-2 border-black text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] cursor-pointer"
                     >
                       Kiểm tra lại quyền Mic
                     </button>
@@ -1021,7 +1152,7 @@ function SpeakingTestRoomContent() {
                       href="http://localhost:3000/speaking/test?mode=mock&topic=study"
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full py-2 rounded-xl text-[11px] font-extrabold bg-slate-800/80 hover:bg-slate-700 border border-slate-600/60 text-slate-200 transition-colors text-center"
+                      className="w-full py-2 rounded-lg text-[11px] font-black bg-white hover:bg-gray-50 border-2 border-black text-black shadow-[2px_2px_0px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] text-center no-underline"
                     >
                       Mở bằng Chrome/Edge
                     </a>
@@ -1031,38 +1162,38 @@ function SpeakingTestRoomContent() {
             )}
 
             {/* Accent selection config */}
-            <div className="bg-[#141b31] rounded-2xl p-4 border border-slate-800 text-left mb-6 space-y-3">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cấu hình Giọng đọc Giám khảo AI</label>
+            <div className="bg-[#FAF9F5] rounded-xl p-5 border-2 border-black text-left mb-6 space-y-4 shadow-[3px_3px_0px_0px_#000]">
+              <label className="text-[10px] font-black text-black uppercase tracking-wider block">Cấu hình Giọng đọc Giám khảo AI</label>
               
               <div className="grid grid-cols-3 gap-2">
                 <button 
                   onClick={() => setVoiceAccent("en-US")}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold border transition-colors outline-none cursor-pointer ${voiceAccent === "en-US" ? "bg-[#ff7a00]/15 border-[#ff7a00] text-white" : "bg-[#1d2643]/30 border-slate-700/40 text-slate-400 hover:text-white"}`}
+                  className={`py-2 px-1 rounded-lg text-xs font-black border-2 border-black transition-all outline-none cursor-pointer shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] ${voiceAccent === "en-US" ? "bg-[#3B5C37] text-white" : "bg-white text-black hover:bg-gray-50"}`}
                 >
-                  Mỹ (US-Accent)
+                  Mỹ (US)
                 </button>
                 <button 
                   onClick={() => setVoiceAccent("en-GB")}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold border transition-colors outline-none cursor-pointer ${voiceAccent === "en-GB" ? "bg-[#ff7a00]/15 border-[#ff7a00] text-white" : "bg-[#1d2643]/30 border-slate-700/40 text-slate-400 hover:text-white"}`}
+                  className={`py-2 px-1 rounded-lg text-xs font-black border-2 border-black transition-all outline-none cursor-pointer shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] ${voiceAccent === "en-GB" ? "bg-[#3B5C37] text-white" : "bg-white text-black hover:bg-gray-50"}`}
                 >
-                  Anh (UK-Accent)
+                  Anh (UK)
                 </button>
                 <button 
                   onClick={() => setVoiceAccent("en-AU")}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold border transition-colors outline-none cursor-pointer ${voiceAccent === "en-AU" ? "bg-[#ff7a00]/15 border-[#ff7a00] text-white" : "bg-[#1d2643]/30 border-slate-700/40 text-slate-400 hover:text-white"}`}
+                  className={`py-2 px-1 rounded-lg text-xs font-black border-2 border-black transition-all outline-none cursor-pointer shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] ${voiceAccent === "en-AU" ? "bg-[#3B5C37] text-white" : "bg-white text-black hover:bg-gray-50"}`}
                 >
-                  Úc (AU-Accent)
+                  Úc (AU)
                 </button>
               </div>
 
-              <div className="flex items-center justify-between gap-4 pt-2">
-                <span className="text-[10px] font-bold text-slate-400">Tốc độ nói của Examiner</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#ff7a00] font-bold">{voiceSpeed}x</span>
+              <div className="flex items-center justify-between gap-4 pt-2 border-t border-black/10">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Tốc độ nói của Examiner</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs text-[#3B5C37] font-black">{voiceSpeed}x</span>
                   <input 
                     type="range" min="0.75" max="1.2" step="0.05" 
                     value={voiceSpeed} onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
-                    className="w-24 accent-[#ff7a00]"
+                    className="w-24 accent-[#3B5C37] cursor-pointer"
                   />
                 </div>
               </div>
@@ -1072,19 +1203,19 @@ function SpeakingTestRoomContent() {
             <button
               onClick={handleStartExam}
               disabled={micPermission === "denied" || micPermission === "unavailable" || micPermission === "checking"}
-              className={`w-full py-4 rounded-2xl text-sm font-extrabold text-white transition-all border-none select-none ${
+              className={`w-full py-4 rounded-xl text-sm font-black border-2 border-black transition-all select-none shadow-[4px_4px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_#000] ${
                 micPermission === "denied" || micPermission === "unavailable"
-                  ? "bg-slate-700 text-slate-500 cursor-not-allowed opacity-60"
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
                   : micPermission === "checking"
-                  ? "bg-amber-700/60 cursor-wait opacity-70"
-                  : "bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] hover:scale-[1.02] active:scale-95 cursor-pointer shadow-[0_8px_20px_rgba(255,122,0,0.2)]"
+                  ? "bg-amber-100 text-amber-700 cursor-wait opacity-70"
+                  : "bg-[#3B5C37] hover:bg-[#2d472a] text-white cursor-pointer"
               }`}
             >
               {micPermission === "checking"
                 ? "Đang kiểm tra Microphone..."
                 : micPermission === "denied" || micPermission === "unavailable"
-                ? "⚠ Cần cấp quyền Microphone trước"
-                : "🎤 Bước vào phòng thi Speaking"
+                ? "⚠ Cần cấp quyền Microphone"
+                : " Bước vào phòng thi Speaking"
               }
             </button>
           </div>
@@ -1092,268 +1223,201 @@ function SpeakingTestRoomContent() {
       ) : currentStep === "submitting" ? (
         // Mode 2: Loading Submitting / Evaluating screen
         <div className="flex-1 flex flex-col items-center justify-center p-6 z-10">
-          <div className="w-full max-w-[400px] text-center">
+          <div className="w-full max-w-[400px] rounded-2xl bg-white border-4 border-black p-8 text-center shadow-[8px_8px_0px_0px_#000] my-8">
             <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-[#ff7a00]/20 border-t-[#ff7a00] animate-spin" />
-              <div className="absolute inset-2 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin-reverse" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-[#ff7a00] animate-pulse" />
-              </div>
+              <div className="absolute inset-0 rounded-full border-4 border-black/10 border-t-[#3B5C37] animate-spin" />
             </div>
             
-            <h2 className="text-lg font-black text-white mb-2">Đang nộp bài nói & Phân tích AI</h2>
-            <p className="text-xs text-slate-400 leading-normal max-w-[280px] mx-auto animate-pulse">
-              Hệ thống AI QualiCode đang chấm điểm phát âm, ngữ pháp và tìm lỗi từ vựng của bạn. Quá trình này mất khoảng 2 giây...
+            <h2 className="text-lg font-black text-black mb-2">Đang chấm điểm bài thi...</h2>
+            <p className="text-xs text-gray-500 font-bold leading-normal max-w-[280px] mx-auto animate-pulse">
+              AI Examiner đang chấm điểm phát âm, ngữ pháp và tìm lỗi từ vựng của bạn. Quá trình này mất khoảng vài giây...
             </p>
           </div>
         </div>
       ) : (
-        // Mode 3: Interactive Exam screen
-        <div className="flex-1 w-full max-w-[1160px] mx-auto grid gap-6 p-6 md:grid-cols-5 z-10 items-stretch">
+        // Mode 3: Interactive Exam screen - Centered Card layout like Image 2
+        <div className="flex-1 w-full max-w-[720px] mx-auto flex flex-col justify-center px-6 py-10 z-10">
           
-          {/* Left examiner card (2 Cols) */}
-          <div className="md:col-span-2 flex flex-col justify-between rounded-3xl bg-[#0f1424]/95 border border-slate-800/80 p-6 md:p-8 shadow-xl text-center relative overflow-hidden">
-            <div className="absolute -top-16 -left-16 w-36 h-36 bg-[#ff7a00]/5 rounded-full blur-2xl" />
+          <div className="w-full bg-white border-4 border-black rounded-2xl shadow-[8px_8px_0px_0px_#000] overflow-hidden flex flex-col">
             
-            <div className="flex justify-between items-center w-full mb-6">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">AI EXAMINER HUB</span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#ff7a00]/10 border border-[#ff7a00]/25 text-[#ff8a1f] text-[10px] font-bold">
-                {currentStep === "part1" ? "PART 1" : currentStep === "part2_prep" || currentStep === "part2_speak" ? "PART 2" : "PART 3"}
-              </div>
-            </div>
-
-            {/* Pulsing Examiner Head */}
-            <div className="my-auto flex flex-col items-center">
-              <div className="relative w-40 h-40 mb-6 flex items-center justify-center">
-                
-                {/* Visualizer Pulsing Halo waves */}
-                <div className={`absolute inset-0 rounded-full border border-violet-500/30 scale-105 transition-transform duration-1000 ${isRecording ? "animate-ping opacity-25" : "opacity-0"}`} />
-                <div className={`absolute inset-2 rounded-full border border-indigo-500/25 scale-110 transition-transform duration-1000 ${isRecording ? "animate-ping opacity-20" : "opacity-0"}`} style={{ animationDelay: "200ms" }} />
-                
-                <div className={`w-32 h-32 rounded-full bg-gradient-to-tr from-[#1d1f3d] via-[#1a1441] to-[#391e63] border-2 border-slate-800 flex items-center justify-center shadow-lg relative group ${isRecording ? "border-[#ff7a00]/40 scale-105" : ""}`}>
-                  
-                  {/* Inside Avatar graphic */}
-                  <div className="absolute inset-1.5 rounded-full bg-[#080a13] flex flex-col items-center justify-center overflow-hidden">
-                    
-                    {/* Glowing AI eye pulse */}
-                    <div className={`w-4 h-4 rounded-full bg-gradient-to-tr from-[#ff7a00] to-[#e87aed] shadow-[0_0_12px_#ff7a00] ${isRecording ? "animate-bounce scale-110" : ""}`} />
-                    
-                    <span className="text-[9px] font-black text-slate-500 tracking-wider mt-2.5">EXAMINER 1.0</span>
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="font-extrabold text-sm text-white leading-none mb-1">Mr. Adrian</h3>
-              <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5 justify-center">
-                {isRecording ? (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Đang lắng nghe câu trả lời...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                    <span>Đang đưa câu hỏi...</span>
-                  </>
-                )}
-              </p>
-            </div>
-
-            {/* Custom Visual active Sound Waves at the bottom */}
-            <div className="w-full mt-6 h-10 flex items-center justify-center gap-1">
-              {isRecording ? (
-                visualizerBars.map((bar, i) => (
-                  <div 
-                    key={i} 
-                    className="w-1.5 bg-gradient-to-t from-[#ff7a00] to-[#7c3aed] rounded-full transition-all duration-300 animate-pulse"
-                    style={{ 
-                      height: `${bar.height}px`,
-                      animationDelay: `${bar.delay}ms`,
-                      animationDuration: `${bar.duration}ms`
-                    }}
-                  />
-                ))
-              ) : (
-                <div className="text-[10px] font-bold text-slate-500">Hệ thống ghi âm đang ở trạng thái chờ</div>
-              )}
-            </div>
-
-          </div>
-
-          {/* Right interaction dashboard (3 Cols) */}
-          <div className="md:col-span-3 flex flex-col justify-between rounded-3xl bg-[#0f1424]/95 border border-slate-800/80 p-6 md:p-8 shadow-xl relative">
-            
-            {/* Header info / progress bar */}
-            <div>
-              <div className="flex justify-between items-start gap-4 mb-4">
-                <div>
-                  <span className="text-[9px] font-black text-[#ff7a00] uppercase tracking-wider block mb-1">
-                    {currentStep === "part1" ? `Câu hỏi ${questionIdx + 1}/${currentExam.part1.length}` :
-                     currentStep === "part3" ? `Câu hỏi ${questionIdx + 1}/${currentExam.part3.length}` :
-                     currentStep === "part2_prep" ? "Thời gian chuẩn bị nháp" : "Thuyết trình Part 2"}
-                  </span>
-                  
-                  <h2 className="text-base font-black text-white leading-tight">
-                    {currentStep === "part1" ? "Part 1: Phỏng vấn sơ khởi" :
-                     currentStep === "part2_prep" || currentStep === "part2_speak" ? "Part 2: Trình bày Cue Card" :
-                     "Part 3: Câu hỏi nâng cao chuyên sâu"}
-                  </h2>
-                </div>
-
-                {/* Main Countdown Timer display */}
-                <div className={`px-4 py-2 rounded-xl text-center shadow-inner border ${
-                  timer <= 10
-                    ? "bg-rose-950/20 border-rose-800/70 text-rose-500 animate-shake" 
-                    : "bg-[#141b31] border-slate-800 text-[#ff7a00]"
+            {/* Modal Header inside Card */}
+            <div className="border-b-2 border-black bg-[#FAF9F5] p-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-black text-[10px] font-black uppercase shadow-[1.5px_1.5px_0px_0px_#000] ${
+                  isRecording 
+                    ? "bg-rose-100 text-rose-800 border-rose-600" 
+                    : "bg-[#edf3e8] text-[#3B5C37] border-[#3B5C37]"
                 }`}>
-                  <div className="text-[9px] font-bold uppercase tracking-wider leading-none mb-0.5">Thời gian</div>
-                  <div className="text-xl font-extrabold font-mono leading-none">
-                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
-                  </div>
-                </div>
+                  {isRecording ? "🎤 ĐANG NÓI" : "🤖 GIÁM KHẢO NÓI"}
+                  {currentStep === "part2_prep" && " — CHUẨN BỊ"}
+                </span>
+                
+                {/* Part counter label */}
+                <span className="text-[10px] font-black uppercase text-gray-500 border border-black/25 rounded px-2 py-0.5 bg-white">
+                  {currentStep === "part1" ? `Part 1 • Q${questionIdx + 1}/${currentExam.part1.length}` :
+                   currentStep === "part3" ? `Part 3 • Q${questionIdx + 1}/${currentExam.part3.length}` :
+                   currentStep === "part2_prep" ? "Part 2 • Chuẩn bị" : "Part 2 • Đang nói"}
+                </span>
               </div>
 
-              {/* Layout Content block */}
-              {currentStep === "part2_prep" || currentStep === "part2_speak" ? (
-                // Part 2 Special Cue Card presentation
-                <div className="space-y-4 my-6">
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-[#12182b] to-[#15122e] border border-slate-800/80">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">ĐỀ BÀI CUE CARD</span>
-                    <p className="text-sm font-black text-white mb-3">&ldquo; {currentExam.part2.text} &rdquo;</p>
-                    
-                    <ul className="space-y-1.5 pl-4 list-disc text-xs text-slate-300 leading-normal">
+              {/* Countdown Timer */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-black uppercase text-gray-400">Thời gian:</span>
+                <span className={`text-xl font-extrabold font-mono ${timer <= 10 ? "text-rose-600 animate-pulse" : "text-[#3B5C37]"}`}>
+                  {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Body / Question Box */}
+            <div className="p-6 space-y-6">
+              
+              {/* Question Text styled as flat box with border & shadow */}
+              <div className="border-2 border-black rounded-lg bg-[#FAF9F5] p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                {currentStep === "part2_prep" || currentStep === "part2_speak" ? (
+                  <div>
+                    <span className="text-[9px] font-black text-[#B38F4D] uppercase tracking-wider block mb-2">ĐỀ BÀI CUE CARD:</span>
+                    <p className="text-base font-black text-black mb-3 leading-snug">&ldquo; {currentExam.part2.text} &rdquo;</p>
+                    <ul className="space-y-1.5 pl-4 list-disc text-xs font-bold text-gray-700 leading-relaxed">
                       {currentExam.part2.bullets.map((b: string, i: number) => (
                         <li key={i}>{b}</li>
                       ))}
                     </ul>
                   </div>
-
-                  {/*notepad virtual note sheet */}
+                ) : (
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                      <Edit3 className="w-3.5 h-3.5 text-[#ff7a00]" />
-                      Bảng nháp ảo (Note sheet - Nhập nháp chuẩn bị tại đây)
-                    </label>
-                    <textarea 
-                      placeholder="Ghi nhanh các từ vựng, ý tưởng nói vào đây... (Ví dụ: firstly, however, significant...)"
-                      value={scratchNotes}
-                      onChange={(e) => setScratchNotes(e.target.value)}
-                      className="w-full h-24 p-3 rounded-xl bg-[#141b31] border border-slate-800 text-xs text-slate-200 placeholder-slate-600 focus:border-[#ff7a00]/70 focus:outline-none transition-colors resize-none"
-                    />
-                  </div>
-                </div>
-              ) : (
-                // Part 1 and Part 3 Questions normal layouts
-                <div className="my-8">
-                  <div className="flex justify-between items-center mb-3">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CÂU HỎI HIỂN THỊ</label>
-                    <button 
-                      onClick={() => setShowText(!showText)}
-                      className="text-[10px] font-extrabold text-[#ff7a00] hover:underline cursor-pointer bg-none border-none outline-none"
-                    >
-                      {showText ? "Ẩn câu hỏi (Thi thực tế)" : "Xem câu hỏi gợi ý"}
-                    </button>
-                  </div>
-
-                  <div className="min-h-24 p-6 rounded-2xl bg-gradient-to-br from-[#12182b] to-[#141328] border border-slate-800/80 flex items-center justify-center text-center">
+                    <span className="text-[9px] font-black text-[#3B5C37] uppercase tracking-wider block mb-2">CÂU HỎI TỪ GIÁM KHẢO:</span>
                     {showText ? (
-                      <p className="text-base md:text-lg font-extrabold text-white leading-relaxed">&ldquo; {getActiveQuestionText()} &rdquo;</p>
+                      <p className="text-base font-black text-black leading-relaxed">&ldquo; {getActiveQuestionText()} &rdquo;</p>
                     ) : (
-                      <p className="text-sm font-bold text-slate-500 italic flex items-center gap-2">
-                        <Info className="w-4 h-4 text-[#ff7a00]" />
-                        Đang ẩn câu hỏi. Hãy tập trung nghe giám khảo AI phát âm phát biểu!
+                      <p className="text-sm font-bold text-gray-500 italic">
+                        (Đang ẩn câu hỏi gợi ý. Hãy tập trung nghe phát âm của Giám khảo)
                       </p>
                     )}
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Bottom response transcription card */}
-            <div className="space-y-5">
-              {examError && (
-                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs font-bold text-rose-200">
-                  {examError}
+              {/* Show/Hide Question Toggle (Part 1 & 3) */}
+              {currentStep !== "part2_prep" && currentStep !== "part2_speak" && (
+                <div className="text-right">
+                  <button
+                    onClick={() => setShowText(!showText)}
+                    className="text-xs font-extrabold text-[#3B5C37] hover:underline"
+                  >
+                    {showText ? "Ẩn câu hỏi (Giống thi thật)" : "Xem câu hỏi gợi ý"}
+                  </button>
                 </div>
               )}
-              
-              {/* Transcript from Groq Whisper */}
+
+              {/* Scratch notepad for Part 2 */}
+              {(currentStep === "part2_prep" || currentStep === "part2_speak") && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider block">Bảng nháp chuẩn bị nói (Note sheet):</label>
+                  <textarea 
+                    placeholder="Nhập ghi chú ý tưởng tại đây..."
+                    value={scratchNotes}
+                    onChange={(e) => setScratchNotes(e.target.value)}
+                    className="w-full h-24 p-3 rounded-lg border-2 border-black bg-white text-xs font-bold text-black shadow-[2px_2px_0px_0px_#000] placeholder-gray-400 focus:outline-none resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Whisper Transcripts panel */}
               {(isRecording || isTranscribing || liveTranscript) && (
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/50">
-                  <span className="text-[10px] font-bold text-[#ff7a00] uppercase tracking-wider block mb-1.5">
-                    {isTranscribing
-                      ? "ĐANG NHẬN DIỆN BẰNG GROQ AI"
-                      : isRecording
-                        ? "ĐANG GHI ÂM"
-                        : "VĂN BẢN CÂU TRẢ LỜI"}
-                  </span>
-                  <p className="text-xs text-slate-300 leading-normal italic min-h-6">
-                    {liveTranscript ||
-                      (isRecording
-                        ? "Nói câu trả lời của bạn. Văn bản sẽ hiện sau khi dừng ghi âm."
-                        : "Hệ thống đang chờ bạn phát âm...")}
+                <div className="p-4 rounded-lg border-2 border-black bg-[#edf3e8]/70 text-black shadow-[2px_2px_0px_0px_#000]">
+                  <span className="text-[9px] font-black text-[#3B5C37] uppercase tracking-wider block mb-1">VĂN BẢN GHI ÂM (DỰ THẢO):</span>
+                  <p className="text-xs font-bold text-gray-700 italic min-h-[16px] leading-relaxed">
+                    {liveTranscript || (isRecording ? "Đang ghi âm bài nói..." : "Đang phân tích âm thanh...")}
                   </p>
                 </div>
               )}
 
-              {/* Action and controls */}
-              <div className="flex items-center gap-4 border-t border-slate-800/50 pt-5">
-                
-                {/* Audio Recording State controller */}
-                {isRecording || isTranscribing ? (
-                  <button
-                    onClick={stopRecordingAndNext}
-                    disabled={isTranscribing}
-                    className={`w-full py-4 rounded-2xl text-xs font-black text-white flex items-center justify-center gap-2 transition-all border-none select-none ${
-                      isTranscribing
-                        ? "bg-slate-700 cursor-wait opacity-70"
-                        : "bg-gradient-to-r from-rose-600 to-red-500 hover:scale-[1.01] active:scale-95 cursor-pointer shadow-[0_8px_20px_rgba(220,38,38,0.25)]"
-                    }`}
-                  >
-                    <Square className="w-4.5 h-4.5 fill-white text-white" />
-                    <span>
-                      {isTranscribing
-                        ? "Đang chuyển giọng nói thành văn bản..."
-                        : "Dừng ghi âm và nộp câu trả lời"}
-                    </span>
-                  </button>
-                ) : currentStep === "part2_prep" ? (
-                  <button
-                    onClick={() => {
-                      if (timerRef.current) clearInterval(timerRef.current);
-                      // Skip prep directly to speak
-                      setCurrentStep("part2_speak");
-                      speakText("Please start speaking now.", () => {
-                        startRecording();
-                      });
-                    }}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#ff7a00] to-[#ff9e4f] hover:scale-[1.01] active:scale-95 text-xs font-black text-white flex items-center justify-center gap-2 transition-all shadow-md border-none select-none cursor-pointer"
-                  >
-                    <Mic className="w-4.5 h-4.5" />
-                    <span>Bỏ qua chuẩn bị - Bắt đầu nói ngay</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={startRecording}
-                    className="w-full py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs font-black text-white flex items-center justify-center gap-2 transition-all border border-slate-700 select-none cursor-pointer"
-                  >
-                    <Mic className="w-4.5 h-4.5 text-[#ff7a00]" />
-                    <span>Ghi âm lại câu hỏi này</span>
-                  </button>
-                )}
+              {/* Microphone & Input bar Row like Image 2 */}
+              <div className="flex items-center gap-4 pt-4 border-t border-black/10">
+                {/* Yellow Mic Button */}
+                <button
+                  onClick={isRecording || isTranscribing ? stopRecordingAndNext : startRecording}
+                  disabled={isTranscribing}
+                  className={`h-14 w-14 shrink-0 rounded-full border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_#000] transition-all active:translate-y-[1px] active:shadow-[2px_2px_0px_0px_#000] outline-none cursor-pointer ${
+                    isRecording 
+                      ? "bg-rose-600 hover:bg-rose-500 text-white animate-pulse" 
+                      : "bg-[#3B5C37] hover:bg-[#2d472a] text-white"
+                  }`}
+                >
+                  {isRecording ? (
+                    <Square className="h-5 w-5 fill-white text-white" />
+                  ) : (
+                    <Mic className="h-6 w-6 stroke-[2.5px]" />
+                  )}
+                </button>
 
-                {/* Helper button next question fallback */}
-                {!isRecording && !isTranscribing && currentStep !== "part2_prep" && (
-                  <button
-                    onClick={handleNextQuestionFlow}
-                    className="py-4 px-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer select-none"
-                  >
-                    <span>Bỏ qua</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                )}
-
+                {/* Input text placeholder box */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    disabled
+                    placeholder={
+                      isRecording 
+                        ? "Mic đang mở... Hãy bắt đầu nói câu trả lời của bạn." 
+                        : isTranscribing
+                        ? "Groq Whisper đang dịch giọng nói của bạn..."
+                        : "Nhấn Mic để nói câu trả lời của bạn..."
+                    }
+                    className="w-full border-2 border-black bg-gray-50 px-4 py-3.5 text-xs font-bold text-gray-600 rounded-lg shadow-[2px_2px_0px_0px_#000] focus:outline-none"
+                  />
+                </div>
               </div>
+
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="border-t-2 border-black bg-[#FAF9F5] p-5 flex items-center justify-between gap-4">
+              
+              {/* Skip / Back button */}
+              {currentStep !== "part2_prep" ? (
+                <button
+                  onClick={handleNextQuestionFlow}
+                  disabled={isRecording || isTranscribing}
+                  className="px-5 py-2.5 rounded-lg border-2 border-black bg-white hover:bg-gray-100 text-xs font-black text-black shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] disabled:opacity-50"
+                >
+                  Bỏ qua
+                </button>
+              ) : (
+                <div className="w-10" />
+              )}
+
+              {/* Next step button (Yellow) */}
+              {currentStep === "part2_prep" ? (
+                <button
+                  onClick={() => {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    setCurrentStep("part2_speak");
+                    speakText("Please start speaking now.", () => {
+                      startRecording();
+                    });
+                  }}
+                  className="px-5 py-2.5 rounded-lg border-2 border-black bg-[#3B5C37] hover:bg-[#2d472a] text-xs font-black text-white shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] flex items-center gap-1.5"
+                >
+                  Bắt đầu nói ngay →
+                </button>
+              ) : (
+                <button
+                  onClick={stopRecordingAndNext}
+                  disabled={!isRecording && !liveTranscript}
+                  className={`px-5 py-2.5 rounded-lg border-2 border-black text-xs font-black text-white shadow-[2px_2px_0px_0px_#000] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_#000] flex items-center gap-1.5 transition-all ${
+                    !isRecording && !liveTranscript 
+                      ? "bg-gray-100 text-gray-400 border-gray-300 shadow-[0px_0px_0px_0px_#000] cursor-not-allowed" 
+                      : "bg-[#3B5C37] hover:bg-[#2d472a]"
+                  }`}
+                >
+                  {currentStep === "part1" && questionIdx === currentExam.part1.length - 1 ? "Sang Part 2 →" :
+                   currentStep === "part2_speak" ? "Sang Part 3 →" :
+                   currentStep === "part3" && questionIdx === currentExam.part3.length - 1 ? "Nộp bài thi →" :
+                   "Câu tiếp theo →"}
+                </button>
+              )}
+
             </div>
 
           </div>
@@ -1367,11 +1431,11 @@ function SpeakingTestRoomContent() {
 export default function SpeakingTestRoom() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#070b16] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-6 text-center text-black">
         <div className="relative w-16 h-16 mb-4">
-          <div className="absolute inset-0 rounded-full border-4 border-violet-500/20 border-t-[#ff7a00] animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-black/10 border-t-[#3B5C37] animate-spin" />
         </div>
-        <p className="text-sm font-black text-slate-400">Đang chuẩn bị phòng thi Speaking...</p>
+        <p className="text-sm font-black text-[#3B5C37]">Đang chuẩn bị phòng thi Speaking...</p>
       </div>
     }>
       <SpeakingTestRoomContent />

@@ -9,7 +9,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { fetchReadingPassages } from "@/services/readingService";
 import {
@@ -83,7 +84,11 @@ function resolveRole(metadata: Record<string, unknown> | undefined): UserRole {
 
 export function ReadingTestProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const params = useParams();
+  const examId = params?.examId as string | undefined;
+  
   const [passages, setPassages] = useState<any[]>([]);
+  const [meta, setMeta] = useState<ReadingTestMeta>(READING_TEST_META);
   const [activePassageIndex, setActivePassageIndexState] = useState(0);
   const passage = passages[activePassageIndex] || { title: "", sectionLabel: "", paragraphs: [], questions: [] };
 
@@ -131,82 +136,195 @@ export function ReadingTestProvider({ children }: { children: React.ReactNode })
       }
     }
 
-    fetchReadingPassages().then(data => {
-      const validData = data ? data.filter(p => p.questions && p.questions.length > 0) : [];
-      if (validData.length > 0) {
-        let runningQId = 1;
-        const mappedPassages = validData.map((p, pIdx) => {
-          const sectionLabel = p.sectionLabel || `Reading Passage ${pIdx + 1}`;
-          const paragraphs = p.paragraphs || (p.content_html ? [{ id: `p-${pIdx}-1`, label: "", text: p.content_html.replace(/<[^>]*>/g, '') }] : []);
-          
-          const questions = (p.questions || []).map((q: any) => {
-            const rawType = q.type || "";
-            let type = "tfng";
-            let defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
-            
-            if (rawType === "true_false_not_given" || rawType === "tfng") {
-              type = "tfng";
-              defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
-            } else if (rawType === "multiple_choice" || rawType === "mcq") {
-              type = "mcq";
-              defaultInstruction = "Choose the correct letter, A, B, C or D.";
-            } else if (rawType === "short_answer" || rawType === "fill") {
-              type = "fill";
-              defaultInstruction = "Answer the question with NO MORE THAN TWO WORDS.";
-            } else if (rawType === "matching") {
-              type = "matching";
-              defaultInstruction = "Choose the correct heading for each section.";
-            }
+    const loadExamData = async () => {
+      try {
+        if (examId) {
+          const res = await fetch(`/api/reading/exams/${examId}`);
+          if (!res.ok) {
+            throw new Error("Failed to fetch exam data");
+          }
+          const { meta: examData, sections: sectionsData, questions: questionsData } = await res.json();
 
-            const prompt = q.statement || q.text || q.prompt || q.question_text || "";
-            
-            let options = q.options || [];
-            if (type === "mcq") {
-              options = (q.options || []).map((opt: any) => {
-                if (typeof opt === "string") {
-                  const dotIndex = opt.indexOf(".");
-                  if (dotIndex !== -1) {
-                    const key = opt.substring(0, dotIndex).trim();
-                    const text = opt.substring(dotIndex + 1).trim();
-                    return { key, text };
-                  }
-                  return { key: opt.trim().charAt(0), text: opt };
-                }
-                return opt;
-              });
-            }
-
-            return {
-              id: runningQId++,
-              type,
-              instruction: q.instruction || defaultInstruction,
-              prompt,
-              options,
-              placeholder: q.placeholder || "Type your answer...",
-              maxWords: q.maxWords || 2,
-              headings: q.headings || []
-            };
+          setMeta({
+            id: examData.id,
+            testTitle: examData.title,
+            cambridge: `Test ${examData.test_no || 1}`,
+            durationMinutes: examData.duration_minutes || 60,
           });
 
-          return {
-            id: p.id,
-            sectionLabel,
-            title: p.title,
-            subtitle: p.subtitle || `You should spend about 20 minutes on Questions, which are based on Reading Passage ${pIdx + 1} below.`,
-            paragraphs,
-            questions
-          };
-        });
-        setPassages(mappedPassages);
-      } else {
+          setTimeRemaining((examData.duration_minutes || 60) * 60);
+
+          if (sectionsData && sectionsData.length > 0) {
+            let runningQId = 1;
+            const mappedPassages = sectionsData.map((sec: any) => {
+              const secQuestions = (questionsData || [])
+                .filter((q: any) => q.section === sec.section_no)
+                .map((q: any) => {
+                  const rawType = (q.question_type || "").toLowerCase();
+                  let type = "tfng";
+                  let defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
+                  
+                  if (rawType.includes("true_false") || rawType.includes("tfng") || rawType.includes("y_n_ng") || rawType.includes("yes_no")) {
+                    type = "tfng";
+                    defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
+                  } else if (rawType.includes("multiple_choice") || rawType.includes("mcq")) {
+                    type = "mcq";
+                    defaultInstruction = "Choose the correct letter, A, B, C or D.";
+                  } else if (rawType.includes("short_answer") || rawType.includes("fill") || rawType.includes("blank")) {
+                    type = "fill";
+                    defaultInstruction = "Answer the question with NO MORE THAN TWO WORDS.";
+                  } else if (rawType.includes("matching")) {
+                    type = "matching";
+                    defaultInstruction = "Choose the correct heading/option for each question.";
+                  }
+
+                  let options = q.options || [];
+                  if (type === "mcq") {
+                    options = (q.options || []).map((opt: any) => {
+                      if (typeof opt === "string") {
+                        const dotIndex = opt.indexOf(".");
+                        if (dotIndex !== -1) {
+                          return { key: opt.substring(0, dotIndex).trim(), text: opt.substring(dotIndex + 1).trim() };
+                        }
+                        return { key: opt.trim().charAt(0), text: opt };
+                      }
+                      return opt;
+                    });
+                  }
+
+                  return {
+                    id: runningQId++,
+                    dbQuestionId: q.id,
+                    type,
+                    instruction: q.instruction || defaultInstruction,
+                    prompt: q.text || "",
+                    options,
+                    placeholder: "Type your answer...",
+                    maxWords: 2,
+                    headings: type === "matching" ? (q.options || []) : []
+                  };
+                });
+
+              // Split passage content into paragraphs properly
+              const paragraphs = (sec.content || "")
+                .split(/\n\s*\n/)
+                .filter((txt: string) => txt.trim().length > 0)
+                .map((txt: string, pIdx: number) => {
+                  let label = "";
+                  let cleanedText = txt.trim();
+                  const match = cleanedText.match(/^([A-I])\s+/);
+                  if (match) {
+                    label = `Paragraph ${match[1]}`;
+                    cleanedText = cleanedText.substring(match[0].length);
+                  }
+                  return {
+                    id: `p-${sec.id}-${pIdx}`,
+                    label,
+                    text: cleanedText
+                  };
+                });
+
+              return {
+                id: sec.id,
+                sectionLabel: `Reading Passage ${sec.section_no}`,
+                title: sec.title || `Passage ${sec.section_no}`,
+                subtitle: `You should spend about 20 minutes on Questions, which are based on Reading Passage ${sec.section_no} below.`,
+                paragraphs,
+                questions: secQuestions
+              };
+            });
+
+            setPassages(mappedPassages);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // Fallback: load default passages
+        const data = await fetchReadingPassages();
+        const validData = data ? data.filter(p => p.questions && p.questions.length > 0) : [];
+        if (validData.length > 0) {
+          // Rule 1: Always filter test questions/passages to only match the target exam prefix (e.g., bc-passage- for British Council Test 1)
+          // and sort them alphabetically (e.g., bc-passage-1, bc-passage-2, bc-passage-3) to maintain the exact sequence of the PDF.
+          const filteredData = validData.filter((p: any) => p.youpass_id && p.youpass_id.startsWith("bc-passage-"));
+          filteredData.sort((a: any, b: any) => a.youpass_id.localeCompare(b.youpass_id));
+          
+          let runningQId = 1;
+          const mappedPassages = filteredData.map((p, pIdx) => {
+            const sectionLabel = p.sectionLabel || `Reading Passage ${pIdx + 1}`;
+            const paragraphs = p.paragraphs || (p.content_html ? [{ id: `p-${pIdx}-1`, label: "", text: p.content_html.replace(/<[^>]*>/g, '') }] : []);
+            
+            const questions = (p.questions || []).map((q: any) => {
+              const rawType = q.type || "";
+              let type = "tfng";
+              let defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
+              
+              if (rawType === "true_false_not_given" || rawType === "tfng") {
+                type = "tfng";
+                defaultInstruction = "Do the following statements agree with the information given in the Reading Passage? Write TRUE, FALSE, or NOT GIVEN.";
+              } else if (rawType === "multiple_choice" || rawType === "mcq") {
+                type = "mcq";
+                defaultInstruction = "Choose the correct letter, A, B, C or D.";
+              } else if (rawType === "short_answer" || rawType === "fill") {
+                type = "fill";
+                defaultInstruction = "Answer the question with NO MORE THAN TWO WORDS.";
+              } else if (rawType === "matching") {
+                type = "matching";
+                defaultInstruction = "Choose the correct heading for each section.";
+              }
+
+              const prompt = q.statement || q.text || q.prompt || q.question_text || "";
+              
+              let options = q.options || [];
+              if (type === "mcq") {
+                options = (q.options || []).map((opt: any) => {
+                  if (typeof opt === "string") {
+                    const dotIndex = opt.indexOf(".");
+                    if (dotIndex !== -1) {
+                      const key = opt.substring(0, dotIndex).trim();
+                      const text = opt.substring(dotIndex + 1).trim();
+                      return { key, text };
+                    }
+                    return { key: opt.trim().charAt(0), text: opt };
+                  }
+                  return opt;
+                });
+              }
+
+              return {
+                id: runningQId++,
+                type,
+                instruction: q.instruction || defaultInstruction,
+                prompt,
+                options,
+                placeholder: q.placeholder || "Type your answer...",
+                maxWords: q.maxWords || 2,
+                headings: q.headings || []
+              };
+            });
+
+            return {
+              id: p.id,
+              sectionLabel,
+              title: p.title,
+              subtitle: p.subtitle || `You should spend about 20 minutes on Questions, which are based on Reading Passage ${pIdx + 1} below.`,
+              paragraphs,
+              questions
+            };
+          });
+          setPassages(mappedPassages);
+        } else {
+          setPassages(ALL_PASSAGES);
+        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error loading reading test data:", err);
         setPassages(ALL_PASSAGES);
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }).catch(err => {
-      console.error("Error loading passages from database:", err);
-      setPassages(ALL_PASSAGES);
-      setIsLoading(false);
-    });
+    };
+
+    loadExamData();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -220,8 +338,12 @@ export function ReadingTestProvider({ children }: { children: React.ReactNode })
         setUserRole("GUEST");
         setUserName(null);
       }
+    }).catch((err) => {
+      console.warn("Failed to retrieve reading test user session:", err);
+      setUserRole("GUEST");
+      setUserName(null);
     });
-  }, []);
+  }, [examId]);
 
   useEffect(() => {
     if (isLoading || timerStarted.current) return;
@@ -325,7 +447,7 @@ export function ReadingTestProvider({ children }: { children: React.ReactNode })
   );
 
   const value: ReadingTestContextValue = {
-    meta: READING_TEST_META,
+    meta,
     passages,
     passage,
     activePassageIndex,

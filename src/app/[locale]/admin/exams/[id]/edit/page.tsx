@@ -6,8 +6,20 @@ import { useParams } from "next/navigation";
 import ExamForm from "../../_components/ExamForm";
 import { Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 
 export default function EditExamPage() {
+  const locale = useLocale();
+  const isEn = locale === "en";
+
+  const t = {
+    errorLoad: isEn ? "Failed to load exam details" : "Không thể tải thông tin đề thi",
+    errorConn: isEn ? "Server connection error" : "Lỗi kết nối máy chủ",
+    loading: isEn ? "Loading exam data..." : "Đang tải dữ liệu đề thi...",
+    notFound: isEn ? "Exam not found" : "Không tìm thấy đề thi",
+    backToList: isEn ? "← Back to List" : "← Quay lại danh sách",
+  };
+
   const params = useParams();
   const id = params?.id as string;
 
@@ -23,19 +35,25 @@ export default function EditExamPage() {
         const data = await res.json();
         if (res.ok) {
           const exam = data.exam;
-          // Transform sections from DB format to form format
-          const sections = exam.exam_sections?.map((s: any) => ({
-            section_no: s.section_no,
-            title: s.title || `Section ${s.section_no}`,
-            content: s.content || "",
-            answers: s.answers ? JSON.stringify(s.answers, null, 2) : "",
-          })) || [];
-
-          // Ensure all 4 sections exist
-          const fullSections = [1, 2, 3, 4].map((n) => {
-            const existing = sections.find((s: any) => s.section_no === n);
-            return existing || { section_no: n, title: `Section ${n}`, content: "", answers: "" };
-          });
+          const sections = exam.exam_sections?.map((s: any) => {
+            let answersObj = s.answers || {};
+            let audioUrl = "";
+            let imageUrl = "";
+            if (answersObj && typeof answersObj === "object") {
+              audioUrl = answersObj.audio_url || "";
+              imageUrl = answersObj.image_url || "";
+              const { audio_url, image_url, ...rest } = answersObj;
+              answersObj = rest;
+            }
+            return {
+              section_no: s.section_no,
+              title: s.title || `Section ${s.section_no}`,
+              content: s.content || "",
+              answers: Object.keys(answersObj).length > 0 ? JSON.stringify(answersObj, null, 2) : "",
+              audio_url: audioUrl,
+              image_url: imageUrl,
+            };
+          }) || [];
 
           setExamData({
             id: exam.id,
@@ -45,25 +63,27 @@ export default function EditExamPage() {
             test_no: exam.test_no?.toString() || "",
             status: exam.status,
             audio_url: exam.audio_url || "",
-            sections: fullSections,
+            category: exam.category || "listening",
+            duration_minutes: exam.duration_minutes?.toString() || "30",
+            sections: sections,
           });
         } else {
-          setError(data.error || "Không thể tải thông tin đề thi");
+          setError(data.error || t.errorLoad);
         }
       } catch {
-        setError("Lỗi kết nối máy chủ");
+        setError(t.errorConn);
       } finally {
         setLoading(false);
       }
     }
     fetchExam();
-  }, [id]);
+  }, [id, t.errorLoad, t.errorConn]);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[#3B5C37]" />
-        <p className="text-sm font-bold text-slate-400">Đang tải dữ liệu đề thi...</p>
+        <p className="text-sm font-bold text-slate-400">{t.loading}</p>
       </div>
     );
   }
@@ -75,14 +95,14 @@ export default function EditExamPage() {
           <AlertTriangle className="w-7 h-7 text-red-400" />
         </div>
         <div className="text-center">
-          <p className="text-sm font-black text-[#0d153a]">Không tìm thấy đề thi</p>
+          <p className="text-sm font-black text-[#0d153a]">{t.notFound}</p>
           <p className="text-xs text-slate-400 mt-1">{error}</p>
         </div>
         <Link
           href="/admin/exams"
           className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-sm font-bold hover:bg-slate-200 transition-colors"
         >
-          ← Quay lại danh sách
+          {t.backToList}
         </Link>
       </div>
     );

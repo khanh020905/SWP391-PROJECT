@@ -2,7 +2,7 @@
   {
     "id": "pkg_1",
     "name": "IELTS Premium 3 Tháng",
-    "price": 299000,
+    "price": 5000,
     "durationMonths": 3,
     "description": "Gói học IELTS cơ bản cho học viên muốn cải thiện cấp tốc trong 3 tháng.",
     "features": [
@@ -17,7 +17,7 @@
   {
     "id": "pkg_2",
     "name": "IELTS VIP 6 Tháng",
-    "price": 599000,
+    "price": 5000,
     "durationMonths": 6,
     "description": "Gói học tập nâng cao, chấm chữa chi tiết, thích hợp cho mục tiêu tăng 1.0 - 1.5 band.",
     "features": [
@@ -33,7 +33,7 @@
   {
     "id": "pkg_3",
     "name": "IELTS Master 12 Tháng",
-    "price": 999000,
+    "price": 5000,
     "durationMonths": 12,
     "description": "Giải pháp luyện thi toàn diện trong 1 năm cho người mất gốc hoặc mục tiêu band điểm cao 7.5+.",
     "features": [

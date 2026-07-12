@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles, ClipboardCheck, BookOpen } from "lucide-react";
+import { User, Key, Camera, LogOut, ArrowLeft, ShieldAlert, Bell, Flame, Sparkles, ClipboardCheck, BookOpen, Layers, GraduationCap } from "lucide-react";
 
 export default function UserAreaLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -139,17 +139,17 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
 
   const menuItems = [
     { label: "Hồ sơ cá nhân", href: "/profile", icon: User },
-    { label: "Chỉnh sửa hồ sơ", href: "/profile/edit", icon: User },
-    { label: "Sổ từ vựng", href: "/vocab-grammar", icon: BookOpen },
-    { label: "Kiểm tra năng lực", href: "/roadmap/diagnostic-test", icon: ClipboardCheck },
+    { label: "Chỉnh sửa hồ sơ", href: "/profile?edit=true", icon: User },
+    { label: "Từ vựng & Ngữ pháp", href: "/vocab-grammar", icon: Layers },
+    { label: "Từ điển IELTS", href: "/vocabulary", icon: BookOpen },
+    { label: "Ngữ pháp IELTS", href: "/grammar", icon: GraduationCap },
+    { label: "Kiểm tra năng lực", href: "/orientation", icon: ClipboardCheck },
     { label: "Lộ trình học AI", href: "/roadmap", icon: Sparkles },
-    { label: "Đổi ảnh đại diện", href: "/settings/avatar", icon: Camera },
-    { label: "Đổi mật khẩu", href: "/settings/password", icon: Key },
   ];
 
   const initialsFallback = (user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase();
 
-  const isFlashcardAppPage = pathname.endsWith("/profile") || pathname.endsWith("/profile/");
+  const isFlashcardAppPage = pathname.includes("/profile") || pathname.includes("/roadmap") || pathname.includes("/learning/daily") || pathname.includes("/vocabulary") || pathname.includes("/vocab-grammar") || pathname.includes("/grammar");
 
   if (isFlashcardAppPage) {
     return (
@@ -167,8 +167,8 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
       <header className="bg-white border-b border-slate-200/80 px-6 py-4 sticky top-0 z-30 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-1.5 text-2xl font-black text-[#0d153a] no-underline">
-              <span className="text-[#3B5C37]">*</span>
+            <Link href="/" className="flex items-center gap-2 text-2xl font-black text-[#0d153a] no-underline focus:outline-none outline-none">
+              <img src="/assets/logo-final.png" alt="Quali IELTS Logo" className="h-10 w-auto object-contain" />
               <span>QualiIelts</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-[#5e6792]">
@@ -283,73 +283,81 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 mx-auto max-w-7xl w-full p-4 md:p-8 grid md:grid-cols-4 gap-6">
-        {/* Sidebar */}
-        <aside className="md:col-span-1 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit space-y-6">
-          <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
-            {user.user_metadata?.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.user_metadata.avatar_url}
-                alt="Avatar"
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5C37] shadow-md"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
-                {initialsFallback}
-              </div>
-            )}
-            <h3 className="font-extrabold text-[#0d153a] mt-3 leading-tight text-base">{user.user_metadata?.name || "Người dùng"}</h3>
-            <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-2.5 py-1 rounded-full mt-1.5 uppercase">
-              {user.user_metadata?.role || "STUDENT"}
-            </span>
-          </div>
+      {pathname.includes("/orientation") ? (
+        <div className="flex-1 mx-auto max-w-7xl w-full p-4 md:p-8">
+          <main className="w-full">
+            {children}
+          </main>
+        </div>
+      ) : (
+        <div className="flex-1 mx-auto max-w-7xl w-full p-4 md:p-8 grid md:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <aside className="md:col-span-1 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit space-y-6">
+            <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
+              {user.user_metadata?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="Avatar"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5C37] shadow-md"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
+                  {initialsFallback}
+                </div>
+              )}
+              <h3 className="font-extrabold text-[#0d153a] mt-3 leading-tight text-base">{user.user_metadata?.name || "Người dùng"}</h3>
+              <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-2.5 py-1 rounded-full mt-1.5 uppercase">
+                {user.user_metadata?.role || "STUDENT"}
+              </span>
+            </div>
 
-          <nav className="space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
+            <nav className="space-y-1">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-[#3B5C37] text-white shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]"
+                        : "text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37]"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              {user.user_metadata?.role === "ADMIN" && (
                 <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    isActive
-                      ? "bg-[#3B5C37] text-white shadow-[0_4px_12px_rgba(59, 92, 55,0.2)]"
-                      : "text-[#5e6792] hover:bg-slate-50 hover:text-[#3B5C37]"
-                  }`}
+                  href="/admin"
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[#B38F4D] hover:bg-[#B38F4D]/5 transition-all"
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>Trang Admin</span>
                 </Link>
-              );
-            })}
+              )}
 
-            {user.user_metadata?.role === "ADMIN" && (
-              <Link
-                href="/admin"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[#B38F4D] hover:bg-[#B38F4D]/5 transition-all"
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all w-full text-left mt-4 border-t border-slate-50 pt-3"
               >
-                <ShieldAlert className="w-4 h-4 shrink-0" />
-                <span>Trang Admin</span>
-              </Link>
-            )}
+                <LogOut className="w-4 h-4 shrink-0" />
+                <span>Đăng xuất</span>
+              </button>
+            </nav>
+          </aside>
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-all w-full text-left mt-4 border-t border-slate-50 pt-3"
-            >
-              <LogOut className="w-4 h-4 shrink-0" />
-              <span>Đăng xuất</span>
-            </button>
-          </nav>
-        </aside>
-
-        {/* Content Panel */}
-        <main className="md:col-span-3">
-          {children}
-        </main>
-      </div>
+          {/* Content Panel */}
+          <main className="md:col-span-3">
+            {children}
+          </main>
+        </div>
+      )}
     </div>
   );
 }

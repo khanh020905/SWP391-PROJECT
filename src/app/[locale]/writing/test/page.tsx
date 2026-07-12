@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -37,10 +37,10 @@ function formatTime(seconds: number) {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
-function loadPersisted(): Partial<WritingPersistedState> | null {
+function loadPersisted(storageKey: string): Partial<WritingPersistedState> | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(WRITING_STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     return raw ? (JSON.parse(raw) as WritingPersistedState) : null;
   } catch {
     return null;
@@ -114,6 +114,9 @@ function TaskChart({ task }: { task: WritingTask }) {
 
 export default function WritingTestPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const taskId = searchParams?.get("taskId");
+
   const [answers, setAnswers] = useState<Record<WritingTaskType, string>>({
     task1: "",
     task2: "",
@@ -137,11 +140,29 @@ export default function WritingTestPage() {
   const totalWords = wordCounts.task1 + wordCounts.task2;
 
   useEffect(() => {
+    const storageKey = `ielts-writing-${taskId || "default"}`;
+    // Clear initial state to prevent previous test content bleeding
+    setAnswers({
+      task1: "",
+      task2: "",
+    });
+
     fetchWritingTasks().then(data => {
+      let selected: any[] = [];
       if (data && data.length > 0) {
-        const task1 = data.find((t: any) => t.task_type === 'task1');
-        const task2 = data.find((t: any) => t.task_type === 'task2');
-        const selected = [task1, task2].filter(Boolean);
+        if (taskId) {
+          const singleTask = data.find((t: any) => t.id === taskId);
+          if (singleTask) {
+            selected = [singleTask];
+          }
+        }
+        if (selected.length === 0) {
+          // If no taskId or task not found, load default first task1 and task2
+          const task1 = data.find((t: any) => t.task_type === 'task1');
+          const task2 = data.find((t: any) => t.task_type === 'task2');
+          selected = [task1, task2].filter(Boolean);
+        }
+
         const mapped = selected.map((t: any) => ({
           id: t.task_type === 'task1' ? 'task1' : 'task2',
           label: t.task_type === 'task1' ? 'Writing Task 1' : 'Writing Task 2',
@@ -156,7 +177,15 @@ export default function WritingTestPage() {
           dataPoints: t.data_points || [],
           imageUrl: t.cloudinary_url || t.thumbnail_url || null
         }));
+
         setTasks(mapped);
+
+        // Dynamic timer and active task
+        if (mapped.length > 0) {
+          setActiveTaskId(mapped[0].id);
+          const durationMinutes = mapped.reduce((acc, curr) => acc + curr.recommendedMinutes, 0);
+          setTimeRemaining(durationMinutes * 60);
+        }
       } else {
         setTasks(WRITING_TASKS);
       }
@@ -167,7 +196,7 @@ export default function WritingTestPage() {
       setIsLoading(false);
     });
 
-    const persisted = loadPersisted();
+    const persisted = loadPersisted(storageKey);
     if (!persisted) return;
     queueMicrotask(() => {
       if (persisted.answers) {
@@ -182,7 +211,7 @@ export default function WritingTestPage() {
       }
       if (persisted.savedAt) setSavedAt(persisted.savedAt);
     });
-  }, []);
+  }, [taskId]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -197,6 +226,7 @@ export default function WritingTestPage() {
 
   useEffect(() => {
     if (isLoading) return;
+    const storageKey = `ielts-writing-${taskId || "default"}`;
     const nextSavedAt = new Date().toISOString();
     const payload: WritingPersistedState = {
       answers,
@@ -204,20 +234,19 @@ export default function WritingTestPage() {
       timeRemaining,
       savedAt: nextSavedAt,
     };
-    localStorage.setItem(WRITING_STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(storageKey, JSON.stringify(payload));
     setSavedAt(nextSavedAt);
-  }, [answers, activeTaskId, timeRemaining, isLoading]);
+  }, [answers, activeTaskId, timeRemaining, isLoading, taskId]);
 
   const submitTest = useCallback(() => {
     if (isSubmitting) return;
+    const storageKey = `ielts-writing-${taskId || "default"}`;
     const missingTask = tasks.find(
-      (task) => countWords(answers[task.id as WritingTaskType]) < Math.min(20, task.minimumWords)
-    ) || WRITING_TASKS.find(
       (task) => countWords(answers[task.id as WritingTaskType]) < Math.min(20, task.minimumWords)
     );
     const message = missingTask
       ? `${missingTask.label} còn rất ngắn. Bạn vẫn muốn nộp bài?`
-      : `Nộp bài Writing?\n\nTask 1: ${wordCounts.task1} words\nTask 2: ${wordCounts.task2} words`;
+      : `Nộp bài Writing?\n\n` + tasks.map(t => `${t.label}: ${wordCounts[t.id as WritingTaskType]} từ`).join("\n");
 
     if (!confirm(message)) return;
 
@@ -233,9 +262,9 @@ export default function WritingTestPage() {
       submittedAt: new Date().toISOString(),
       feedback,
     });
-    localStorage.removeItem(WRITING_STORAGE_KEY);
+    localStorage.removeItem(storageKey);
     router.push(`/writing/result?id=${attemptId}`);
-  }, [answers, isSubmitting, router, timeRemaining, wordCounts, tasks]);
+  }, [answers, isSubmitting, router, timeRemaining, wordCounts, tasks, taskId]);
 
   useEffect(() => {
     if (timeRemaining === 0 && !isSubmitting) {
@@ -370,6 +399,7 @@ export default function WritingTestPage() {
 
           {activeTask.imageUrl && (
             <div className="mt-5 overflow-hidden rounded-xl border border-[#e6eadf] bg-white p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeTask.imageUrl}
                 alt={activeTask.title}

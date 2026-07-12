@@ -2,6 +2,9 @@
 
 "use client";
 import React from 'react';
+import { supabase } from '@/lib/supabase';
+
+import { Sparkles, Calendar, BookOpen, Clock, Target, CheckCircle2, CheckCircle, Lock, RotateCcw, ChevronRight, AlertCircle, RefreshCw, Trophy, ArrowRight, Play, Check, Undo2, Flame, Award, ChevronLeft } from "lucide-react";
 
 export default function ScoutTemplate(props: any) {
   const { 
@@ -19,11 +22,192 @@ export default function ScoutTemplate(props: any) {
     isFolderDetail, folderDetailName, folderDetailWords, folderDetailLoading, folderDetailColor, folderDetailDeep,
     goBackToPersonal, openFolderAddWordModal, deleteFolderWord, startRenameFolderDetail, deleteFolderDetail, studyFolderWords,
     goEditProfile, goVocabNotebook, goDiagnostic, goRoadmap, openProfilePanel, openAvatarPanel, openPasswordPanel, closePanel,
-    isAdmin, goAdmin,
+    isAdmin, goAdmin, dark,
     appBg, sidebarBg, sidebarGrad, sidebarColor, navSectionColor, navUnselColor, headerBg, headerBorder, searchBg, searchInk, searchKBtn, searchKBorder, searchKColor, panelBorder, panelHover, contentBg, nightCardBg, nightCardBorder, nightCardShadow, titleColor, manifestSub, streakSub, dividerColor, monthCellBg, listHeaderBg, listBorder, listHover, listBtnBg, listBtnInk,
+    isEditProfile, profileName, profilePhone, profileBio, profileInAppReminders, profileEmailReminders, profileStreakWarning, profileLoading, profileError, profileSuccess, setProfileName, setProfilePhone, setProfileBio, toggleProfileInAppReminders, toggleProfileEmailReminders, toggleProfileStreakWarning, saveProfile, cancelEditProfile,
+    
+    isRoadmap, roadmap, roadmapLoading, roadmapActionLoading, roadmapCurrentBand, roadmapTargetBand, roadmapDailyHours,
+    roadmapTargetDate, roadmapFocusSkills, roadmapIsGenerating, roadmapGenerationStep, roadmapGenerationProgress,
+    roadmapActivePhaseTab, roadmapIsEditingGoals,
+    fetchRoadmap, handleRoadmapSkillsChange, startRoadmapAIGeneration, activateRoadmap, toggleRoadmapTask, resetRoadmap, setRoadmapState,
+    navRoadmapBg, navRoadmapInk, navRoadmapWeight, navRoadmapShadow,
+
+    isDaily, dailyTasks, dailyTasksLoading, dailyTasksError, dailyTasksCompletingId, fetchDailyTasks, handleCompleteDailyTask,
+    navDailyBg, navDailyInk, navDailyWeight, navDailyShadow, goDaily,
+    
     ...rest
   } = new Proxy(props || {}, { get: (target, prop) => prop in target ? target[prop] : '' });
   const navInitials = (userName || 'HV').split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0,2).join('');
+
+  const [editTab, setEditTab] = React.useState<'info' | 'avatar' | 'password'>('info');
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = React.useState<string | null>(null);
+  const [avatarLoading, setAvatarLoading] = React.useState(false);
+  const [avatarError, setAvatarError] = React.useState('');
+  const [avatarSuccess, setAvatarSuccess] = React.useState('');
+  const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [currPass, setCurrPass] = React.useState('');
+  const [newPass, setNewPass] = React.useState('');
+  const [confirmPass, setConfirmPass] = React.useState('');
+  const [showCurrPass, setShowCurrPass] = React.useState(false);
+  const [showNewPass, setShowNewPass] = React.useState(false);
+  const [showConfirmPass, setShowConfirmPass] = React.useState(false);
+  const [passLoading, setPassLoading] = React.useState(false);
+  const [passError, setPassError] = React.useState('');
+  const [passSuccess, setPassSuccess] = React.useState('');
+  const [isGoogleProvider, setIsGoogleProvider] = React.useState(false);
+
+  React.useEffect(() => {
+    async function checkUserProvider() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setIsGoogleProvider(session.user.app_metadata?.provider === 'google');
+      }
+    }
+    checkUserProvider();
+  }, []);
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    setAvatarError("");
+    setAvatarSuccess("");
+
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(selectedFile.type)) {
+      setAvatarError("Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, WEBP, GIF.");
+      return;
+    }
+
+    if (selectedFile.size > 2 * 1024 * 1024) {
+      setAvatarError("Dung lượng ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 2MB.");
+      return;
+    }
+
+    setAvatarFile(selectedFile);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+
+    setAvatarLoading(true);
+    setAvatarError("");
+    setAvatarSuccess("");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Chưa xác thực session đăng nhập.");
+
+      const formData = new FormData();
+      formData.append("avatar", avatarFile);
+
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Tải ảnh lên thất bại.");
+
+      setAvatarSuccess("Tải ảnh đại diện mới thành công!");
+      setAvatarFile(null);
+      setAvatarPreviewUrl(null);
+
+      await supabase.auth.refreshSession();
+      window.location.reload();
+    } catch (err: any) {
+      setAvatarError(err.message || "Đã xảy ra lỗi.");
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    setAvatarLoading(true);
+    setAvatarError("");
+    setAvatarSuccess("");
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { avatar_url: null },
+      });
+
+      if (error) throw error;
+
+      setAvatarSuccess("Đã gỡ bỏ ảnh đại diện thành công!");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err: any) {
+      setAvatarError(err.message || "Đã xảy ra lỗi.");
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassLoading(true);
+    setPassError("");
+    setPassSuccess("");
+
+    if (newPass.length < 6) {
+      setPassError("Mật khẩu mới phải dài tối thiểu 6 ký tự.");
+      setPassLoading(false);
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      setPassError("Mật khẩu xác nhận không trùng khớp.");
+      setPassLoading(false);
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error("Chưa xác thực session.");
+
+      if (!isGoogleProvider) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email: user.email || "",
+          password: currPass,
+        });
+
+        if (authError) {
+          setPassError("Mật khẩu hiện tại không chính xác.");
+          setPassLoading(false);
+          return;
+        }
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPass,
+      });
+
+      if (error) throw error;
+
+      setPassSuccess("Đổi mật khẩu thành công!");
+      setCurrPass("");
+      setNewPass("");
+      setConfirmPass("");
+    } catch (err: any) {
+      setPassError(err.message || "Đã xảy ra lỗi khi đổi mật khẩu.");
+    } finally {
+      setPassLoading(false);
+    }
+  };
 
   return (
     <>
@@ -105,13 +289,21 @@ export default function ScoutTemplate(props: any) {
           <span style={{ display: `${navLabelDisp}`, whiteSpace: 'nowrap' }}>Cần ôn tập</span>
           <span style={{ marginLeft: 'auto', background: '#2A3114', color: '#F6C453', fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '999px', display: `${navBadgeDisp}` }}>{ reviewBadge }</span>
         </button>
+        <button onClick={goRoadmap} title="Lộ trình học AI" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: `${navItemJustify}`, gap: '12px', padding: '11px 13px', borderRadius: '13px', color: `${navRoadmapInk}`, fontWeight: `${navRoadmapWeight}`, fontSize: '14.5px', border: 'none', background: navRoadmapBg, boxShadow: `${navRoadmapShadow}`, fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }} data-hover="filter:brightness(1.04);">
+          <Sparkles width="20" height="20" style={{ flexShrink: '0' }} />
+          <span style={{ display: `${navLabelDisp}`, whiteSpace: 'nowrap' }}>Lộ trình học AI</span>
+        </button>
+        <button onClick={goDaily} title="Nhiệm vụ hàng ngày" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: `${navItemJustify}`, gap: '12px', padding: '11px 13px', borderRadius: '13px', color: `${navDailyInk}`, fontWeight: `${navDailyWeight}`, fontSize: '14.5px', border: 'none', background: navDailyBg, boxShadow: `${navDailyShadow}`, fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }} data-hover="filter:brightness(1.04);">
+          <Calendar width="20" height="20" style={{ flexShrink: '0' }} />
+          <span style={{ display: `${navLabelDisp}`, whiteSpace: 'nowrap' }}>Nhiệm vụ hàng ngày</span>
+        </button>
         <button onClick={goStats} title="Thống kê" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: `${navItemJustify}`, gap: '12px', padding: '11px 13px', borderRadius: '13px', color: `${navStatsInk}`, fontWeight: `${navStatsWeight}`, fontSize: '14.5px', textAlign: 'left', border: 'none', background: navStatsBg, boxShadow: `${navStatsShadow}`, cursor: 'pointer', fontFamily: 'inherit' }} data-hover="filter:brightness(1.04);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: '0' }}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
           <span style={{ display: `${navLabelDisp}`, whiteSpace: 'nowrap' }}>Thống kê</span>
         </button>
 
         <div style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.14em', color: `${navSectionColor}`, padding: '18px 12px 6px', display: `${navSectionDisp}` }}>TÀI KHOẢN</div>
-        <button onClick={goEditProfile} title="Chỉnh sửa hồ sơ" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: `${navItemJustify}`, gap: '12px', padding: '11px 13px', borderRadius: '13px', color: `${navUnselColor}`, fontWeight: '600', fontSize: '14.5px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }} data-hover="filter:brightness(1.04);">
+        <button onClick={goEditProfile} title="Chỉnh sửa hồ sơ" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: `${navItemJustify}`, gap: '12px', padding: '11px 13px', borderRadius: '13px', color: isEditProfile ? '#2A3114' : `${navUnselColor}`, fontWeight: isEditProfile ? '800' : '600', fontSize: '14.5px', textAlign: 'left', border: 'none', background: isEditProfile ? '#F6C453' : 'transparent', boxShadow: isEditProfile ? '0 4px 0 rgba(0,0,0,.14)' : 'none', cursor: 'pointer', fontFamily: 'inherit' }} data-hover="filter:brightness(1.04);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: '0' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           <span style={{ display: `${navLabelDisp}`, whiteSpace: 'nowrap' }}>Chỉnh sửa hồ sơ</span>
         </button>
@@ -421,6 +613,1221 @@ export default function ScoutTemplate(props: any) {
           </div>
           </div>
         </div>
+        </React.Fragment>) : null }
+        { (isEditProfile) ? (<React.Fragment>
+          <div style={{ position: 'relative', zIndex: '1', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'tidRise .4s ease both', maxWidth: '680px' }}>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '.12em', color: `${titleColor}` }}>TÀI KHOẢN</div>
+              <h2 data-sk="ink" style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '26px', margin: '5px 0 0', color: `${inkColor}` }}>Chỉnh sửa hồ sơ cá nhân</h2>
+            </div>
+
+            {/* Tab navigation */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: `1px solid ${dividerColor}`, paddingBottom: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setEditTab('info')}
+                style={{
+                  padding: '8px 16px',
+                  background: editTab === 'info' ? '#5D6B2D' : 'transparent',
+                  color: editTab === 'info' ? '#FFF8EB' : `${inkColor}`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontFamily: 'inherit',
+                  fontWeight: '800',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: editTab === 'info' ? '0 4px 0 #3E4A1B' : 'none'
+                }}
+              >
+                Thông tin cá nhân
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('avatar')}
+                style={{
+                  padding: '8px 16px',
+                  background: editTab === 'avatar' ? '#5D6B2D' : 'transparent',
+                  color: editTab === 'avatar' ? '#FFF8EB' : `${inkColor}`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontFamily: 'inherit',
+                  fontWeight: '800',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: editTab === 'avatar' ? '0 4px 0 #3E4A1B' : 'none'
+                }}
+              >
+                Đổi ảnh đại diện
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('password')}
+                style={{
+                  padding: '8px 16px',
+                  background: editTab === 'password' ? '#5D6B2D' : 'transparent',
+                  color: editTab === 'password' ? '#FFF8EB' : `${inkColor}`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontFamily: 'inherit',
+                  fontWeight: '800',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: editTab === 'password' ? '0 4px 0 #3E4A1B' : 'none'
+                }}
+              >
+                Đổi mật khẩu
+              </button>
+            </div>
+
+            {/* Info tab */}
+            {editTab === 'info' && (
+              <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div data-sk="nightcard" style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '24px', boxShadow: `${nightCardShadow}`, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {profileError && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#F7E7DE', border: '1px solid #D8A78C', color: '#b9694a', fontSize: '13px', fontWeight: '700' }}>
+                      ⚠️ {profileError}
+                    </div>
+                  )}
+                  {profileSuccess && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#E7F0DD', border: '1px solid #9DB87E', color: '#5D6B2D', fontSize: '13px', fontWeight: '700' }}>
+                      ✓ {profileSuccess}
+                    </div>
+                  )}
+
+                  {/* Name */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Họ và Tên</label>
+                    <input
+                      type="text"
+                      required
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      placeholder="Nguyễn Văn A"
+                      style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Số điện thoại</label>
+                    <input
+                      type="text"
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                      placeholder="0912345678"
+                      style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Giới thiệu bản thân (Tối đa 300 ký tự)</label>
+                    <textarea
+                      value={profileBio}
+                      onChange={(e) => setProfileBio(e.target.value.slice(0, 300))}
+                      placeholder="Chia sẻ một chút thông tin về bạn..."
+                      rows={4}
+                      style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none', resize: 'none' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '10.5px', fontWeight: '700', color: `${titleColor}` }}>
+                      {profileBio.length}/300 ký tự
+                    </div>
+                  </div>
+
+                  {/* Reminders section */}
+                  <div style={{ borderTop: `1px solid ${dividerColor}`, paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <h3 style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '15px', color: `${inkColor}`, margin: '0' }}>Cấu hình thông báo & nhắc nhở</h3>
+                      <p style={{ fontSize: '11.5px', color: `${titleColor}`, fontWeight: '600', margin: '3px 0 0' }}>Lựa chọn cách bạn muốn nhận các nhắc nhở học tập và chuỗi streak.</p>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {/* In-app reminder */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: `${searchBg}`, borderRadius: '16px', border: `1px solid ${nightCardBorder}` }}>
+                        <div>
+                          <h4 style={{ fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '14px', color: `${inkColor}`, margin: '0' }}>Thông báo trong ứng dụng</h4>
+                          <p style={{ fontSize: '11px', color: `${titleColor}`, fontWeight: '600', margin: '2px 0 0', maxWidth: '380px' }}>Nhận các nhắc nhở học tập và tin nhắn hệ thống trực tiếp khi truy cập trang web.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={toggleProfileInAppReminders}
+                          style={{ position: 'relative', width: '42px', height: '24px', borderRadius: '999px', background: profileInAppReminders ? '#5D6B2D' : '#D8D2BE', border: 'none', cursor: 'pointer', transition: 'background .25s', flexShrink: 0 }}
+                        >
+                          <span style={{ position: 'absolute', top: '3px', left: profileInAppReminders ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: `${headerBg}`, boxShadow: '0 1px 3px rgba(0,0,0,.25)', transition: 'left .25s cubic-bezier(.3,.8,.4,1)' }}></span>
+                        </button>
+                      </div>
+
+                      {/* Email reminder */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: `${searchBg}`, borderRadius: '16px', border: `1px solid ${nightCardBorder}` }}>
+                        <div>
+                          <h4 style={{ fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '14px', color: `${inkColor}`, margin: '0' }}>Nhắc nhở học tập qua Email</h4>
+                          <p style={{ fontSize: '11px', color: `${titleColor}`, fontWeight: '600', margin: '2px 0 0', maxWidth: '380px' }}>Nhận email động viên học tập hàng ngày nếu hôm đó bạn chưa rèn luyện kỹ năng nào.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={toggleProfileEmailReminders}
+                          style={{ position: 'relative', width: '42px', height: '24px', borderRadius: '999px', background: profileEmailReminders ? '#5D6B2D' : '#D8D2BE', border: 'none', cursor: 'pointer', transition: 'background .25s', flexShrink: 0 }}
+                        >
+                          <span style={{ position: 'absolute', top: '3px', left: profileEmailReminders ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: `${headerBg}`, boxShadow: '0 1px 3px rgba(0,0,0,.25)', transition: 'left .25s cubic-bezier(.3,.8,.4,1)' }}></span>
+                        </button>
+                      </div>
+
+                      {/* Streak Warning */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: `${searchBg}`, borderRadius: '16px', border: `1px solid ${nightCardBorder}` }}>
+                        <div>
+                          <h4 style={{ fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '14px', color: `${inkColor}`, margin: '0' }}>Cảnh báo sắp mất chuỗi học tập (Streak)</h4>
+                          <p style={{ fontSize: '11px', color: `${titleColor}`, fontWeight: '600', margin: '2px 0 0', maxWidth: '380px' }}>Nhận cảnh báo khẩn cấp khi chuỗi học tập của bạn sắp bị đặt lại về 0.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={toggleProfileStreakWarning}
+                          style={{ position: 'relative', width: '42px', height: '24px', borderRadius: '999px', background: profileStreakWarning ? '#5D6B2D' : '#D8D2BE', border: 'none', cursor: 'pointer', transition: 'background .25s', flexShrink: 0 }}
+                        >
+                          <span style={{ position: 'absolute', top: '3px', left: profileStreakWarning ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: `${headerBg}`, boxShadow: '0 1px 3px rgba(0,0,0,.25)', transition: 'left .25s cubic-bezier(.3,.8,.4,1)' }}></span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button
+                    type="submit"
+                    disabled={profileLoading}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#5D6B2D', border: 'none', borderRadius: '16px', padding: '14px 28px', fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '15px', color: '#FFF8EB', cursor: profileLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 0 #3E4A1B', opacity: profileLoading ? 0.6 : 1 }}
+                  >
+                    {profileLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEditProfile}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: `1px solid ${nightCardBorder}`, borderRadius: '16px', padding: '14px 24px', fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '15px', color: `${inkColor}`, cursor: 'pointer' }}
+                  >
+                    Hủy bỏ
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Avatar tab */}
+            {editTab === 'avatar' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div data-sk="nightcard" style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '24px', boxShadow: `${nightCardShadow}`, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div>
+                    <h3 style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '18px', color: `${inkColor}`, margin: '0' }}>Đổi ảnh đại diện</h3>
+                    <p style={{ fontSize: '12px', color: `${titleColor}`, fontWeight: '600', margin: '3px 0 0' }}>Cập nhật hình ảnh cá nhân nổi bật trên hệ thống.</p>
+                  </div>
+
+                  {avatarError && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#F7E7DE', border: '1px solid #D8A78C', color: '#b9694a', fontSize: '13px', fontWeight: '700' }}>
+                      ⚠️ {avatarError}
+                    </div>
+                  )}
+                  {avatarSuccess && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#E7F0DD', border: '1px solid #9DB87E', color: '#5D6B2D', fontSize: '13px', fontWeight: '700' }}>
+                      ✓ {avatarSuccess}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', alignItems: 'center' }}>
+                    {/* Preview */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', background: dark ? 'rgba(255,255,255,0.03)' : '#FBF8EF', borderRadius: '20px', border: `1px solid ${nightCardBorder}` }}>
+                      <span style={{ fontSize: '9px', fontWeight: '800', color: `${titleColor}`, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Hình ảnh hiển thị</span>
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#5D6B2D', color: '#FFF8EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Nunito'", fontWeight: '900', fontSize: '48px', overflow: 'hidden', border: `4px solid ${dark ? '#1B1E13' : '#FFF8EB'}`, boxShadow: `0 8px 24px rgba(0,0,0,0.12)` }}>
+                          {avatarPreviewUrl ? (
+                            <img src={avatarPreviewUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : navAvatarUrl ? (
+                            <img src={navAvatarUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            navInitials
+                          )}
+                        </div>
+                      </div>
+                      {avatarPreviewUrl && (
+                        <span style={{ fontSize: '9px', background: 'rgba(93,107,45,0.1)', color: '#5D6B2D', fontWeight: '800', padding: '3px 8px', borderRadius: '999px', marginTop: '10px' }}>
+                          Xem trước ảnh mới
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Selector and Upload */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div
+                        onClick={() => avatarFileInputRef.current?.click()}
+                        style={{
+                          border: `2px dashed ${dividerColor}`,
+                          borderRadius: '16px',
+                          padding: '24px',
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                          transition: 'border-color 0.2s'
+                        }}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={avatarFileInputRef}
+                          onChange={handleAvatarFileChange}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: `${inkColor}` }}>Nhấp chuột để chọn ảnh</div>
+                        <div style={{ fontSize: '10px', fontWeight: '600', color: `${titleColor}`, marginTop: '4px' }}>Hỗ trợ JPG, PNG, WEBP hoặc GIF (Tối đa 2MB)</div>
+                      </div>
+
+                      {avatarFile && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: dark ? 'rgba(255,255,255,0.05)' : '#FBF8EF', borderRadius: '12px', border: `1px solid ${nightCardBorder}`, fontSize: '11px', fontWeight: '700', color: `${inkColor}` }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{avatarFile.name}</span>
+                          <span>{(avatarFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                          type="button"
+                          onClick={handleAvatarUpload}
+                          disabled={avatarLoading || !avatarFile}
+                          style={{ flex: 1, background: '#5D6B2D', border: 'none', borderRadius: '14px', padding: '12px 18px', color: '#FFF8EB', fontWeight: '900', fontSize: '13px', cursor: (avatarLoading || !avatarFile) ? 'not-allowed' : 'pointer', opacity: (avatarLoading || !avatarFile) ? 0.6 : 1, boxShadow: '0 4px 0 #3E4A1B' }}
+                        >
+                          {avatarLoading ? 'Đang tải lên...' : 'Tải ảnh lên'}
+                        </button>
+                        {navAvatarUrl && (
+                          <button
+                            type="button"
+                            onClick={handleAvatarRemove}
+                            disabled={avatarLoading}
+                            style={{ background: 'transparent', border: `1px solid #D8A78C`, borderRadius: '14px', padding: '12px 18px', color: '#b9694a', fontWeight: '800', fontSize: '13px', cursor: avatarLoading ? 'not-allowed' : 'pointer' }}
+                          >
+                            Gỡ ảnh đại diện
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={cancelEditProfile}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: `1px solid ${nightCardBorder}`, borderRadius: '16px', padding: '14px 24px', fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '15px', color: `${inkColor}`, cursor: 'pointer' }}
+                  >
+                    Quay lại
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Password tab */}
+            {editTab === 'password' && (
+              <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div data-sk="nightcard" style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '24px', boxShadow: `${nightCardShadow}`, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div>
+                    <h3 style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '18px', color: `${inkColor}`, margin: '0' }}>Đổi mật khẩu</h3>
+                    <p style={{ fontSize: '12px', color: `${titleColor}`, fontWeight: '600', margin: '3px 0 0' }}>Thay đổi mật khẩu bảo mật cho tài khoản của bạn.</p>
+                  </div>
+
+                  {isGoogleProvider && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#E7F0DD', border: '1px solid #9DB87E', color: '#5D6B2D', fontSize: '13px', fontWeight: '700' }}>
+                      ℹ️ Bạn đang đăng nhập bằng Google. Bạn có thể thiết lập mật khẩu mới tại đây để đăng nhập bằng email sau này.
+                    </div>
+                  )}
+
+                  {passError && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#F7E7DE', border: '1px solid #D8A78C', color: '#b9694a', fontSize: '13px', fontWeight: '700' }}>
+                      ⚠️ {passError}
+                    </div>
+                  )}
+                  {passSuccess && (
+                    <div style={{ padding: '12px 16px', borderRadius: '14px', background: '#E7F0DD', border: '1px solid #9DB87E', color: '#5D6B2D', fontSize: '13px', fontWeight: '700' }}>
+                      ✓ {passSuccess}
+                    </div>
+                  )}
+
+                  {/* Current password if not Google user */}
+                  {!isGoogleProvider && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Mật khẩu hiện tại</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showCurrPass ? "text" : "password"}
+                          required
+                          value={currPass}
+                          onChange={(e) => setCurrPass(e.target.value)}
+                          placeholder="••••••"
+                          style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrPass(!showCurrPass)}
+                          style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: `${titleColor}`, cursor: 'pointer', outline: 'none' }}
+                        >
+                          {showCurrPass ? 'Ẩn' : 'Hiện'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New password */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Mật khẩu mới</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showNewPass ? "text" : "password"}
+                        required
+                        value={newPass}
+                        onChange={(e) => setNewPass(e.target.value)}
+                        placeholder="••••••"
+                        style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPass(!showNewPass)}
+                        style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: `${titleColor}`, cursor: 'pointer', outline: 'none' }}
+                      >
+                        {showNewPass ? 'Ẩn' : 'Hiện'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm password */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '800', letterSpacing: '.08em', color: `${titleColor}`, textTransform: 'uppercase' }}>Xác nhận mật khẩu mới</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showConfirmPass ? "text" : "password"}
+                        required
+                        value={confirmPass}
+                        onChange={(e) => setConfirmPass(e.target.value)}
+                        placeholder="••••••"
+                        style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '14px', color: `${inkColor}`, fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPass(!showConfirmPass)}
+                        style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: `${titleColor}`, cursor: 'pointer', outline: 'none' }}
+                      >
+                        {showConfirmPass ? 'Ẩn' : 'Hiện'}
+                      </button>
+                    </div>
+                    {confirmPass && (
+                      <div style={{ fontSize: '11px', fontWeight: '800', marginTop: '4px' }}>
+                        {newPass === confirmPass ? (
+                          <span style={{ color: '#5D6B2D' }}>✓ Mật khẩu trùng khớp</span>
+                        ) : (
+                          <span style={{ color: '#b9694a' }}>✗ Mật khẩu xác nhận chưa khớp</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button
+                    type="submit"
+                    disabled={passLoading || !newPass || newPass !== confirmPass}
+                    style={{ display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', gap: '8px', background: '#5D6B2D', border: 'none', borderRadius: '16px', padding: '14px 28px', fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '15px', color: '#FFF8EB', cursor: (passLoading || !newPass || newPass !== confirmPass) ? 'not-allowed' : 'pointer', boxShadow: '0 4px 0 #3E4A1B', opacity: passLoading ? 0.6 : 1 }}
+                  >
+                    {passLoading ? 'Đang lưu...' : 'Thay đổi mật khẩu'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEditProfile}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: `1px solid ${nightCardBorder}`, borderRadius: '16px', padding: '14px 24px', fontFamily: '\'Nunito\'', fontWeight: '800', fontSize: '15px', color: `${inkColor}`, cursor: 'pointer' }}
+                  >
+                    Hủy bỏ
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </React.Fragment>) : null }
+        { (isRoadmap) ? (<React.Fragment>
+          <div style={{ position: 'relative', zIndex: '1', display: 'flex', flexDirection: 'column', gap: '20px', animation: 'tidRise .4s ease both' }}>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '.12em', color: `${titleColor}` }}>LỘ TRÌNH</div>
+              <h2 data-sk="ink" style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '26px', margin: '5px 0 0', color: `${inkColor}` }}>Lộ trình học tập AI</h2>
+            </div>
+            
+            {roadmapLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', background: `${headerBg}`, border: `1px solid ${panelBorder}`, borderRadius: '24px', padding: '48px' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid rgba(93, 107, 45, 0.3)', borderTopColor: '#5D6B2D', borderRadius: '50%', animation: 'tidSpin 1s linear infinite', marginBottom: '16px' }} />
+                <p style={{ fontSize: '13px', fontWeight: '800', color: `${ink2Color}`, animation: 'tidHalo 2s ease-in-out infinite' }}>Đang tải lộ trình học AI...</p>
+              </div>
+            ) : roadmapIsGenerating ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '500px', background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '48px', textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: `${nightCardShadow}` }}>
+                <div style={{ position: 'relative', width: '144px', height: '144px', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'absolute', inset: '0', borderRadius: '50%', border: '2px dashed rgba(93, 107, 45, 0.3)', animation: 'tidSpin 12s linear infinite' }} />
+                  <div style={{ position: 'absolute', inset: '8px', borderRadius: '50%', border: '1px double rgba(179, 143, 77, 0.4)', animation: 'tidSpin 6s linear infinite reverse' }} />
+                  <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'linear-gradient(135deg, #5D6B2D, #B38F4D)', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(0,0,0,.25)' }}>
+                    <Sparkles width="40" height="40" color="#fff" style={{ animation: 'tidHalo 2s ease-in-out infinite' }} />
+                  </div>
+                </div>
+                <h3 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '20px', color: `${inkColor}`, margin: '0 0 8px' }}>Trợ Lý AI Đang Thiết Lập Lộ Trình</h3>
+                
+                <div style={{ width: '100%', maxWidth: '440px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, height: '10px', borderRadius: '999px', overflow: 'hidden', marginBottom: '24px' }}>
+                  <div style={{ height: '100%', background: 'linear-gradient(90deg, #5D6B2D, #B38F4D)', transition: 'width 0.3s ease', borderRadius: '999px', width: `${roadmapGenerationProgress}%` }} />
+                </div>
+
+                <div style={{ width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', background: 'rgba(0,0,0,.1)', padding: '20px', borderRadius: '18px', border: `1px solid ${nightCardBorder}` }}>
+                  {[
+                    "Đang quét hồ sơ học viên & kỹ năng mục tiêu...",
+                    "Đang đo khoảng cách chênh lệch band điểm hiện tại và đích...",
+                    "Đang phân bổ giáo trình Cambridge IELTS tương thích...",
+                    "AI đang biên soạn danh sách nhiệm vụ ôn tập cá nhân hóa..."
+                  ].map((stepText, idx) => {
+                    const isDone = roadmapGenerationStep > idx;
+                    const isActive = roadmapGenerationStep === idx;
+                    return (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', opacity: isDone || isActive ? 1 : 0.35 }}>
+                        {isDone ? (
+                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#5d6b2d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Check width="14" height="14" color="#FFF8EB" />
+                          </div>
+                        ) : isActive ? (
+                          <div style={{ width: '20px', height: '20px', border: '2.5px solid #5d6b2d', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tidSpin 0.7s linear infinite', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: `1.5px solid ${titleColor}`, flexShrink: 0 }} />
+                        )}
+                        <span style={{ fontWeight: '800', color: isActive ? '#5D6B2D' : `${inkColor}` }}>{stepText}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (!roadmap || roadmapIsEditingGoals) ? (
+              <div style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '28px', boxShadow: `${nightCardShadow}`, animation: 'tidRise .4s ease both' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', borderBottom: `1px solid ${dividerColor}`, paddingBottom: '20px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'linear-gradient(135deg, #5D6B2D, #8b946c)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF8EB', boxShadow: '0 4px 12px rgba(93,107,45,0.2)' }}>
+                    <Sparkles width="24" height="24" style={{ animation: 'tidFloat 3s ease-in-out infinite' }} />
+                  </div>
+                  <div>
+                    <h2 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '20px', color: `${inkColor}`, margin: 0 }}>
+                      {roadmap ? "Cập Nhật Mục Tiêu Học Tập" : "Thiết Lập Lộ Trình Học IELTS Với AI"}
+                    </h2>
+                    <p style={{ fontSize: '12.5px', color: `${titleColor}`, fontWeight: '600', margin: '4px 0 0' }}>
+                      Cung cấp mục tiêu và khả năng hiện tại của bạn, trợ lý AI sẽ tự động phân tích và chia nhỏ giáo trình giúp bạn đạt điểm mong muốn.
+                    </p>
+                  </div>
+                </div>
+
+                {!roadmap && (
+                  <div style={{ background: 'rgba(238, 154, 35, 0.08)', border: '1.5px solid rgba(238, 154, 35, 0.25)', borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#EE9A23' }}>
+                        <Sparkles width="16" height="16" />
+                        <span style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em' }}>Kiểm Tra Năng Lực Đầu Vào</span>
+                      </div>
+                      <h3 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '15px', color: `${inkColor}`, margin: 0 }}>Bạn chưa biết Band điểm IELTS hiện tại của mình?</h3>
+                      <p style={{ fontSize: '12.5px', color: `${titleColor}`, fontWeight: '600', margin: 0, lineHeight: '1.5' }}>
+                        Tham gia làm bài kiểm tra nhanh 10 phút (Listening, Reading, Grammar) để AI phân tích chính xác trình độ và tự động thiết kế lộ trình tối ưu cho bạn.
+                      </p>
+                    </div>
+                    <button
+                      onClick={goDiagnostic}
+                      style={{ alignSelf: 'flex-start', background: 'linear-gradient(90deg, #5D6B2D, #B38F4D)', color: '#FFF8EB', border: 'none', borderRadius: '12px', padding: '10px 18px', fontSize: '12.5px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(93,107,45,0.15)' }}
+                    >
+                      Làm Test Đầu Vào Ngay <ArrowRight width="14" height="14" />
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={(e) => { e.preventDefault(); startRoadmapAIGeneration(e); }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, padding: '20px', borderRadius: '18px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: `${inkColor}` }}>Band Điểm Hiện Tại</label>
+                        <span style={{ fontSize: '12px', fontWeight: '900', background: 'rgba(93,107,45,0.12)', color: '#5D6B2D', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(93,107,45,0.15)' }}>
+                          Band {roadmapCurrentBand.toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="3.0"
+                        max="8.5"
+                        step="0.5"
+                        value={roadmapCurrentBand}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setRoadmapState({
+                            roadmapCurrentBand: val,
+                            roadmapTargetBand: Math.max(val + 0.5, roadmapTargetBand)
+                          });
+                        }}
+                        style={{ width: '100%', height: '6px', borderRadius: '4px', background: `${dividerColor}`, accentColor: '#5D6B2D', cursor: 'pointer' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', color: `${titleColor}` }}>
+                        <span>3.0</span>
+                        <span>4.5</span>
+                        <span>6.0</span>
+                        <span>7.5</span>
+                        <span>8.5</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: `${inkColor}` }}>Band Điểm Mục Tiêu</label>
+                        <span style={{ fontSize: '12px', fontWeight: '900', background: 'rgba(179,143,77,0.12)', color: '#B38F4D', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(179,143,77,0.15)' }}>
+                          Band {roadmapTargetBand.toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={(roadmapCurrentBand + 0.5).toString()}
+                        max="9.0"
+                        step="0.5"
+                        value={roadmapTargetBand}
+                        onChange={(e) => setRoadmapState({ roadmapTargetBand: parseFloat(e.target.value) })}
+                        style={{ width: '100%', height: '6px', borderRadius: '4px', background: `${dividerColor}`, accentColor: '#B38F4D', cursor: 'pointer' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', color: `${titleColor}` }}>
+                        <span>{(roadmapCurrentBand + 0.5).toFixed(1)}</span>
+                        <span>6.0</span>
+                        <span>7.0</span>
+                        <span>8.0</span>
+                        <span>9.0</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11.5px', fontWeight: '800', color: `${inkColor}`, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Calendar width="16" height="16" color={titleColor} /> Ngày Thi Dự Kiến
+                      </label>
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split("T")[0]}
+                        value={roadmapTargetDate}
+                        onChange={(e) => setRoadmapState({ roadmapTargetDate: e.target.value })}
+                        style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1.5px solid ${nightCardBorder}`, borderRadius: '12px', color: `${inkColor}`, fontFamily: 'inherit', fontSize: '13.5px', outline: 'none' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '11.5px', fontWeight: '800', color: `${inkColor}`, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Clock width="16" height="16" color={titleColor} /> Thời Gian Học Mỗi Ngày
+                      </label>
+                      <select
+                        value={roadmapDailyHours}
+                        onChange={(e) => setRoadmapState({ roadmapDailyHours: parseFloat(e.target.value) })}
+                        style={{ width: '100%', padding: '12px 16px', background: `${searchBg}`, border: `1.5px solid ${nightCardBorder}`, borderRadius: '12px', color: `${inkColor}`, fontFamily: 'inherit', fontSize: '13.5px', outline: 'none' }}
+                      >
+                        <option value={1.0}>1.0 giờ / ngày</option>
+                        <option value={1.5}>1.5 giờ / ngày</option>
+                        <option value={2.0}>2.0 giờ / ngày (Khuyên dùng)</option>
+                        <option value={3.0}>3.0 giờ / ngày (Cường độ cao)</option>
+                        <option value={4.0}>4.0 giờ / ngày (Cấp tốc)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '11.5px', fontWeight: '800', color: `${inkColor}`, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Target width="16" height="16" color={titleColor} /> Kỹ Năng Cần Tập Trung
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                      {["Listening", "Reading", "Writing", "Speaking"].map((skill) => {
+                        const isChecked = roadmapFocusSkills.includes(skill);
+                        return (
+                          <button
+                            key={skill}
+                            type="button"
+                            onClick={() => handleRoadmapSkillsChange(skill)}
+                            style={{
+                              padding: '12px 16px',
+                              borderRadius: '12px',
+                              border: isChecked ? '2px solid #5D6B2D' : `1.5px solid ${nightCardBorder}`,
+                              background: isChecked ? 'rgba(93,107,45,0.08)' : `${searchBg}`,
+                              color: isChecked ? '#5D6B2D' : `${inkColor}`,
+                              fontFamily: 'inherit',
+                              fontSize: '13px',
+                              fontWeight: '800',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              transition: 'all .15s'
+                            }}
+                          >
+                            {isChecked && <Check width="14" height="14" />}
+                            <span>{skill}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '16px', borderTop: `1px solid ${dividerColor}`, paddingTop: '20px' }}>
+                    <button
+                      type="submit"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#5D6B2D', border: 'none', borderRadius: '16px', padding: '14px 28px', fontFamily: 'inherit', fontWeight: '900', fontSize: '15px', color: '#FFF8EB', cursor: 'pointer', boxShadow: '0 4px 0 #3E4A1B' }}
+                    >
+                      <Sparkles width="16" height="16" />
+                      <span>{roadmap ? "Tái Tạo Lộ Trình AI" : "Thiết Lập Lộ Trình Bằng AI"}</span>
+                    </button>
+                    {roadmap && (
+                      <button
+                        type="button"
+                        onClick={() => setRoadmapState({ roadmapIsEditingGoals: false })}
+                        style={{ background: 'transparent', border: `1.5px solid ${nightCardBorder}`, borderRadius: '16px', padding: '14px 24px', fontFamily: 'inherit', fontWeight: '800', fontSize: '15px', color: `${inkColor}`, cursor: 'pointer' }}
+                      >
+                        Hủy bỏ
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            ) : roadmap.status === "PROPOSED" ? (
+              <div style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '28px', boxShadow: `${nightCardShadow}`, animation: 'tidRise .4s ease both' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${dividerColor}`, paddingBottom: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: '#B38F4D', background: 'rgba(179,143,77,0.12)', padding: '2px 8px', borderRadius: '6px' }}>Lộ trình đề xuất từ AI</span>
+                      <span style={{ fontSize: '11.5px', fontWeight: '700', color: `${titleColor}` }}>Tạo ngày {new Date(roadmap.createdAt).toLocaleDateString("vi-VN")}</span>
+                    </div>
+                    <h2 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '22px', color: `${inkColor}`, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      IELTS Band {roadmap.currentBand.toFixed(1)} <ArrowRight width="18" height="18" color="#B38F4D" /> Band {roadmap.targetBand.toFixed(1)}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setRoadmapState({ roadmapIsEditingGoals: true })}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: `${searchBg}`, border: `1.5px solid ${nightCardBorder}`, borderRadius: '12px', padding: '8px 16px', fontSize: '12.5px', fontWeight: '800', color: `${inkColor}`, cursor: 'pointer' }}
+                  >
+                    <RefreshCw width="14" height="14" /> Chỉnh sửa mục tiêu
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative', paddingLeft: '24px' }}>
+                  <div style={{ position: 'absolute', left: '8px', top: '12px', bottom: '12px', width: '2px', background: 'linear-gradient(to bottom, #5D6B2D, rgba(238,154,35,0.4))' }} />
+                  {roadmap.phases.map((phase: any, idx: number) => (
+                    <div key={phase.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-20px', top: '4px', width: '10px', height: '10px', borderRadius: '50%', background: '#5d6b2d', border: `2px solid ${contentBg}` }} />
+                      <div>
+                        <h4 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '15.5px', color: `${inkColor}`, margin: 0 }}>{phase.title}</h4>
+                        <p style={{ fontSize: '12.5px', color: `${titleColor}`, fontWeight: '600', margin: '4px 0 0' }}>{phase.description}</p>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                          {phase.skills.map((skill: string, sIdx: number) => (
+                            <span key={sIdx} style={{ fontSize: '10px', fontWeight: '800', background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, padding: '2px 8px', borderRadius: '6px', color: `${titleColor}` }}>{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {phase.tasks.map((task: any) => (
+                          <div key={task.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: `${headerBg}`, border: `1px solid ${dividerColor}`, padding: '12px', borderRadius: '12px' }}>
+                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(93,107,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <BookOpen width="14" height="14" color="#5d6b2d" />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: '800', color: `${inkColor}` }}>{task.title}</span>
+                              <span style={{ fontSize: '11px', fontWeight: '700', color: `${titleColor}`, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock width="12" height="12" /> Thời gian ước tính: {task.estimatedHours}h
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${dividerColor}`, paddingTop: '20px', gap: '16px', flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: '800', color: `${inkColor}`, margin: 0 }}>Lộ trình này đã được AI tùy chỉnh hoàn toàn phù hợp với cấu hình của bạn.</p>
+                    <p style={{ fontSize: '11.5px', color: `${titleColor}`, fontWeight: '600', margin: '2px 0 0' }}>Nhấp nút bên phải để lưu lộ trình và bắt đầu đếm ngược thời gian ôn thi.</p>
+                  </div>
+                  <button
+                    onClick={activateRoadmap}
+                    disabled={roadmapActionLoading}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#5D6B2D', border: 'none', borderRadius: '16px', padding: '14px 28px', fontFamily: 'inherit', fontWeight: '900', fontSize: '15px', color: '#FFF8EB', cursor: 'pointer', boxShadow: '0 4px 0 #3E4A1B' }}
+                  >
+                    <Play width="16" height="16" fill="#FFF8EB" />
+                    <span>Chấp Nhận & Bắt Đầu Học</span>
+                  </button>
+                </div>
+              </div>
+            ) : (() => {
+              const activePhase = roadmap.phases.find((p: any) => p.id === roadmapActivePhaseTab) || roadmap.phases[0];
+              const totalDays = Math.ceil((new Date(roadmap.targetDate).getTime() - new Date(roadmap.createdAt).getTime()) / (24 * 60 * 60 * 1000));
+              const remainingDays = Math.max(0, Math.ceil((new Date(roadmap.targetDate).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)));
+              
+              let totalTasks = 0;
+              let completedTasks = 0;
+              roadmap.phases.forEach((p: any) => {
+                p.tasks.forEach((t: any) => {
+                  totalTasks++;
+                  if (t.completed) completedTasks++;
+                });
+              });
+              const progressPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: `${nightCardShadow}` }}>
+                      <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: `${titleColor}`, marginBottom: '16px' }}>Tiến Độ Lộ Trình</h3>
+                      
+                      <div style={{ position: 'relative', width: '128px', height: '128px', marginBottom: '16px' }}>
+                        <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }} viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="42" fill="none" stroke={dark ? 'rgba(255,255,255,.05)' : '#F2EEE0'} strokeWidth="8" />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            fill="none"
+                            stroke="url(#roadmapProgressGrad)"
+                            strokeWidth="8"
+                            strokeLinecap="round"
+                            strokeDasharray={`${(progressPct / 100) * 2 * Math.PI * 42} ${2 * Math.PI * 42}`}
+                            style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                          />
+                          <defs>
+                            <linearGradient id="roadmapProgressGrad" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#5D6B2D" />
+                              <stop offset="100%" stopColor="#B38F4D" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: '28px', fontWeight: '900', color: `${inkColor}`, lineHeight: 1 }}>{progressPct}%</span>
+                          <span style={{ fontSize: '10px', fontWeight: '700', color: `${titleColor}`, marginTop: '2px' }}>Hoàn thành</span>
+                        </div>
+                      </div>
+
+                      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', background: `${searchBg}`, padding: '12px', borderRadius: '12px', border: `1px solid ${dividerColor}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: `${titleColor}` }}>
+                          <span>Nhiệm vụ:</span>
+                          <span style={{ fontWeight: '900', color: `${inkColor}` }}>{completedTasks} / {totalTasks}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: `${titleColor}` }}>
+                          <span>Còn lại:</span>
+                          <span style={{ fontWeight: '900', color: `${inkColor}` }}>{remainingDays} ngày ôn</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '24px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: `${nightCardShadow}` }}>
+                      <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: `${titleColor}`, borderBottom: `1px solid ${dividerColor}`, paddingBottom: '8px', margin: 0 }}>Mục Tiêu</h3>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(238,154,35,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EE9A23' }}>
+                            <Target width="16" height="16" />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '10px', fontWeight: '800', color: `${titleColor}`, textTransform: 'uppercase', display: 'block' }}>Mục tiêu band</span>
+                            <span style={{ fontSize: '12.5px', fontWeight: '800', color: `${inkColor}` }}>{roadmap.currentBand.toFixed(1)} → {roadmap.targetBand.toFixed(1)}</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(93,107,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5D6B2D' }}>
+                            <Clock width="16" height="16" />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '10px', fontWeight: '800', color: `${titleColor}`, textTransform: 'uppercase', display: 'block' }}>Cường độ học</span>
+                            <span style={{ fontSize: '12.5px', fontWeight: '800', color: `${inkColor}` }}>{roadmap.dailyHours} giờ / ngày</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(179,143,77,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B38F4D' }}>
+                            <Calendar width="16" height="16" />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '10px', fontWeight: '800', color: `${titleColor}`, textTransform: 'uppercase', display: 'block' }}>Ngày thi dự kiến</span>
+                            <span style={{ fontSize: '12.5px', fontWeight: '800', color: `${inkColor}` }}>{new Date(roadmap.targetDate).toLocaleDateString("vi-VN")}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: `1px solid ${dividerColor}`, paddingTop: '12px' }}>
+                        <button
+                          onClick={() => {
+                            const seg = typeof window !== 'undefined' ? window.location.pathname.split('/')[1] : 'vi';
+                            const locale = (seg === 'en' || seg === 'vi') ? seg : 'vi';
+                            window.location.href = `/${locale}/orientation?retest=true&pathId=${roadmap.id}`;
+                          }}
+                          style={{ width: '100%', padding: '8px 0', border: 'none', background: '#5D6B2D', color: '#FFF8EB', borderRadius: '12px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', transition: 'all .15s', boxShadow: '0 4px 0 #3E4A1B', marginBottom: '4px' }}
+                        >
+                          Làm bài test lại để kiểm tra tiến bộ
+                        </button>
+                        <button
+                          onClick={() => setRoadmapState({ roadmapIsEditingGoals: true })}
+                          style={{ width: '100%', padding: '8px 0', border: `1.5px solid ${nightCardBorder}`, background: `${searchBg}`, color: `${inkColor}`, borderRadius: '12px', fontSize: '12px', fontWeight: '800', cursor: 'pointer', transition: 'all .15s' }}
+                        >
+                          Sửa mục tiêu / Tạo lại
+                        </button>
+                        <button
+                          onClick={resetRoadmap}
+                          style={{ width: '100%', padding: '8px 0', border: '1.5px solid rgba(255,122,122,0.2)', background: 'transparent', color: '#FF7A7A', borderRadius: '12px', fontSize: '12px', fontWeight: '800', cursor: 'pointer', transition: 'all .15s' }}
+                        >
+                          Đặt lại lộ trình học
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #46531F, #2A3114)', border: '1px solid rgba(255,255,255,.05)', borderRadius: '24px', padding: '24px', color: '#FFF8EB', position: 'relative', overflow: 'hidden', boxShadow: `${nightCardShadow}` }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: '#FFF8EB', background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '6px' }}>Lộ trình đang học</span>
+                          {remainingDays > 0 ? (
+                            <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: '#FFF8EB', background: '#EE9A23', padding: '2px 8px', borderRadius: '6px', animation: 'tidHalo 2s ease-in-out infinite' }}>Còn {remainingDays} ngày</span>
+                          ) : (
+                            <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: '#FFF8EB', background: '#5D6B2D', padding: '2px 8px', borderRadius: '6px' }}>Đã hoàn tất kỳ ôn</span>
+                          )}
+                        </div>
+                        <h2 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '20px', margin: 0 }}>Chinh Phục IELTS Band {roadmap.targetBand.toFixed(1)}</h2>
+                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: 0, fontWeight: '500', lineHeight: '1.4' }}>Tập trung thực hành mỗi ngày theo từng nhiệm vụ dưới đây. AI sẽ ghi nhận và cập nhật trực tiếp tiến độ của bạn.</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', borderBottom: `1.5px solid ${dividerColor}`, paddingBottom: '1px' }}>
+                      {roadmap.phases.map((phase: any) => {
+                        const isActive = roadmapActivePhaseTab === phase.id;
+                        const phaseTasks = phase.tasks;
+                        const completedCount = phaseTasks.filter((t: any) => t.completed).length;
+                        const totalCount = phaseTasks.length;
+                        const isPhaseDone = completedCount === totalCount && totalCount > 0;
+                        
+                        let phaseLabel = "Giai đoạn 3";
+                        if (phase.id === "phase_1") phaseLabel = "Giai đoạn 1";
+                        else if (phase.id === "phase_2") phaseLabel = "Giai đoạn 2";
+
+                        return (
+                          <button
+                            key={phase.id}
+                            onClick={() => setRoadmapState({ roadmapActivePhaseTab: phase.id })}
+                            style={{
+                              paddingBottom: '12px',
+                              border: 'none',
+                              borderBottom: isActive ? '3.5px solid #5D6B2D' : '3.5px solid transparent',
+                              background: 'transparent',
+                              fontFamily: 'inherit',
+                              fontSize: '13.5px',
+                              fontWeight: '900',
+                              color: isActive ? '#5D6B2D' : `${titleColor}`,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            <span>{phaseLabel}</span>
+                            <span style={{
+                              fontSize: '10px',
+                              fontWeight: '800',
+                              padding: '2px 6px',
+                              borderRadius: '6px',
+                              background: isPhaseDone ? '#5D6B2D' : (isActive ? 'rgba(93,107,45,0.12)' : `${searchBg}`),
+                              color: isPhaseDone ? '#FFF8EB' : (isActive ? '#5D6B2D' : `${titleColor}`)
+                            }}>
+                              {completedCount}/{totalCount}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ background: `${searchBg}`, border: `1px solid ${nightCardBorder}`, padding: '20px', borderRadius: '18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <h4 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '.08em', color: `${titleColor}`, margin: 0 }}>Mục tiêu Giai Đoạn</h4>
+                      <p style={{ fontSize: '13px', color: `${inkColor}`, fontWeight: '700', margin: 0, lineHeight: '1.5' }}>{activePhase.description}</p>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                        {activePhase.skills.map((skill: string, sIdx: number) => (
+                          <span key={sIdx} style={{ fontSize: '10px', fontWeight: '800', background: `${headerBg}`, border: `1px solid ${dividerColor}`, padding: '2px 8px', borderRadius: '6px', color: `${titleColor}` }}>{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {activePhase.tasks.map((task: any) => (
+                        <div
+                          key={task.id}
+                          onClick={() => toggleRoadmapTask(activePhase.id, task.id, !task.completed)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '16px',
+                            padding: '16px',
+                            borderRadius: '18px',
+                            border: `1.5px solid ${task.completed ? dividerColor : nightCardBorder}`,
+                            background: task.completed ? 'transparent' : `${headerBg}`,
+                            opacity: task.completed ? 0.6 : 1,
+                            cursor: 'pointer',
+                            boxShadow: task.completed ? 'none' : '0 4px 12px rgba(46,53,20,0.02)',
+                            transition: 'all .2s'
+                          }}
+                        >
+                          <div style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '6px',
+                            border: task.completed ? '2px solid #5D6B2D' : `2px solid ${titleColor}`,
+                            background: task.completed ? '#5D6B2D' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#FFF8EB',
+                            flexShrink: 0,
+                            marginTop: '2px',
+                            transition: 'all 0.15s'
+                          }}>
+                            {task.completed && <Check width="14" height="14" strokeWidth="3" />}
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                            <span style={{ fontSize: '13.5px', fontWeight: '900', color: `${inkColor}`, textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</span>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', color: `${titleColor}`, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Clock width="12" height="12" /> {task.estimatedHours}h luyện tập
+                              </span>
+                              {task.completed && (
+                                <span style={{ fontSize: '10px', fontWeight: '900', color: '#5D6B2D', background: 'rgba(93,107,45,0.08)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <CheckCircle2 width="12" height="12" /> Đã hoàn thành & Cộng Streak
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </React.Fragment>) : null }
+        { (isDaily) ? (<React.Fragment>
+          <div style={{ position: 'relative', zIndex: '1', display: 'flex', flexDirection: 'column', gap: '24px', animation: 'tidRise .4s ease both' }}>
+            
+            {/* Header section */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EEF1E2', border: '1px solid #C7D1B8', color: '#5D6B2D', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: '8px' }}>
+                  <Sparkles width="12" height="12" style={{ animation: 'tidHalo 2s infinite' }} /> Lộ trình học tập cá nhân
+                </div>
+                <h2 data-sk="ink" style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '26px', margin: '0', color: `${inkColor}` }}>
+                  Nhiệm vụ học hàng ngày
+                </h2>
+                <p style={{ margin: '6px 0 0', fontSize: '13.5px', color: `${titleColor}`, fontWeight: '600', maxWidth: '500px', lineHeight: '1.5' }}>
+                  Mỗi ngày là một bước tiến gần hơn đến mục tiêu IELTS. Hãy hoàn thành đề thi thử được AI cá nhân hóa để mở khóa bài học tiếp theo.
+                </p>
+              </div>
+
+              {/* Progress Widget */}
+              {(!dailyTasksLoading && dailyTasks && dailyTasks.length > 0) && (() => {
+                const total = dailyTasks.length;
+                const completed = dailyTasks.filter((t: any) => t.status === "completed").length;
+                const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                return (
+                  <div style={{ background: `${nightCardBg}`, border: `1px solid ${nightCardBorder}`, borderRadius: '20px', padding: '16px 20px', minWidth: '220px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: `${nightCardShadow}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '800', color: `${titleColor}`, textTransform: 'uppercase' }}>Tiến độ tổng thể</span>
+                      <span style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '14px', color: '#5D6B2D' }}>{progressPct}%</span>
+                    </div>
+                    <div style={{ height: '8px', background: 'rgba(0,0,0,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #5D6B2D, #8AA04A)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700', color: `${titleColor}` }}>
+                      <Trophy width="14" height="14" color="#EE9A23" />
+                      <span>Đã hoàn thành {completed}/{total} ngày</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Content states */}
+            {dailyTasksLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', background: `${headerBg}`, border: `1px solid ${panelBorder}`, borderRadius: '24px', padding: '48px' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid rgba(93, 107, 45, 0.3)', borderTopColor: '#5D6B2D', borderRadius: '50%', animation: 'tidSpin 1s linear infinite', marginBottom: '16px' }} />
+                <p style={{ fontSize: '13px', fontWeight: '800', color: `${ink2Color}`, animation: 'tidHalo 2s ease-in-out infinite' }}>Đang tải danh sách nhiệm vụ...</p>
+              </div>
+            ) : dailyTasksError ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', background: `${headerBg}`, border: `1.5px solid rgba(255,122,122,0.2)`, borderRadius: '24px', padding: '48px', textAlign: 'center' }}>
+                <AlertCircle width="40" height="40" color="#FF7A7A" style={{ marginBottom: '16px' }} />
+                <h3 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '18px', color: '#FF7A7A', margin: '0 0 8px' }}>Lỗi Tải Dữ Liệu</h3>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: `${titleColor}`, margin: '0 0 20px', maxWidth: '360px' }}>{dailyTasksError}</p>
+                <button onClick={fetchDailyTasks} style={{ background: '#5D6B2D', border: 'none', borderRadius: '12px', padding: '10px 20px', fontFamily: 'inherit', fontWeight: '900', fontSize: '14px', color: '#FFF8EB', cursor: 'pointer', boxShadow: '0 3px 0 #3E4A1B' }}>Thử lại</button>
+              </div>
+            ) : (!dailyTasks || dailyTasks.length === 0) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '340px', background: `${headerBg}`, border: `1px solid ${panelBorder}`, borderRadius: '24px', padding: '48px', textAlign: 'center' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#EEF1E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5d6b2d" strokeWidth="2.2"><circle cx="12" cy="12" r="10"/><path d="m16.2 8.6-6.6 6.6-3-3"/></svg>
+                </div>
+                <h3 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '18px', color: `${inkColor}`, margin: '0 0 6px' }}>Chưa kích hoạt lộ trình</h3>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: `${titleColor}`, margin: '0 0 24px', maxWidth: '360px', lineHeight: '1.4' }}>Hãy hoàn thành bài Diagnostic Test để AI chuẩn bị lộ trình và kích hoạt Daily Tasks cho bạn nhé!</p>
+                <button onClick={goDiagnostic} style={{ background: '#5D6B2D', border: 'none', borderRadius: '14px', padding: '12px 28px', fontFamily: 'inherit', fontWeight: '900', fontSize: '14.5px', color: '#FFF8EB', cursor: 'pointer', boxShadow: '0 4px 0 #3E4A1B' }}>Bắt đầu ngay</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', borderLeft: '2px dashed rgba(0,0,0,0.06)', marginLeft: '12px', paddingLeft: '24px' }}>
+                {dailyTasks.map((task: any, idx: number) => {
+                  const isCompleted = task.status === "completed";
+                  const isUnlocked = task.unlocked;
+                  const isLocked = !isCompleted && !isUnlocked;
+                  const exam = task.exams;
+                  
+                  // route mapping
+                  const match = typeof window !== 'undefined' ? window.location.pathname.match(/^\/(en|vi)\b/) : null;
+                  const locale = match ? match[1] : 'vi';
+                  const examRoute = exam ? (
+                    exam.category?.toLowerCase() === 'listening' ? `/${locale}/listening/${exam.id}` :
+                    exam.category?.toLowerCase() === 'reading' ? `/${locale}/reading/${exam.id}` :
+                    exam.category?.toLowerCase() === 'writing' ? `/${locale}/writing/${exam.id}` :
+                    exam.category?.toLowerCase() === 'speaking' ? `/${locale}/speaking/test?examId=${exam.id}&mode=mock` : '#'
+                  ) : '#';
+
+                  return (
+                    <div key={task.id} style={{ position: 'relative' }}>
+                      {/* Timeline node dot */}
+                      <span style={{
+                        position: 'absolute',
+                        left: '-37px',
+                        top: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        border: '2px solid',
+                        borderColor: isCompleted ? '#5D6B2D' : isUnlocked ? '#5D6B2D' : '#D1D5DB',
+                        background: isCompleted ? '#5D6B2D' : '#fff',
+                        color: isCompleted ? '#fff' : isUnlocked ? '#5D6B2D' : '#9CA3AF',
+                        zIndex: 2,
+                        transition: 'all 0.3s'
+                      }}>
+                        {isCompleted ? (
+                          <CheckCircle width="14" height="14" />
+                        ) : isLocked ? (
+                          <Lock width="10" height="10" />
+                        ) : (
+                          <span style={{ fontSize: '9px', fontWeight: '900' }}>{task.day_index}</span>
+                        )}
+                      </span>
+
+                      {/* Card container */}
+                      <div style={{
+                        background: `${headerBg}`,
+                        border: isUnlocked && !isCompleted ? '1.5px solid #5D6B2D' : `1px solid ${panelBorder}`,
+                        borderRadius: '20px',
+                        padding: '20px',
+                        boxShadow: isUnlocked && !isCompleted ? '0 8px 30px rgba(93,107,45,0.06)' : 'none',
+                        opacity: isLocked ? 0.65 : 1,
+                        transition: 'all 0.3s'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#5D6B2D', letterSpacing: '.05em' }}>
+                              Ngày {task.day_index} • Giai đoạn {task.phase_id?.replace("phase_", "")}
+                            </span>
+                            <h4 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '17px', margin: '0', color: `${inkColor}` }}>
+                              {task.task_title}
+                            </h4>
+                            <span style={{ fontSize: '11px', fontWeight: '700', color: `${titleColor}` }}>
+                              Nhiệm vụ {task.day_in_task}/{task.total_days_in_task} của bài học này
+                            </span>
+                          </div>
+
+                          {/* Status badges */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {isCompleted ? (
+                              <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#10B981', background: 'rgba(16,185,129,0.08)', padding: '4px 10px', borderRadius: '20px' }}>
+                                Hoàn thành
+                              </span>
+                            ) : isUnlocked ? (
+                              <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#5D6B2D', background: 'rgba(93,107,45,0.08)', padding: '4px 10px', borderRadius: '20px', animation: 'tidHalo 2s infinite' }}>
+                                Đang mở
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', color: '#9CA3AF', background: 'rgba(0,0,0,0.04)', padding: '4px 10px', borderRadius: '20px' }}>
+                                Chưa mở
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Mapped Exam Item */}
+                        {exam && (
+                          <div style={{
+                            marginTop: '16px',
+                            background: `${searchBg}`,
+                            border: `1px solid ${nightCardBorder}`,
+                            borderRadius: '16px',
+                            padding: '16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '16px',
+                            flexWrap: 'wrap'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(93,107,45,0.1)', display: 'flex', alignItems: 'center', justifyContent: 0, flexShrink: 0, justifyContent: 'center' }}>
+                                <BookOpen width="16" height="16" color="#5d6b2d" />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <h5 style={{ fontFamily: 'Nunito', fontWeight: '900', fontSize: '14.5px', margin: '0', color: `${inkColor}` }}>
+                                  Đề luyện tập: {exam.title}
+                                </h5>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '800', color: `${titleColor}` }}>
+                                  <span style={{ textTransform: 'uppercase', color: '#5D6B2D' }}>{exam.category}</span>
+                                  <span>•</span>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Clock width="12" height="12" /> {exam.duration_minutes} phút
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              {isUnlocked && !isCompleted && (
+                                <>
+                                  <button
+                                    onClick={() => window.location.href = examRoute}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#5D6B2D', border: 'none', borderRadius: '12px', padding: '9px 16px', fontFamily: 'inherit', fontWeight: '900', fontSize: '13px', color: '#FFF8EB', cursor: 'pointer', boxShadow: '0 3px 0 #3E4A1B' }}
+                                  >
+                                    <Play width="14" height="14" fill="#FFF8EB" />
+                                    <span>Làm bài ngay</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleCompleteDailyTask(task.id)}
+                                    disabled={dailyTasksCompletingId === task.id}
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', border: `1px solid ${nightCardBorder}`, borderRadius: '12px', padding: '9px 16px', fontFamily: 'inherit', fontWeight: '800', fontSize: '13px', color: `${inkColor}`, cursor: dailyTasksCompletingId === task.id ? 'not-allowed' : 'pointer' }}
+                                  >
+                                    {dailyTasksCompletingId === task.id ? "Đang xử lý..." : "Hoàn thành"}
+                                  </button>
+                                </>
+                              )}
+                              {isCompleted && (
+                                <button
+                                  onClick={() => window.location.href = examRoute}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: `1.5px solid ${nightCardBorder}`, borderRadius: '12px', padding: '9px 16px', fontFamily: 'inherit', fontWeight: '900', fontSize: '13px', color: '#5D6B2D', cursor: 'pointer' }}
+                                >
+                                  <RotateCcw width="14" height="14" />
+                                  <span>Luyện tập lại</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </React.Fragment>) : null }
         { (isStudy) ? (<React.Fragment>
         <div aria-hidden="true" style={{ position: 'absolute', inset: '0', pointerEvents: 'none', zIndex: '0', opacity: `${cloudOpacity}`, transition: 'opacity .4s ease' }}>

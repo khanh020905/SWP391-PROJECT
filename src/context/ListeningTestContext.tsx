@@ -8,6 +8,69 @@ import {
   NormalizedListeningQuestion
 } from "@/utils/questionHelpers";
 
+function findQuestionTextForSection(content: string | null, qNo: number): string {
+  if (!content) return `(${qNo})`;
+
+  // Replace ellipses or dots or underscores with a standard blank
+  const normalizedContent = content.replace(/(?:…+|\.{3,}|_{2,})/g, "________");
+  const lines = normalizedContent.split("\n");
+
+  // Find a line that contains the exact pattern (qNo)
+  const targetPattern = new RegExp(`\\(${qNo}\\)`);
+  let targetLine = lines.find(line => targetPattern.test(line));
+
+  if (!targetLine) {
+    // Fallback: try to find just the number with word boundary or attached to text
+    const fallbackPattern = new RegExp(`(?:\\b|\\d)${qNo}(?:\\b|\\s|_)`);
+    targetLine = lines.find(line => fallbackPattern.test(line));
+  }
+
+  if (!targetLine) {
+    return `(${qNo})`;
+  }
+
+  const line = targetLine.trim();
+
+  // Regex to match any digit followed by optional currency symbol and underscores
+  const qPattern = /(\d+)\s*[$£€¥]?\s*(?:_{2,})/g;
+  let matches: { qNo: number; index: number; length: number }[] = [];
+  let match;
+  while ((match = qPattern.exec(line)) !== null) {
+    matches.push({
+      qNo: parseInt(match[1]),
+      index: match.index,
+      length: match[0].length
+    });
+  }
+
+  const targetIndex = matches.findIndex(m => m.qNo === qNo);
+  if (targetIndex === -1) {
+    // If it's not a fill-in-the-blank on a shared line, do some basic cleanup
+    let cleanedLine = line;
+    const otherQPattern = /\((\d+)\)\s*_{2,}/g;
+    cleanedLine = cleanedLine.replace(otherQPattern, (m, otherQStr) => {
+      const otherQ = parseInt(otherQStr);
+      return otherQ === qNo ? m : `(${otherQ})`;
+    });
+    return cleanedLine;
+  }
+
+  const startPos = targetIndex === 0 ? 0 : matches[targetIndex - 1].index + matches[targetIndex - 1].length;
+  const endPos = targetIndex === matches.length - 1 ? line.length : matches[targetIndex + 1].index;
+
+  let untrimmedSegment = line.substring(startPos, endPos);
+  
+  if (targetIndex === 0) {
+    // Keep the prefix context for the first question in the line
+    return untrimmedSegment.trim();
+  }
+
+  let relativeIndex = matches[targetIndex].index - startPos;
+  let mainPart = untrimmedSegment.substring(relativeIndex);
+
+  return mainPart.trim();
+}
+
 export interface ListeningResult {
   totalQuestions: number;
   correctCount: number;
@@ -143,19 +206,25 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
 
   const initAudio = (src: string) => {
     if (typeof window === "undefined") return;
+    if (!src || src === "null" || src === "undefined") return;
     
+    let fullSrc = src;
+    const lowerSrc = src.toLowerCase();
+    if (lowerSrc.startsWith("/audio/tasks/")) {
+      const projectRef = "kaoybbpezkkmufzbhxru";
+      const fileName = src.substring("/audio/tasks/".length);
+      fullSrc = `https://${projectRef}.supabase.co/storage/v1/object/public/audio/Tasks/${fileName}`;
+    }
+
+    // Reuse audio element if it's already playing the same source
+    if (audioRef.current && (audioRef.current.src === fullSrc || audioRef.current.src === window.location.origin + fullSrc)) {
+      return;
+    }
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
       audioRef.current = null;
-    }
-
-    let fullSrc = src;
-    const lowerSrc = src.toLowerCase();
-    if (lowerSrc.startsWith("/audio/tasks/") || lowerSrc.startsWith("/audio/tasks/")) {
-      const projectRef = "kaoybbpezkkmufzbhxru";
-      const fileName = src.substring("/audio/tasks/".length);
-      fullSrc = `https://${projectRef}.supabase.co/storage/v1/object/public/audio/Tasks/${fileName}`;
     }
 
     const audio = new Audio(fullSrc);
@@ -257,51 +326,132 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
     startedAtRef.current = new Date();
     
     try {
-      const { data, error: fetchErr } = await supabase
-        .from("listening_tasks")
-        .select("*")
-        .order("lesson_id", { ascending: true });
+      if (testId === "a1b2c3d4-0002-0002-0002-000000000002") {
+        const { data, error: fetchErr } = await supabase
+          .from("listening_tasks")
+          .select("*")
+          .order("lesson_id", { ascending: true });
 
-      if (fetchErr) throw fetchErr;
+        if (fetchErr) throw fetchErr;
 
-      if (data && data.length > 0) {
-        const sectionsData = data.map((row: any) => {
-          const questions = (row.challenges || []).map((q: any, i: number) => ({
-            id: q.id || `lq_${row.lesson_id}_${i}`,
-            type: q.type || "fill",
-            text: q.text || "",
-            options: q.options || [],
-            correct_answer: q.answer || "",
-            answers: q.answers || (q.answer ? [q.answer] : []),
-          }));
+        if (data && data.length > 0) {
+          const sectionsData = data.map((row: any) => {
+            const questions = (row.challenges || []).map((q: any, i: number) => ({
+              id: q.id || `lq_${row.lesson_id}_${i}`,
+              type: q.type || "fill",
+              text: q.text || "",
+              options: q.options || [],
+              correct_answer: q.answer || "",
+              answers: q.answers || (q.answer ? [q.answer] : []),
+            }));
 
-          return {
-            section: row.lesson_id,
-            title: row.lesson_name,
-            audio_src: row.audio_src,
-            audio_description: row.metadata?.topic || "",
-            questions: questions
+            return {
+              section: row.lesson_id,
+              title: row.lesson_name,
+              audio_src: row.audio_src,
+              audio_description: row.metadata?.topic || "",
+              questions: questions
+            };
+          });
+
+          const singleTest = {
+            id: "a1b2c3d4-0002-0002-0002-000000000002",
+            test_id: "a1b2c3d4-0002-0002-0002-000000000002",
+            test_name: "IELTS Listening Practice Test",
+            volume: "Standard",
+            test_number: 1,
+            has_audio: true,
+            is_visible: true,
+            sections: sectionsData
           };
-        });
 
-        const singleTest = {
-          id: "a1b2c3d4-0002-0002-0002-000000000002",
-          test_id: "a1b2c3d4-0002-0002-0002-000000000002",
-          test_name: "IELTS Listening Practice Test",
-          volume: "Standard",
-          test_number: 1,
-          has_audio: true,
-          is_visible: true,
-          sections: sectionsData
-        };
+          setSelectedTest(singleTest);
+          const normalized = normalizeListeningTest(singleTest);
+          setSections(normalized);
+          setCurrentSectionIndex(0);
 
-        setSelectedTest(singleTest);
-        const normalized = normalizeListeningTest(singleTest);
-        setSections(normalized);
-        setCurrentSectionIndex(0);
+          if (sectionsData[0]?.audio_src) {
+            initAudio(sectionsData[0].audio_src);
+          }
+        }
+      } else {
+        // Load real listening test from database
+        const { data: exam, error: examErr } = await supabase
+          .from("exams")
+          .select("*")
+          .eq("id", testId)
+          .single();
 
-        if (sectionsData[0]?.audio_src) {
-          initAudio(sectionsData[0].audio_src);
+        if (examErr || !exam) {
+          throw new Error(examErr?.message || "Exam not found");
+        }
+
+        const { data: dbSections, error: sectionsErr } = await supabase
+          .from("exam_sections")
+          .select("*")
+          .eq("exam_id", testId)
+          .order("section_no", { ascending: true });
+
+        if (sectionsErr) {
+          throw new Error(sectionsErr.message);
+        }
+
+        if (dbSections && dbSections.length > 0) {
+          const sectionsData = dbSections.map((row: any) => {
+            const answersObj = row.answers || {};
+            // Filter out non-numeric keys (like audio_url and image_url) to avoid mapping them as questions
+            const questionKeys = Object.keys(answersObj).filter((key) => !isNaN(Number(key)));
+            const sortedKeys = questionKeys.sort((a, b) => parseInt(a) - parseInt(b));
+            const questions = sortedKeys.map((key) => {
+              const correctAns = answersObj[key];
+              const qNo = parseInt(key);
+              const qText = findQuestionTextForSection(row.content, qNo);
+              return {
+                id: `q_${testId}_${row.section_no}_${key}`,
+                type: "fill",
+                text: qText,
+                options: [],
+                correct_answer: correctAns,
+                answers: [correctAns],
+              };
+            });
+
+            const rawAudioSrc = answersObj.audio_url || exam.audio_url || "";
+            const audioSrc = (rawAudioSrc === "null" || rawAudioSrc === "undefined" || !rawAudioSrc) ? "" : rawAudioSrc;
+
+            return {
+              section: row.section_no,
+              title: row.title || `Section ${row.section_no}`,
+              audio_src: audioSrc || exam.audio_url || "",
+              audio_description: row.content || "",
+              questions: questions,
+              image_url: answersObj.image_url || "",
+            };
+          });
+
+          const hasAudio = !!exam.audio_url || sectionsData.some(s => s.audio_src);
+          const realTest = {
+            id: exam.id,
+            test_id: exam.id,
+            test_name: exam.title,
+            volume: exam.cambridge_no ? `Cambridge ${exam.cambridge_no}` : "Standard",
+            test_number: exam.test_no || 1,
+            has_audio: hasAudio,
+            is_visible: true,
+            sections: sectionsData
+          };
+
+          setSelectedTest(realTest);
+          const normalized = normalizeListeningTest(realTest);
+          setSections(normalized);
+          setCurrentSectionIndex(0);
+
+          const firstAudio = exam.audio_url || sectionsData.find(s => s.audio_src)?.audio_src;
+          if (firstAudio && firstAudio !== "null" && firstAudio !== "undefined") {
+            initAudio(firstAudio);
+          }
+        } else {
+          throw new Error("No sections found for this listening exam");
         }
       }
     } catch (err: any) {
@@ -391,21 +541,30 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
       const graded = gradeListeningTest(sections, answers);
       setResult(graded);
 
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = null;
+      try {
+        const sessionRes = await supabase.auth.getSession();
+        session = sessionRes.data.session;
+      } catch (e) {
+        console.warn("[Listening Submit] Failed to retrieve Supabase session:", e);
+      }
       
       if (session?.user) {
-        const userId = session.user.id;
-        const submissionId = typeof window !== "undefined" && window.crypto?.randomUUID 
-          ? window.crypto.randomUUID() 
-          : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
+        try {
+          const userId = session.user.id;
+          const submissionId = typeof window !== "undefined" && window.crypto?.randomUUID 
+            ? window.crypto.randomUUID() 
+            : "00000000-0000-0000-0000-" + Math.random().toString(16).substring(2, 14).padEnd(12, '0');
 
-        // 1. Save to user_submissions
-        const { error: subErr } = await supabase
-          .from("user_submissions")
-          .insert({
-            id: submissionId,
-            user_id: userId,
-            exam_id: selectedTest.id,
+        const res = await fetch("/api/listening/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token || ""}`
+          },
+          body: JSON.stringify({
+            submissionId,
+            examId: selectedTest.id,
             score: graded.bandScore,
             answers: {
               userAnswers: graded.answers,
@@ -414,42 +573,23 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
               totalQuestions: graded.totalQuestions,
               sectionResults: graded.sectionResults,
             },
-            started_at: startedAtRef.current.toISOString(),
-            completed_at: new Date().toISOString(),
-          });
+            startedAt: startedAtRef.current.toISOString(),
+            completedAt: new Date().toISOString(),
+            testId: selectedTest.test_id,
+            testName: selectedTest.test_name,
+            totalQuestions: graded.totalQuestions,
+            rawScore: graded.score,
+            sectionResults: graded.sectionResults
+          })
+        });
 
-        if (subErr) {
-          console.error("Error saving user submission:", {
-            message: subErr.message,
-            code: subErr.code,
-            details: subErr.details,
-            hint: subErr.hint
-          });
-        } else {
-          // 2. Also save to practice_history for dashboard display
-          const { error: histErr } = await supabase.from("practice_history").insert({
-            user_id: userId,
-            category: "listening",
-            test_id: selectedTest.test_id,
-            test_name: selectedTest.test_name,
-            score: graded.bandScore,
-            total: graded.totalQuestions,
-            metadata: {
-              raw_score: graded.score,
-              section_results: graded.sectionResults,
-              submission_id: submissionId,
-            },
-          });
-
-          if (histErr) {
-            console.error("Error saving practice history:", {
-              message: histErr.message,
-              code: histErr.code,
-              details: histErr.details,
-              hint: histErr.hint
-            });
-          }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Không thể lưu kết quả bài làm vào hệ thống.");
         }
+      } catch (dbErr) {
+        console.error("Error saving listening progress to database:", dbErr);
+      }
       } else {
         console.log("Guest session: skipping database submission save.");
       }
