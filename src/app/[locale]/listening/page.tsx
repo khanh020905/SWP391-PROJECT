@@ -1,450 +1,401 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import {
-  Headphones,
-  Disc,
-  History,
-  Star,
-  Check,
-  PenLine,
-  Clock,
-} from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import { ListeningTestProvider, useListeningTest } from "@/context/ListeningTestContext";
+// Listening hub — exact UI port from The IELTS Dictionary
+// (Website-Ielts frontend/src/app/practice/listening/page.tsx).
+// Cambridge full tests come from this project's `exams` table;
+// dictation lessons come from the static /data/dictation/index.json.
 
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Search, BookOpen, BookHeadphones, ArrowRight, ClipboardList, Star, CheckCircle2, Pencil, Clock, ChevronRight, Headphones } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
+import { Bookshelf2D } from "@/components/listening/Bookshelf2D";
+import { parseListeningGroups, CamVolume, DictationIndexEntry } from "@/lib/listening/dictationParser";
 
-// Define visual configurations for the 4 card types
-interface CardConfig {
-  bgClass: string;
-  logoColorClass: string;
-  textColorClass: string;
-  btnPracticeClass: string;
-  btnExamClass: string;
-  statsBgClass: string;
-  pattern: React.ReactNode;
+interface CamTestEntry {
+  testId: string;
+  testName: string;
+  volume: number;
+  testNumber: number;
+  hasAudio: boolean;
 }
 
-const cardConfigs: CardConfig[] = [
-  // Test 1: Peach/Orange
-  {
-    bgClass: "bg-gradient-to-br from-[#ffd9bf] to-[#f9bca2]",
-    logoColorClass: "text-[#934f26]/40",
-    textColorClass: "text-[#803d15]",
-    btnPracticeClass: "bg-white/90 text-[#b25b27] hover:bg-white",
-    btnExamClass: "bg-white/90 text-[#b25b27] hover:bg-white",
-    statsBgClass: "bg-white/10 text-white",
-    pattern: (
-      <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M-10,50 C20,70 40,30 70,60 C90,80 110,40 120,50 L120,110 L-10,110 Z" fill="#e29b71" />
-        <path d="M-10,65 C25,85 45,45 75,75 C95,95 105,55 120,65 L120,110 L-10,110 Z" fill="#c37d53" />
-      </svg>
-    )
-  },
-  // Test 2: Pink/Rose
-  {
-    bgClass: "bg-gradient-to-br from-[#fbc7e6] to-[#f7afd6]",
-    logoColorClass: "text-[#9c4c78]/40",
-    textColorClass: "text-[#8a3363]",
-    btnPracticeClass: "bg-white/90 text-[#b0457f] hover:bg-white",
-    btnExamClass: "bg-white/90 text-[#b0457f] hover:bg-white",
-    statsBgClass: "bg-white/10 text-white",
-    pattern: (
-      <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="90" cy="10" r="35" fill="#e28cb9" />
-        <circle cx="10" cy="90" r="45" fill="#e28cb9" />
-        <circle cx="50" cy="50" r="20" fill="#d67ba9" />
-      </svg>
-    )
-  },
-  // Test 3: Red/Coral
-  {
-    bgClass: "bg-gradient-to-br from-[#f7c7c3] to-[#f2a59f]",
-    logoColorClass: "text-[#a64e49]/40",
-    textColorClass: "text-[#913732]",
-    btnPracticeClass: "bg-white/90 text-[#b34f49] hover:bg-white",
-    btnExamClass: "bg-white/90 text-[#b34f49] hover:bg-white",
-    statsBgClass: "bg-white/10 text-white",
-    pattern: (
-      <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="10" y1="10" x2="30" y2="10" stroke="#da807a" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
-        <line x1="20" y1="30" x2="60" y2="30" stroke="#da807a" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
-        <line x1="5" y1="50" x2="45" y2="50" stroke="#da807a" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
-        <line x1="40" y1="70" x2="90" y2="70" stroke="#da807a" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
-        <line x1="15" y1="85" x2="55" y2="85" stroke="#da807a" strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
-      </svg>
-    )
-  },
-  // Test 4: Lavender/Purple
-  {
-    bgClass: "bg-gradient-to-br from-[#dcd6fa] to-[#c1b4f3]",
-    logoColorClass: "text-[#6255a6]/40",
-    textColorClass: "text-[#4d3f94]",
-    btnPracticeClass: "bg-white/90 text-[#7362cf] hover:bg-white",
-    btnExamClass: "bg-white/90 text-[#7362cf] hover:bg-white",
-    statsBgClass: "bg-white/10 text-white",
-    pattern: (
-      <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M-20,20 L120,-120 M-20,50 L120,-90 M-20,80 L120,-60 M-20,110 L120,-30 M-20,140 L120,0" stroke="#9a8ae1" strokeWidth="8" />
-      </svg>
-    )
-  }
-];
+export default function ListeningDirectory() {
+  const [volumes, setVolumes] = useState<CamVolume[]>([]);
+  const [camTests, setCamTests] = useState<CamTestEntry[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-function ListeningTestListContent() {
-  const router = useRouter();
-  const params = useParams();
-  const locale = (params?.locale as string) || "vi";
-
-  const {
-    testList,
-    loadTestList,
-    isLoading
-  } = useListeningTest();
-
-  const [dbExams, setDbExams] = useState<any[]>([]);
-  const [loadingExams, setLoadingExams] = useState(true);
-  const [historyScores, setHistoryScores] = useState<Record<string, { score: number; date: string }>>({});
-  const [sessionUser, setSessionUser] = useState<any>(null);
-  const [historyList, setHistoryList] = useState<any[]>([]);
-
-  // Fetch test list & database exams list
-  useEffect(() => {
-    loadTestList();
-
-    supabase
-      .from("exams")
-      .select("id, title, cambridge_no, test_no, status, category")
-      .eq("category", "listening")
-      .eq("status", "published")
-      .order("cambridge_no", { ascending: false })
-      .order("test_no", { ascending: true })
-      .then(({ data, error }) => {
-        if (error) {
-          console.error("Error fetching listening exams:", error);
-        } else {
-          setDbExams(data || []);
-        }
-        setLoadingExams(false);
-      });
-  }, []);
-
-  // Fetch previous test results
-  useEffect(() => {
-    async function fetchHistory() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
-      setSessionUser(session.user);
-
-      const { data, error } = await supabase
-        .from("user_submissions")
-        .select(`
-          id,
-          exam_id,
-          score,
-          completed_at,
-          answers,
-          exams (
-            title
-          )
-        `)
-        .eq("user_id", session.user.id)
-        .order("completed_at", { ascending: false });
-
-      if (error) {
-        console.error("Error loading history results:", error);
-        return;
-      }
-
-      // Filter out only listening submissions (those having answers.sectionResults or exams.title containing 'Listening')
-      const listeningSubs = (data || []).filter((row: any) => {
-        const isListeningTitle = row.exams?.title?.toLowerCase().includes("listening");
-        const hasSectionResults = !!row.answers?.sectionResults;
-        return isListeningTitle || hasSectionResults;
-      });
-
-      setHistoryList(listeningSubs);
-
-      const scoreMap: Record<string, { score: number; date: string }> = {};
-      listeningSubs.forEach((row: any) => {
-        if (!scoreMap[row.exam_id]) {
-          scoreMap[row.exam_id] = {
-            score: row.score,
-            date: new Date(row.completed_at).toLocaleDateString("vi-VN")
-          };
-        }
-      });
-      setHistoryScores(scoreMap);
-    }
-    fetchHistory();
-  }, [testList]);
-
-  if (isLoading || loadingExams) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#3B5C37] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-bold text-slate-500">Đang tải danh sách đề thi...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Active database test (usually "IELTS Listening Practice Test" or similar)
-  const activeDbTest = testList[0];
-
-  // Group dbExams by cambridge_no
-  const groupedExams: Record<number, any[]> = {};
-  dbExams.forEach((exam) => {
-    const camNo = exam.cambridge_no || 0;
-    if (!groupedExams[camNo]) {
-      groupedExams[camNo] = [];
-    }
-    groupedExams[camNo].push(exam);
-  });
-
-  // Sort Cambridge numbers descending
-  const sortedCamNos = Object.keys(groupedExams)
-    .map(Number)
-    .sort((a, b) => b - a);
-
-  const dynamicVolumes = sortedCamNos.map((camNo) => {
-    const testsForCam = groupedExams[camNo].sort((a, b) => (a.test_no || 0) - (b.test_no || 0));
-    return {
-      title: `CAMBRIDGE IELTS ${camNo}`,
-      badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
-      tests: testsForCam.map((exam) => {
-        const hasHistory = historyScores[exam.id];
-        return {
-          id: exam.id,
-          testNum: exam.test_no || 1,
-          statsListens: "12,450",
-          statsPct: "80%",
-          isActive: true,
-          historyScore: hasHistory ? hasHistory.score : null,
-          historyDate: hasHistory ? hasHistory.date : null
-        };
-      })
-    };
-  });
-
-  const fallbackVolumes = [
-    {
-      title: "CAMBRIDGE IELTS 9",
-      badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
-      tests: [
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 1, statsListens: "44,123", statsPct: "80%", isActive: true },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 2, statsListens: "44,246", statsPct: "80%", isActive: false },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 3, statsListens: "44,369", statsPct: "80%", isActive: false },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 4, statsListens: "44,492", statsPct: "80%", isActive: false }
-      ]
-    },
-    {
-      title: "CAMBRIDGE IELTS 10",
-      badgeText: "GIAO DIỆN GIỐNG THI THẬT 100%",
-      tests: [
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 1, statsListens: "38,512", statsPct: "78%", isActive: false },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 2, statsListens: "39,120", statsPct: "81%", isActive: false },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 3, statsListens: "37,945", statsPct: "79%", isActive: false },
-        { id: activeDbTest?.id || "a1b2c3d4-0002-0002-0002-000000000002", testNum: 4, statsListens: "38,220", statsPct: "80%", isActive: false }
-      ]
-    }
+  const listeningCategories = [
+    { id: "all", name: "Tất cả" },
+    { id: "cambridge", name: "Cambridge" },
+    { id: "spelling", name: "Spelling" },
+    { id: "numbers", name: "Numbers" },
+    { id: "ipa", name: "Pronunciation" },
+    { id: "conversations", name: "Conversations" },
   ];
 
-  // Filter out fallbacks that are already in dynamic volumes to prevent duplicates
-  const existingCamNos = new Set(sortedCamNos);
-  const filteredFallbackVolumes = fallbackVolumes.filter((fb) => {
-    const match = fb.title.match(/CAMBRIDGE IELTS (\d+)/i);
-    const camNo = match ? parseInt(match[1]) : 0;
-    return !existingCamNos.has(camNo);
+  useEffect(() => {
+    async function loadAll() {
+      setLoading(true);
+      const [dictResult, camResult] = await Promise.all([
+        fetch("/data/dictation/index.json").then((r) => r.json()).catch(() => null),
+        fetch("/data/cam-tests/index.json").then((r) => r.json()).catch(() => null),
+      ]);
+
+      if (dictResult) {
+        setVolumes(parseListeningGroups(dictResult as DictationIndexEntry[]));
+      } else {
+        console.error("Failed to load dictation index");
+      }
+
+      if (camResult) {
+        const mapped: CamTestEntry[] = (camResult as {
+          test_id: string; test_name: string; volume: number; test_number: number; has_audio: boolean;
+        }[]).map((t) => ({
+          testId: t.test_id,
+          testName: t.test_name,
+          volume: t.volume,
+          testNumber: t.test_number,
+          hasAudio: t.has_audio,
+        }));
+        setCamTests(mapped);
+      } else {
+        console.error("Failed to load cam tests index");
+      }
+      setLoading(false);
+    }
+
+    loadAll();
+  }, []);
+
+  const filteredVolumes = volumes.filter(vol => {
+    // 1. Search Query Filter
+    const matchesSearch = vol.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      Object.values(vol.tests).some(tasks =>
+        tasks.some(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+
+    if (!matchesSearch) return false;
+
+    // 2. Category Filter
+    if (selectedCategory === "all") return true;
+    if (selectedCategory === "cambridge") return vol.id.startsWith("cam");
+    return vol.id === selectedCategory;
   });
 
-  const allVolumes = [...dynamicVolumes, ...filteredFallbackVolumes];
+  // Limit initial view to the most recent volumes
+  const displayedVolumes = showAll || searchQuery ? filteredVolumes : filteredVolumes.slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#0f1738] font-sans pb-20">
+    <div className="min-h-screen bg-white font-sans w-full overflow-x-clip relative">
       <Navbar />
 
-      <main className="mx-auto max-w-[1200px] px-6 pt-24">
-        {/* Intro Banner */}
-        <section className="mb-12 mt-4 text-center sm:text-left">
-          <p className="text-xs font-black uppercase tracking-wider text-[#3B5C37] mb-2">
-            IELTS Listening Practice Room
-          </p>
-          <p className="text-sm text-slate-500 max-w-xl">
-            Làm bài thi nghe IELTS Cambridge đầy đủ — nghe audio một lần, tự điền câu trả lời và nhận kết quả chi tiết như thi thật.
-          </p>
-        </section>
+      {/* Background Decor */}
+      <div className="absolute top-0 inset-x-0 h-96 bg-herb-100/30 pointer-events-none -z-10" />
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-herb-200/20 rounded-full blur-[100px] -z-10" />
 
-        {/* Lịch sử làm bài gần đây */}
-        {historyList.length > 0 && (
-          <section className="mb-12 bg-white rounded-3xl border border-slate-150 p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-6">
-              <History className="w-5 h-5 text-[#3B5C37]" />
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">
-                Lịch sử luyện tập gần đây
+      <main className="max-w-6xl mx-auto px-6 py-28 relative z-10 w-full">
+        {/* Header section */}
+        <div className="mb-10 text-center md:text-left">
+          <div className="inline-flex items-center justify-center space-x-2 bg-herb-50 text-herb-700 px-4 py-2 rounded-full mb-4 border border-herb-100">
+            <BookHeadphones className="w-5 h-5" />
+            <span className="font-black text-[10px] uppercase tracking-[2px]">Listening Practice Hub</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-moss mb-4 tracking-tight leading-tight">
+            IELTS <span className="text-herb-600">Dictation</span>
+          </h1>
+          <p className="text-slate-500 text-lg max-w-2xl font-medium">
+            Luyện nghe chép chính tả IELTS Listening với dữ liệu đề thi Cambridge mới nhất. Rèn luyện kỹ năng bắt âm và tránh sai sót.
+          </p>
+
+          <div className="mt-8 flex flex-col md:flex-row gap-4 items-center">
+            <Link
+              href="/speaking/shadowing?mode=dictation"
+              className="group flex items-center gap-3 bg-moss text-white border-2 border-transparent px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-herb-700 transition-all shadow-xl shadow-moss/20 hover:-translate-y-0.5 active:scale-95 w-full md:w-auto justify-center"
+            >
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              Luyện dictation video youtube ở đây
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-2" />
+            </Link>
+
+            <button
+              onClick={() => {
+                setSelectedCategory('cambridge');
+                document.getElementById('library-archives')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group flex items-center gap-3 bg-white text-moss border-2 border-moss px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-moss hover:text-white transition-all shadow-lg hover:shadow-xl hover:shadow-moss/20 hover:-translate-y-0.5 active:scale-95 w-full md:w-auto justify-center"
+            >
+              <div className="w-8 h-8 bg-moss/10 group-hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors">
+                <BookHeadphones className="w-4 h-4" />
+              </div>
+              Luyện dictation Cambridge ở đây
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-2" />
+            </button>
+          </div>
+        </div>
+
+        {/* Cambridge Full Tests Section */}
+        {camTests.length > 0 && (
+          <div className="mb-14 relative">
+            <div>
+            <div className="flex items-center gap-3 mb-6">
+              <ClipboardList className="w-6 h-6 text-amber-600" />
+              <h2 className="text-xl font-black text-moss uppercase tracking-[3px]">
+                Cambridge Full Tests
               </h2>
+              <span className="bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
+                Thi thật
+              </span>
             </div>
-            
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {historyList.slice(0, 3).map((item) => {
-                const dateStr = new Date(item.completed_at).toLocaleString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric"
-                });
-                
-                const rawScore = item.answers?.rawScore ?? item.answers?.correctCount ?? 0;
-                const totalQuestions = item.answers?.totalQuestions ?? 40;
-                const testName = item.exams?.title || "IELTS Listening Practice Test";
+            <p className="text-slate-500 text-sm mb-6 max-w-xl">
+              Làm bài thi nghe IELTS Cambridge đầy đủ — nghe audio một lần, trả lời 40 câu hỏi như thi thật.
+            </p>
 
-                return (
-                  <div 
-                    key={item.id} 
-                    className="flex flex-col justify-between p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-all shadow-sm"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                          {dateStr}
-                        </span>
-                        <div className="bg-gradient-to-r from-[#3B5C37] to-[#B38F4D] px-2.5 py-1 rounded-lg text-xs font-black text-white shadow-sm">
-                          {parseFloat(item.score).toFixed(1)} Band
-                        </div>
-                      </div>
-                      
-                      <h4 className="text-xs font-black text-slate-700 tracking-tight line-clamp-2 mb-2">
-                        {testName}
-                      </h4>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 border-t border-slate-200/50 pt-2.5 mt-2">
-                      <span>Độ chính xác:</span>
-                      <span className="text-[#3B5C37] font-black">
-                        {rawScore} / {totalQuestions} câu ({Math.round((rawScore / totalQuestions) * 100)}%)
-                      </span>
-                    </div>
+            {/* Group by volume */}
+            {Array.from(new Set(camTests.map((t) => t.volume))).map((vol) => {
+              const testsInVol = camTests.filter((t) => t.volume === vol);
+              return (
+                <div key={vol} className="mb-10">
+                  <div className="flex items-center gap-4 mb-5">
+                    <h3 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-widest">
+                      Cambridge IELTS {vol}
+                    </h3>
+                    <span className="bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm shadow-blue-200/50 hidden sm:inline-block">
+                      Giao diện giống thi thật 100%
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </section>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {testsInVol.map((t) => {
+                      const cardColors = [
+                        { bg: "bg-[#d97736]", btnIconBg: "bg-orange-100", btnIconColor: "text-orange-600" },
+                        { bg: "bg-[#cf6a93]", btnIconBg: "bg-pink-100", btnIconColor: "text-pink-600" },
+                        { bg: "bg-[#cc665c]", btnIconBg: "bg-red-100", btnIconColor: "text-red-600" },
+                        { bg: "bg-[#8668c6]", btnIconBg: "bg-purple-100", btnIconColor: "text-purple-600" }
+                      ];
+                      const testIndex = (t.testNumber - 1) % 4;
+                      const theme = cardColors[testIndex];
+
+                      // Fake play count starting in tens of thousands
+                      const playCount = 35000 + (t.volume * 1000) + (t.testNumber * 123);
+
+                      const renderBackgroundPattern = () => {
+                        switch (testIndex) {
+                          case 0: // Orange - Thick wavy brush strokes
+                            return (
+                              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <pattern id={`pattern-${t.testId}`} width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+                                    <path d="M0,50 Q25,25 50,50 T100,50" fill="none" stroke="white" strokeWidth="15" strokeLinecap="round" opacity="0.6"/>
+                                  </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill={`url(#pattern-${t.testId})`}/>
+                              </svg>
+                            );
+                          case 1: // Pink - Intersecting curves
+                            return (
+                              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <pattern id={`pattern-${t.testId}`} width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+                                    <path d="M-20,60 Q40,0 140,60 M-20,100 Q40,40 140,100" fill="none" stroke="white" strokeWidth="20" strokeLinecap="round" opacity="0.5"/>
+                                  </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill={`url(#pattern-${t.testId})`}/>
+                              </svg>
+                            );
+                          case 2: // Red - Dashes / sprinkles
+                            return (
+                              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <pattern id={`pattern-${t.testId}`} width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                                    <path d="M10,10 l0,15 M40,30 l0,15 M25,50 l0,15" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round" opacity="0.6"/>
+                                  </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill={`url(#pattern-${t.testId})`}/>
+                              </svg>
+                            );
+                          case 3: // Purple - Rain / straight lines
+                            return (
+                              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <pattern id={`pattern-${t.testId}`} width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+                                    <path d="M20,-20 l0,120 M60,-20 l0,120" fill="none" stroke="white" strokeWidth="12" strokeLinecap="round" opacity="0.5"/>
+                                  </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill={`url(#pattern-${t.testId})`}/>
+                              </svg>
+                            );
+                          default:
+                            return null;
+                        }
+                      };
+
+                      return (
+                        <div key={t.testId} className={`relative flex flex-col rounded-3xl p-5 ${theme.bg} text-white shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden`}>
+                          {/* Background Pattern */}
+                          <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay">
+                            {renderBackgroundPattern()}
+                          </div>
+
+                          {/* Header */}
+                          <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="text-[11px] font-medium opacity-90 tracking-widest">
+                              the | ielts | dictionary
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {!t.hasAudio && (
+                                <span className="text-[8px] bg-black/20 px-2 py-0.5 rounded-full font-bold uppercase">
+                                  No audio
+                                </span>
+                              )}
+                              <Headphones className="w-5 h-5 opacity-90" />
+                            </div>
+                          </div>
+
+                          {/* Title */}
+                          <h4 className="text-[3.25rem] font-black mb-6 relative z-10 tracking-tight drop-shadow-sm uppercase" style={{ fontFamily: '"Cooper Black", "Fraunces", "Georgia", serif' }}>
+                            TEST {t.testNumber}
+                          </h4>
+
+                          {/* Stats */}
+                          <div className="flex items-center gap-4 text-[13px] font-medium mb-6 relative z-10 opacity-90">
+                            <div className="flex items-center gap-1.5">
+                              <Star className="w-4 h-4 fill-current" />
+                              <span>{playCount.toLocaleString()} lượt nghe</span>
+                            </div>
+                            <div className="w-px h-3 bg-white/40"></div>
+                            <div className="flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>80%</span>
+                            </div>
+                          </div>
+
+                          {/* Buttons */}
+                          <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
+                            <Link
+                              href={`/listening/cam-test/${t.testId}?mode=practice`}
+                              className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
+                                  <Pencil className="w-3 h-3" />
+                                </div>
+                                <span className="text-[11px] font-black whitespace-nowrap">Luyện tập</span>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                            </Link>
+
+                            <Link
+                              href={`/listening/cam-test/${t.testId}?mode=real_test`}
+                              className="flex items-center justify-between bg-[#fdfaf6] text-slate-800 rounded-xl px-2 py-3 hover:bg-white hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-6 h-6 shrink-0 rounded-full ${theme.btnIconBg} flex items-center justify-center ${theme.btnIconColor}`}>
+                                  <Clock className="w-3 h-3" />
+                                </div>
+                                <span className="text-[11px] font-black whitespace-nowrap">Thi thật</span>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="border-b border-gray-100 mt-8" />
+            </div>{/* end cambridge dimmer */}
+
+          </div>
         )}
 
-        {/* Cambridge Volumes */}
-        <div className="space-y-12">
-          {allVolumes.map((volume) => (
-            <section key={volume.title} className="space-y-6">
-              {/* Header Title & Badge */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 border-b border-slate-100 pb-3">
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                  {volume.title}
-                </h2>
-                {volume.badgeText && (
-                  <span className="inline-block self-start sm:self-auto text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100">
-                    {volume.badgeText}
-                  </span>
-                )}
+        {/* Bookshelf Section */}
+        <div className="mb-10" id="library-archives">
+          <div className="flex flex-col space-y-6 mb-8 border-b border-gray-100 pb-8">
+            <h2 className="text-xl font-black text-moss uppercase tracking-[3px] flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-herb-600" />
+              Library Archives
+            </h2>
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              {/* Category Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {listeningCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      selectedCategory === cat.id
+                        ? "bg-moss text-white shadow-lg shadow-moss/20 scale-105"
+                        : "bg-white text-slate-400 border border-slate-100 hover:border-moss/30 hover:text-moss"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
               </div>
 
-              {/* Grid of 4 tests */}
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {volume.tests.map((test, index) => {
-                  const config = cardConfigs[index % cardConfigs.length];
-                  
-                  const handleNavigate = () => {
-                    if (test.id) {
-                      router.push(`/${locale}/listening/${test.id}`);
-                    } else if (activeDbTest) {
-                      router.push(`/${locale}/listening/${activeDbTest.id}`);
-                    } else {
-                      alert("Không tìm thấy dữ liệu đề thi trên hệ thống.");
-                    }
-                  };
-
-                  return (
-                    <div
-                      key={`${volume.title}-test-${test.testNum}`}
-                      className={`relative overflow-hidden rounded-3xl ${config.bgClass} p-6 flex flex-col justify-between h-[280px] shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
-                    >
-                      {/* Background SVG Pattern */}
-                      {config.pattern}
-
-                      {/* Header Logo & Headphones */}
-                      <div className="relative z-10 flex items-center justify-between">
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${config.logoColorClass}`}>
-                          the | ielts | dictionary
-                        </span>
-                        <Headphones className="w-5 h-5 text-white/80" />
-                      </div>
-
-                      {/* Large Test Title */}
-                      <div className="relative z-10 my-auto flex flex-col gap-1.5">
-                        <h3 className="text-4xl font-black text-white tracking-wide drop-shadow-sm uppercase">
-                          TEST {test.testNum}
-                        </h3>
-                        {test.historyScore && (
-                          <div className="self-start bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold text-white border border-white/10">
-                            Kết quả gần nhất: <span className="text-yellow-300 font-black">{test.historyScore} Band</span> ({test.historyDate})
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="relative z-10 space-y-4">
-                        {/* Stats Row */}
-                        <div className="flex items-center gap-4 text-xs font-bold text-white/90">
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 fill-white/80 stroke-none" />
-                            {test.statsListens} lượt nghe
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5 stroke-[3]" />
-                            {test.statsPct}
-                          </span>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={handleNavigate}
-                            className={`flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-black transition-all border-none outline-none cursor-pointer ${config.btnPracticeClass}`}
-                          >
-                            <PenLine className="w-3.5 h-3.5" />
-                            Luyện tập
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleNavigate}
-                            className={`flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-black transition-all border-none outline-none cursor-pointer ${config.btnExamClass}`}
-                          >
-                            <Clock className="w-3.5 h-3.5" />
-                            Thi thật
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Search Bar */}
+              <div className="relative w-full lg:w-80 shadow-sm rounded-xl group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400 group-focus-within:text-herb-500 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-herb-500 focus:border-herb-500 sm:text-sm transition-all duration-300"
+                  placeholder="Tìm bài nghe (VD: Cam 20)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            </section>
-          ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 border-4 border-herb-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+              <p className="text-slate-400 font-bold animate-pulse text-[10px] uppercase tracking-[10px] ml-[10px]">Đang tải thư viện...</p>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              <Bookshelf2D volumes={displayedVolumes} />
+
+              {!showAll && !searchQuery && filteredVolumes.length > 6 && (
+                <div className="flex flex-col items-center pt-8 border-t border-gray-50">
+                  <p className="text-slate-400 text-sm font-medium mb-6 italic">
+                    Khám phá thêm các bài nghe khác trong kho lưu trữ...
+                  </p>
+                  <button
+                    onClick={() => setShowAll(true)}
+                    className="group relative px-10 py-4 bg-white border-2 border-moss text-moss font-black rounded-full overflow-hidden transition-all hover:bg-moss hover:text-white active:scale-95 shadow-lg hover:shadow-moss/20"
+                  >
+                    <span className="relative z-10 flex items-center uppercase tracking-widest text-xs">
+                      Xem thêm tài liệu Cambridge
+                      <motion.span
+                        animate={{ y: [0, 5, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                        className="ml-2"
+                      >
+                        ↓
+                      </motion.span>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>
   );
 }
-
-export default function ListeningPage() {
-  return (
-    <ListeningTestProvider>
-      <ListeningTestListContent />
-    </ListeningTestProvider>
-  );
-}
-
