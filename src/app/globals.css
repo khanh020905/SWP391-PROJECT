@@ -4,6 +4,13 @@
 :root {
   --background: #f4f5f9;
   --foreground: #0f1738;
+
+  /* Brand palette (ported from The IELTS Dictionary listening UI) */
+  --color-herb: #6A8042;
+  --color-radiate: #ED7A13;
+  --color-gleam: #FFE787;
+  --color-pearl: #FFFADD;
+  --color-moss: #1E3006;
 }
 
 @theme inline {
@@ -11,8 +18,33 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-herb: #6b7c3a;
-  --color-herb-700: #5b6a31;
+  --color-radiate: var(--color-radiate);
+  --color-gleam: var(--color-gleam);
+  --color-pearl: var(--color-pearl);
+  --color-moss: var(--color-moss);
+
+  /* Full HERB scale */
+  --color-herb: var(--color-herb);
+  --color-herb-50: var(--color-pearl);
+  --color-herb-100: color-mix(in srgb, var(--color-pearl) 75%, var(--color-herb));
+  --color-herb-200: color-mix(in srgb, var(--color-pearl) 50%, var(--color-herb));
+  --color-herb-300: color-mix(in srgb, var(--color-gleam) 25%, var(--color-herb));
+  --color-herb-400: color-mix(in srgb, white 20%, var(--color-herb));
+  --color-herb-500: var(--color-herb);
+  --color-herb-600: color-mix(in srgb, black 15%, var(--color-herb));
+  --color-herb-700: color-mix(in srgb, black 30%, var(--color-herb));
+  --color-herb-800: color-mix(in srgb, black 45%, var(--color-herb));
+  --color-herb-900: var(--color-moss);
+  --color-herb-950: color-mix(in srgb, black 25%, var(--color-moss));
+}
+
+.animate-spin-slow {
+  animation: tid-spin 4s linear infinite;
+}
+
+@keyframes tid-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 body {
