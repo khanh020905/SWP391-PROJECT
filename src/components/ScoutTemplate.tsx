@@ -3,10 +3,45 @@
 "use client";
 import React from 'react';
 import { supabase } from '@/lib/supabase';
-
 import { Sparkles, Calendar, BookOpen, Clock, Target, CheckCircle2, CheckCircle, Lock, RotateCcw, ChevronRight, AlertCircle, RefreshCw, Trophy, ArrowRight, Play, Check, Undo2, Flame, Award, ChevronLeft } from "lucide-react";
 
 export default function ScoutTemplate(props: any) {
+  const [isExporting, setIsExporting] = React.useState(false);
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
+      
+      const response = await fetch('/api/student/export-pdf', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        alert("Lỗi xuất PDF: " + response.statusText);
+        return;
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Bao_cao_IELTS_${userName || 'hoc_vien'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Lỗi xuất file PDF:", error);
+      alert("Không thể xuất file PDF. Vui lòng thử lại sau.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const { 
     navLabelDisp, currentSetLabel, setMenuRot, toggleSetMenu, setMenuOpen, setOptions,
     goStudy, navItemJustify, navFlashInk, navFlashWeight, navFlashBg, navFlashShadow,
@@ -387,6 +422,47 @@ export default function ScoutTemplate(props: any) {
               <div style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '.12em', color: `${titleColor}` }}>TỔNG QUAN · TIẾN ĐỘ LUYỆN ĐỀ </div>
               <h2 data-sk="ink" style={{ fontFamily: '\'Nunito\'', fontWeight: '900', fontSize: '26px', margin: '5px 0 0', color: `${inkColor}` }}>Chào Long, hôm nay luyện đề nhé!</h2>
             </div>
+            <button 
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#5D6B2D',
+                border: 'none',
+                borderRadius: '14px',
+                padding: '12px 18px',
+                fontFamily: '\'Nunito\', sans-serif',
+                fontWeight: '900',
+                fontSize: '14px',
+                color: '#FFF8EB',
+                cursor: isExporting ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 0 #3E4A1B',
+                opacity: isExporting ? 0.7 : 1,
+                transition: 'all 0.2s ease',
+              }}
+              data-hover="background:#697A35;"
+            >
+              {isExporting ? (
+                <>
+                  <svg style={{ animation: 'tidSpin .8s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)"></circle>
+                    <path d="M4 12a8 8 0 0 1 8-8v8H4z" fill="currentColor"></path>
+                  </svg>
+                  Đang tải...
+                </>
+              ) : (
+                <>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Xuất báo cáo PDF
+                </>
+              )}
+            </button>
           </div>
 
           <div style={{ position: 'relative' }}>
