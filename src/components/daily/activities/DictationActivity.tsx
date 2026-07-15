@@ -64,7 +64,7 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
     }));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const res = await fetch("/api/student/daily/check-dictation", {
@@ -105,9 +105,13 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
       } else {
         throw new Error("Batch API failed");
       }
-    } catch (err) {
+    } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error("Batch check error:", err);
+      if (err.name === 'AbortError') {
+        console.warn("AI dictation grading timed out (15s). Falling back to local grading.");
+      } else {
+        console.error("Batch check error:", err);
+      }
       // Fallback
       const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
       challenges.forEach((c: any) => {

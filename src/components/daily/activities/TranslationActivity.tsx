@@ -72,7 +72,7 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
     }));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const res = await fetch("/api/student/daily/check-translation", {
@@ -113,9 +113,13 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
       } else {
         throw new Error("Batch translation API failed");
       }
-    } catch (err) {
+    } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error("Batch translation check error:", err);
+      if (err.name === 'AbortError') {
+        console.warn("AI translation grading timed out (15s). Falling back to local grading.");
+      } else {
+        console.error("Batch translation check error:", err);
+      }
       // Fallback
       const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
       sentences.forEach((s: any) => {
