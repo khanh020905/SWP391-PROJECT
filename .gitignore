@@ -40,3 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# scripts
+/scripts/migrate.js
+/scripts/pre_check.js
+
+
+

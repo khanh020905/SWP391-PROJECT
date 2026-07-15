@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import FlashcardApp from "@/components/FlashcardApp";
+import { VipGate } from "@/components/VipGate";
 
 interface StudentStreakDetail {
   userId: string;
@@ -44,13 +45,15 @@ export default function RoadmapPage() {
 
   return (
     <div style={{ height: '100vh', width: '100vw', overflow: 'hidden', background: '#FBF8EF', fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif" }}>
-      <FlashcardApp 
-        userName={user?.user_metadata?.name || user?.email?.split('@')[0] || 'Học viên'} 
-        streak={streak} 
-        avatarUrl={user?.user_metadata?.avatar_url || ''} 
-        role={user?.user_metadata?.role || 'STUDENT'} 
-        initialView="roadmap"
-      />
+      <VipGate>
+        <FlashcardApp 
+          userName={user?.user_metadata?.name || user?.email?.split('@')[0] || 'Học viên'} 
+          streak={streak} 
+          avatarUrl={user?.user_metadata?.avatar_url || ''} 
+          role={user?.user_metadata?.role || 'STUDENT'} 
+          initialView="roadmap"
+        />
+      </VipGate>
     </div>
   );
 }
