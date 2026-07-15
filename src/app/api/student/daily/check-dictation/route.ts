@@ -67,6 +67,19 @@ Respond ONLY with a JSON array of objects in this exact format:
       model: "gemini-flash-latest",
       generationConfig: {
         responseMimeType: "application/json",
+        responseSchema: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              id: { type: "STRING" },
+              correct: { type: "BOOLEAN" },
+              score: { type: "NUMBER" },
+              feedback: { type: "STRING" }
+            },
+            required: ["id", "correct", "score", "feedback"]
+          }
+        }
       },
     });
 
