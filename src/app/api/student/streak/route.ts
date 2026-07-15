@@ -34,6 +34,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Sync streak with study plan completion state
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: plan } = await supabaseAdmin
+        .from('study_plans')
+        .select('completed_count, tasks')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (plan && Array.isArray(plan.tasks) && plan.tasks.length > 0) {
+        const completedTasks = plan.tasks.filter((t: any) => t.completed);
+        if (completedTasks.length > 0) {
+          const totalMinutesCompleted = completedTasks.reduce((sum: number, t: any) => sum + (t.estimatedMinutes || 10), 0);
+          
+          // Log study minutes to sync studentProgressDb
+          const { logStudyMinutes } = require("@/lib/studentProgressDb");
+          await logStudyMinutes(user.id, totalMinutesCompleted, "Sync completed tasks");
+        }
+      }
+    } catch (syncErr) {
+      console.warn("Could not sync streak with study plan:", syncErr);
+    }
+
     const streak = await getStudentStreak(user.id);
     return NextResponse.json({ success: true, streak });
   } catch (error: any) {
