@@ -26,8 +26,13 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
     async function loadSentences() {
       try {
         setLoading(true);
+        if (!activity.data) {
+          setLoading(false);
+          return;
+        }
         if (Array.isArray(activity.data)) {
           setSentences(activity.data);
+          setLoading(false);
           return;
         }
 
@@ -47,9 +52,7 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
         setLoading(false);
       }
     }
-    if (activity.data) {
-      loadSentences();
-    }
+    loadSentences();
   }, [activity.data]);
 
   const handleInputChange = (sId: string, val: string) => {

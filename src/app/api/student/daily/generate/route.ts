@@ -114,7 +114,16 @@ export async function POST(request: NextRequest) {
       topicQuery = topicQuery.not('id', 'in', `(${completedTopicIds.map(id => `'${id}'`).join(',')})`);
     }
     const { data: topicList } = await topicQuery;
-    const selectedTopic = topicList?.[0] || null;
+    let selectedTopic = topicList?.[0] || null;
+
+    if (!selectedTopic) {
+      // Fallback: select any topic to avoid returning null and causing infinite spinner
+      const { data: fallbackList } = await supabaseAdmin
+        .from('topics')
+        .select('id, name, description')
+        .limit(1);
+      selectedTopic = fallbackList?.[0] || null;
+    }
 
     // 7. Mini test: 1 reading passage and its questions from reading_passages table
     const { data: passagesList } = await supabaseAdmin
