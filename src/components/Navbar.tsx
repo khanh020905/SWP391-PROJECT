@@ -20,6 +20,11 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const t = useTranslations("nav");
+  const isPremium = !!user && (
+    user.user_metadata?.role === "ADMIN" ||
+    user.user_metadata?.role === "INSTRUCTOR" ||
+    ["pkg_1", "pkg_2", "pkg_3", "premium", "vip", "master"].includes(user.user_metadata?.packageId)
+  );
 
   // Fetch notifications helper
   const fetchNotifications = async () => {
@@ -303,31 +308,36 @@ export default function Navbar() {
               </div>
 
               {/* Premium User Avatar Bubble */}
-              <button
-                onClick={() => {
-                  setShowDropdown(!showDropdown);
-                  setShowNotifications(false);
-                }}
-                className={`w-10 h-10 rounded-full text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all outline-none border select-none relative group ${
-                  isTedPage 
-                    ? "bg-gradient-to-tr from-[#E62B1E] to-[#B38F4D] border-white/20 hover:shadow-[0_6px_20px_rgba(230,43,30,0.3)]" 
-                    : "bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] border-white/40 hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.25)]"
-                }`}
-                aria-label="User menu"
-              >
-                <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />
-                {user.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt="Avatar"
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span>
-                    {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </button>
+              <div className={isPremium ? "premium-avatar-wrapper" : "relative"}>
+                {isPremium && <div className="premium-avatar-ring" />}
+                <button
+                  onClick={() => {
+                    setShowDropdown(!showDropdown);
+                    setShowNotifications(false);
+                  }}
+                  className={`w-10 h-10 rounded-full text-white font-extrabold text-sm flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all outline-none select-none relative group ${
+                    isPremium
+                      ? "premium-avatar-inner"
+                      : isTedPage 
+                        ? "bg-gradient-to-tr from-[#E62B1E] to-[#B38F4D] border border-white/20 hover:shadow-[0_6px_20px_rgba(230,43,30,0.3)]" 
+                        : "bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] border border-white/40 hover:shadow-[0_6px_20px_rgba(59, 92, 55,0.25)]"
+                  }`}
+                  aria-label="User menu"
+                >
+                  {!isPremium && <div className="absolute inset-0 rounded-full border border-white/20 scale-105 group-hover:scale-110 transition-all duration-300" />}
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span>
+                      {(user.user_metadata?.name || user.email || "U").charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </button>
+              </div>
 
               {/* User Dropdown Menu */}
               {showDropdown && (
@@ -336,6 +346,15 @@ export default function Navbar() {
                     ? "bg-[#120a0a]/95 border-[#261313] text-[#f5f5f5]" 
                     : "bg-white/95 border-slate-100 text-[#0d153a]"
                 }`}>
+                  <span className={`absolute top-4 right-4 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full select-none ${
+                    isPremium 
+                      ? "bg-gradient-to-r from-amber-400 to-amber-600 text-white shadow-[0_2px_8px_rgba(246,196,83,0.3)]" 
+                      : isTedPage
+                        ? "bg-[#261313] text-[#b5a9a9] border border-red-500/10"
+                        : "bg-slate-100 text-slate-500 border border-slate-200"
+                  }`}>
+                    {isPremium ? "Premium" : "Base"}
+                  </span>
                   <div className={`border-b pb-3 mb-3 ${isTedPage ? "border-[#261313]" : "border-slate-100"}`}>
                     <p className={`text-[10px] font-black uppercase tracking-wider leading-none mb-1 ${
                       isTedPage ? "text-[#8a7f7f]" : "text-slate-400"

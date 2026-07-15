@@ -137,3 +137,27 @@ body {
   transition-duration: 0.35s;
   transition-timing-function: ease;
 }
+
+/* --- Premium Avatar Frame Styles --- */
+.premium-avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.premium-avatar-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #FFE787 0%, #D4AF37 50%, #AA7C11 100%);
+  z-index: 0;
+  box-shadow: 0 1px 4px rgba(212, 175, 55, 0.3);
+}
+
+.premium-avatar-inner {
+  position: relative;
+  z-index: 10;
+  border: 2px solid #ffffff !important;
+}
+

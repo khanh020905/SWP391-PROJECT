@@ -676,26 +676,26 @@ export default function AdminUsersPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase tracking-wider border-b border-slate-100">
-                  <th className="px-6 py-4">{t.colName}</th>
-                  <th className="px-6 py-4">{t.colEmail}</th>
-                  <th className="px-6 py-4 text-center">{t.colRole}</th>
-                  <th className="px-6 py-4 text-center">{isEn ? "VIP/Plan" : "Gói VIP"}</th>
-                  <th className="px-6 py-4 text-center">{t.colStatus}</th>
-                  <th className="px-6 py-4">{t.colJoinDate}</th>
-                  <th className="px-6 py-4 text-right">{t.colActions}</th>
+                  <th className="px-4 py-3">{t.colName}</th>
+                  <th className="px-4 py-3">{t.colEmail}</th>
+                  <th className="px-4 py-3 text-center">{t.colRole}</th>
+                  <th className="px-4 py-3 text-center">{isEn ? "VIP/Plan" : "Gói VIP"}</th>
+                  <th className="px-4 py-3 text-center">{t.colStatus}</th>
+                  <th className="px-4 py-3">{t.colJoinDate}</th>
+                  <th className="px-4 py-3 text-right">{t.colActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-slate-50/50 transition-colors text-slate-700 text-sm font-medium"
+                    className="hover:bg-slate-50/50 transition-colors text-slate-700 text-[13px] font-medium"
                   >
                     {/* User profile with initials */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
                         <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm flex-shrink-0 ${
                             user.role === "ADMIN"
                               ? "bg-rose-500"
                               : user.role === "INSTRUCTOR"
@@ -715,12 +715,12 @@ export default function AdminUsersPage() {
                     </td>
 
                     {/* Email address */}
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-500">{user.email}</td>
+                    <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-500">{user.email}</td>
 
                     {/* Role badge */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold border ${
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold border ${
                           user.role === "ADMIN"
                             ? "bg-rose-50 border-rose-200 text-rose-700"
                             : user.role === "INSTRUCTOR"
@@ -738,7 +738,7 @@ export default function AdminUsersPage() {
                     </td>
 
                     {/* VIP/Plan status */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       {(user as any).subscription ? (
                         <div className="flex flex-col items-center">
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 border border-amber-200 text-amber-700 uppercase">
@@ -756,14 +756,14 @@ export default function AdminUsersPage() {
                     </td>
 
                     {/* Lock Status badge */}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       {user.isLocked ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 border border-rose-100 text-rose-600">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 border border-rose-100 text-rose-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                           <span>{t.statusLocked}</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-100 text-emerald-600">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-100 text-emerald-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           <span>{t.statusActive}</span>
                         </span>
@@ -771,7 +771,7 @@ export default function AdminUsersPage() {
                     </td>
 
                     {/* Created Date */}
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-400 text-xs font-semibold">
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-400 text-xs font-semibold">
                       {new Date(user.createdAt).toLocaleDateString("vi-VN", {
                         year: "numeric",
                         month: "2-digit",
@@ -780,7 +780,7 @@ export default function AdminUsersPage() {
                     </td>
 
                     {/* Actions Panel */}
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
+                    <td className="px-4 py-3 whitespace-nowrap text-right text-xs">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Upgrade Student Action Button */}
                         {user.role === "GUEST" && (
@@ -804,7 +804,7 @@ export default function AdminUsersPage() {
                           }}
                           className={`p-1.5 rounded-lg border transition-all ${
                             user.isLocked
-                              ? "bg-emerald-50 hover:bg-[#2f4a2b]merald-100 border-emerald-200 text-emerald-600"
+                              ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-600"
                               : "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600"
                           }`}
                           title={user.isLocked ? t.btnUnlockTooltip : t.btnLockTooltip}
