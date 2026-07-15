@@ -27,7 +27,29 @@ export default function MiniTestActivity({ activity, onComplete }: MiniTestActiv
 
   const getOptions = (q: any) => {
     if (Array.isArray(q.options)) {
-      return q.options;
+      return q.options.map((opt: any, idx: number) => {
+        if (typeof opt === 'object' && opt !== null) {
+          return {
+            label: opt.label || String.fromCharCode(65 + idx),
+            text: opt.text || ""
+          };
+        }
+        
+        const optStr = String(opt).trim();
+        // Match starting with single letter prefix like 'A. Option text'
+        const match = optStr.match(/^([A-Za-z])[\.\:\s]+(.*)$/);
+        if (match) {
+          return {
+            label: match[1].toUpperCase(),
+            text: match[2].trim()
+          };
+        }
+        
+        return {
+          label: String.fromCharCode(65 + idx), // Fallback: A, B, C, D...
+          text: optStr
+        };
+      });
     }
     // Handle True/False/Not Given default options
     if (q.question_type === 'true_false' || q.question_type === 'tfng' || q.question_type === 'true_false_not_given') {
