@@ -5,18 +5,21 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 function cleanAndParseJSON(text: string): any {
   let cleaned = text.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/, "").trim();
-  }
-  const firstBrace = cleaned.indexOf("{");
-  const lastBrace = cleaned.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+  
+  // Find first '[' and last ']'
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket = cleaned.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+  } else {
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
   }
   
-  // Try wrapping in array if it parsed as object but we want array
-  const parsed = JSON.parse(cleaned);
-  return parsed;
+  return JSON.parse(cleaned);
 }
 
 export async function POST(request: NextRequest) {
@@ -36,18 +39,19 @@ Item ${idx + 1}:
     `).join("\n");
 
     const prompt = `
-You are an IELTS Listening Dictation checker.
-Compare the student's typed text with the expected transcription for each of the following items.
-Determine if they are basically the same sentence. Allow minor concessions:
-- Ignore casing, extra spaces, and basic punctuation differences (periods, commas, hyphens, double quotes, question marks, exclamation marks).
-- Allow minor spelling slips (e.g. 'Mam' instead of 'ma'am', 'experients' instead of 'experience') if the sentence structure and pronunciation are largely intact.
-- Calculate an accuracy score from 0.0 to 1.0. If the score is >= 0.85, set 'correct' to true, else false.
-- Provide a brief Vietnamese feedback pointing out any spelling corrections needed.
+You are an IELTS Listening tutor checking dictation transcriptions.
+Compare the student's typed text with the expected transcription.
+BE EXTREMELY LENIENT ON MINOR SPELLING TYPOS, ARTICLES, AND SYMBOLS:
+- Completely ignore casing, spacing, and all punctuation marks (commas, periods, double/single quotes, exclamation/question marks).
+- Accept homophones or minor phonetic spelling mistakes (e.g., 'Mam' for 'ma'am', 'experients' for 'experience', 'Australian' for 'Australia's') as CORRECT.
+- If the student's text sounds exactly or very similar to the expected audio transcription, set 'correct' to true.
+- Accuracy score should range from 0.0 to 1.0. If the score is >= 0.70, mark 'correct' as true.
+- Provide a brief Vietnamese feedback pointing out spelling corrections if any, while keeping the overall result marked as correct.
 
 Items to check:
 ${itemsPrompt}
 
-Respond ONLY with a JSON array of objects in this exact format (no markdown code blocks, just raw JSON array):
+Respond ONLY with a JSON array of objects in this exact format:
 [
   {
     "id": "item_id_here",
