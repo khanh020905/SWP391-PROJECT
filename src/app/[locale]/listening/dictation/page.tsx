@@ -11,6 +11,7 @@ import { Link } from "@/i18n/navigation";
 import Navbar from "@/components/Navbar";
 import { Bookshelf2D } from "@/components/listening/Bookshelf2D";
 import { parseListeningGroups, CamVolume, DictationIndexEntry } from "@/lib/listening/dictationParser";
+import { supabase } from "@/lib/supabase";
 
 export default function ListeningDictationDirectory() {
   const [volumes, setVolumes] = useState<CamVolume[]>([]);
@@ -32,11 +33,20 @@ export default function ListeningDictationDirectory() {
     async function loadIndex() {
       setLoading(true);
       try {
-        const res = await fetch("/data/dictation/index.json");
-        const entries: DictationIndexEntry[] = await res.json();
+        const { data, error } = await supabase
+          .from('listening_tasks')
+          .select('lesson_id, lesson_name, challenges');
+        if (error) throw error;
+
+        const entries: DictationIndexEntry[] = (data || []).map((row: any) => ({
+          lesson_id: String(row.lesson_id),
+          lesson_name: row.lesson_name,
+          totalSentences: Array.isArray(row.challenges) ? row.challenges.length : 0
+        }));
+
         setVolumes(parseListeningGroups(entries));
       } catch (err) {
-        console.error("Failed to load dictation index:", err);
+        console.error("Failed to load dictation index from Supabase:", err);
       }
       setLoading(false);
     }

@@ -14,6 +14,7 @@ import { Bookshelf2D } from "@/components/listening/Bookshelf2D";
 import { parseListeningGroups, CamVolume, DictationIndexEntry } from "@/lib/listening/dictationParser";
 import { useSubscription } from "@/hooks/useSubscription";
 import { VipUpgradeModal } from "@/components/VipGate";
+import { supabase } from "@/lib/supabase";
 
 interface CamTestEntry {
   testId: string;
@@ -46,8 +47,40 @@ export default function ListeningDirectory() {
     async function loadAll() {
       setLoading(true);
       const [dictResult, camResult] = await Promise.all([
-        fetch("/data/dictation/index.json").then((r) => r.json()).catch(() => null),
-        fetch("/data/cam-tests/index.json").then((r) => r.json()).catch(() => null),
+        supabase
+          .from('listening_tasks')
+          .select('lesson_id, lesson_name, challenges')
+          .then(({ data, error }) => {
+            if (error) throw error;
+            return (data || []).map((row: any) => ({
+              lesson_id: String(row.lesson_id),
+              lesson_name: row.lesson_name,
+              totalSentences: Array.isArray(row.challenges) ? row.challenges.length : 0
+            }));
+          })
+          .catch((err) => {
+            console.error("Error loading dictation index from Supabase:", err);
+            return null;
+          }),
+        supabase
+          .from('exams')
+          .select('id, title, cambridge_no, test_no, audio_url')
+          .eq('category', 'listening')
+          .eq('status', 'published')
+          .then(({ data, error }) => {
+            if (error) throw error;
+            return (data || []).map((row: any) => ({
+              test_id: row.id,
+              test_name: row.title,
+              volume: row.cambridge_no || 0,
+              test_number: row.test_no || 0,
+              has_audio: !!row.audio_url
+            }));
+          })
+          .catch((err) => {
+            console.error("Error loading cam tests index from Supabase:", err);
+            return null;
+          }),
       ]);
 
       if (dictResult) {
