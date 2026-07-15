@@ -53,12 +53,13 @@ export async function POST(request: NextRequest) {
       : currentBand < 6.5 ? '6.0'
       : '6.5';
 
-    // 3. Fetch already learned items from daily_progress
+    // 3. Fetch already learned items from daily_progress (only exclude successfully remembered ones)
     const { data: learnedItems } = await supabaseAdmin
       .from('daily_progress')
       .select('item_id')
       .eq('user_id', userId)
-      .eq('item_type', 'vocabulary');
+      .eq('item_type', 'vocabulary')
+      .eq('result->>correct', 'true');
 
     const learnedIds = learnedItems?.map(i => i.item_id) || [];
 
