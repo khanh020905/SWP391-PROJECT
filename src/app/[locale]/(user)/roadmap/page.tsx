@@ -73,11 +73,16 @@ export default function RoadmapPage() {
         setPlan(dbPlan);
       } else {
         // If not found or contains old-style textual tasks, trigger generate
+        const generateHeaders: Record<string, string> = {};
+        if (token) {
+          generateHeaders["Authorization"] = `Bearer ${token}`;
+        } else if (process.env.NODE_ENV === 'development' && user) {
+          generateHeaders["x-bypass-auth-user-id"] = user.id;
+        }
+
         const res = await fetch("/api/student/daily/generate", {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
+          headers: generateHeaders
         });
         if (res.ok) {
           const result = await res.json();
@@ -97,18 +102,26 @@ export default function RoadmapPage() {
   };
 
   const handleActivityComplete = async (result: { itemIds: string[]; results: any[]; xpEarned: number }) => {
-    if (!activeActivity) return;
+    if (!activeActivity || !user) return;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token || "";
-      if (!token) return;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else if (process.env.NODE_ENV === 'development') {
+        headers['x-bypass-auth-user-id'] = user.id;
+      } else {
+        return;
+      }
 
       const res = await fetch('/api/student/daily/complete', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify({
           activityId: activeActivity.id,
           itemIds: result.itemIds,
