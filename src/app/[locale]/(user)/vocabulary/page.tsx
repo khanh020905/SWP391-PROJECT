@@ -152,17 +152,21 @@ export default function VocabularyPage() {
   const handleSaveToNotebook = async (item: VocabularyItem) => {
     if (!user) return;
     try {
-      const { error } = await supabase.from("user_notebook").upsert(
-        {
-          user_id: user.id,
-          word: item.word.toLowerCase(),
-          definition: item.meaning,
-          example: item.example || "",
-          category: item.category || "",
-          source: "dictionary"
-        },
-        { onConflict: "user_id,word" }
-      );
+      // Delete first to avoid duplicates since there is no unique constraint on (user_id, word)
+      await supabase
+        .from("user_notebook")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("word", item.word.toLowerCase());
+
+      const { error } = await supabase.from("user_notebook").insert({
+        user_id: user.id,
+        word: item.word.toLowerCase(),
+        definition: item.meaning,
+        example: item.example || "",
+        category: item.category || "",
+        source: "dictionary"
+      });
 
       if (error) throw error;
 
