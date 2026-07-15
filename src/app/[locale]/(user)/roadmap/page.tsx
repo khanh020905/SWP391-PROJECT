@@ -36,11 +36,18 @@ export default function RoadmapPage() {
   const fetchStreak = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/student/streak", {
-        headers: {
-          "Authorization": `Bearer ${session?.access_token || ""}`
-        }
-      });
+      const token = session?.access_token || "";
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      } else if (process.env.NODE_ENV === 'development' && user) {
+        headers["x-bypass-auth-user-id"] = user.id;
+      } else {
+        return;
+      }
+
+      const res = await fetch("/api/student/streak", { headers });
       if (res.ok) {
         const result = await res.json();
         setStreak(result.streak);
