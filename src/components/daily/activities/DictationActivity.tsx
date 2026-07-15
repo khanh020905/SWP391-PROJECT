@@ -243,6 +243,9 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
       {/* Footer action buttons */}
       <div className="pt-2 border-t border-slate-200/80">
         {!checked ? (
+          <button
+            onClick={handleBatchCheck}
+            disabled={!allAnswered || checking}
             className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 ${
               !allAnswered || checking
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
