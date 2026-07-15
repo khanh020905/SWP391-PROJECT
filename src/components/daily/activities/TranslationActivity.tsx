@@ -154,7 +154,15 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
                     <div>
                       <strong className="text-slate-700 block mb-0.5">🔍 Cấu trúc ngữ pháp:</strong>
                       <ul className="list-disc pl-4 space-y-0.5">
-                        {currentSentence.explanation.grammar.map((g: string, i: number) => <li key={i}>{g}</li>)}
+                        {currentSentence.explanation.grammar.map((g: any, i: number) => (
+                          <li key={i}>
+                            {typeof g === 'string'
+                              ? g
+                              : g && typeof g === 'object'
+                              ? `${g.structure || ''} ${g.usage ? `— ${g.usage}` : ''}`
+                              : JSON.stringify(g)}
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   )}
@@ -162,7 +170,15 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
                     <div>
                       <strong className="text-slate-700 block mb-0.5">📚 Từ vựng chính:</strong>
                       <ul className="list-disc pl-4 space-y-0.5">
-                        {currentSentence.explanation.vocabulary.map((v: string, i: number) => <li key={i}>{v}</li>)}
+                        {currentSentence.explanation.vocabulary.map((v: any, i: number) => (
+                          <li key={i}>
+                            {typeof v === 'string'
+                              ? v
+                              : v && typeof v === 'object'
+                              ? `${v.word || v.term || ''} ${v.meaning || v.definition ? `: ${v.meaning || v.definition}` : ''}`
+                              : JSON.stringify(v)}
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   )}
