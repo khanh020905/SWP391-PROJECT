@@ -17,8 +17,11 @@ function cleanAndParseJSON(text: string): any {
 }
 
 export async function POST(request: NextRequest) {
+  let items: any[] = [];
   try {
-    const { items } = await request.json(); // Array of { id, input, expected, vi_prompt }
+    const body = await request.json();
+    items = body.items || [];
+    
     if (!items || !Array.isArray(items)) {
       return NextResponse.json({ error: "Missing or invalid items array" }, { status: 400 });
     }
@@ -72,7 +75,6 @@ Respond ONLY with a JSON array of objects in this exact format (no markdown code
     console.error("Error running Gemini translation batch check:", err);
     
     // Fallback comparison if Gemini fails
-    const { items } = await request.clone().json().catch(() => ({}));
     const fallbackResults = (items || []).map((item: any) => {
       const cleanExpected = (item.expected || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
       const cleanInput = (item.input || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
