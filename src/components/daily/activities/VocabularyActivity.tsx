@@ -79,16 +79,35 @@ export default function VocabularyActivity({ activity, onComplete }: VocabularyA
         <span>Đã nhớ: {rememberedIds.length}</span>
       </div>
 
-      {/* Card Wrapper with Flip Animation */}
-      <div className="perspective-1000 w-full max-w-sm h-64 mb-8">
+      {/* Card Wrapper with inline 3D Styles */}
+      <div style={{ perspective: '1000px' }} className="w-full max-w-sm h-64 mb-8">
         <div 
           onClick={() => setFlipped(!flipped)}
-          className={`relative w-full h-full duration-500 transform-style-3d cursor-pointer rounded-2xl border-2 border-slate-200/80 shadow-md ${
-            flipped ? 'rotate-y-180' : ''
-          }`}
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            transition: 'transform 0.6s',
+            transformStyle: 'preserve-3d',
+            transform: flipped ? 'rotateY(180deg)' : 'none'
+          }}
+          className="cursor-pointer rounded-2xl border-2 border-slate-200/80 shadow-md bg-white"
         >
           {/* Front Side */}
-          <div className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 bg-white rounded-2xl">
+          <div 
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backfaceVisibility: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              borderRadius: '16px',
+              backgroundColor: 'white'
+            }}
+          >
             <h3 className="text-3xl font-black text-slate-800 tracking-tight mb-2">
               {currentWord?.word}
             </h3>
@@ -110,7 +129,21 @@ export default function VocabularyActivity({ activity, onComplete }: VocabularyA
           </div>
 
           {/* Back Side */}
-          <div className="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200">
+          <div 
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              borderRadius: '16px',
+              backgroundColor: '#f8fafc' // slate-50
+            }}
+          >
             <span className="text-[10px] font-black text-[#5D6B2D] uppercase tracking-widest px-2.5 py-1 bg-[#E9EFE0] rounded mb-3">
               {currentWord?.category || "Từ vựng"}
             </span>
