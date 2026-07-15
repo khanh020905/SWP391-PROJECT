@@ -143,7 +143,31 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
           {currentSentence.explanation && (
             <div>
               <span className="text-[10px] text-[#B38F4D] font-black uppercase tracking-wider block mb-0.5">Giải thích chi tiết:</span>
-              <p className="text-xs font-semibold text-slate-500 leading-relaxed">{currentSentence.explanation}</p>
+              {typeof currentSentence.explanation === 'string' ? (
+                <p className="text-xs font-semibold text-slate-500 leading-relaxed">{currentSentence.explanation}</p>
+              ) : (
+                <div className="space-y-2 text-xs font-semibold text-slate-500 mt-1">
+                  {currentSentence.explanation.tips && (
+                    <p className="leading-relaxed"><strong className="text-slate-700">💡 Mẹo học:</strong> {currentSentence.explanation.tips}</p>
+                  )}
+                  {Array.isArray(currentSentence.explanation.grammar) && currentSentence.explanation.grammar.length > 0 && (
+                    <div>
+                      <strong className="text-slate-700 block mb-0.5">🔍 Cấu trúc ngữ pháp:</strong>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        {currentSentence.explanation.grammar.map((g: string, i: number) => <li key={i}>{g}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {Array.isArray(currentSentence.explanation.vocabulary) && currentSentence.explanation.vocabulary.length > 0 && (
+                    <div>
+                      <strong className="text-slate-700 block mb-0.5">📚 Từ vựng chính:</strong>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        {currentSentence.explanation.vocabulary.map((v: string, i: number) => <li key={i}>{v}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
