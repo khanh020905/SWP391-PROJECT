@@ -8,6 +8,8 @@ import Navbar from "@/components/Navbar";
 import { useSubscription } from "@/hooks/useSubscription";
 import { VipUpgradeModal } from "@/components/VipGate";
 
+import { supabase } from "@/lib/supabase";
+
 export default function CategoryPage() {
   const { isVip } = useSubscription();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -27,9 +29,14 @@ export default function CategoryPage() {
     async function loadData() {
       setLoading(true);
       try {
-        const res = await fetch("/data/writing/index.json");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: any[] = await res.json();
+        const { data, error } = await supabase
+          .from('writing_tasks')
+          .select('id, youpass_id, title, task_type, thumbnail_url, band_level, tags, is_visible, description, cloudinary_url')
+          .eq('is_visible', true)
+          .order('youpass_id', { ascending: true });
+
+        if (error) throw error;
+
         const formatted = (data || []).map(item => ({
           ...item,
           id: item.youpass_id,

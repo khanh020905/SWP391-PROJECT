@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 import TranslationExercise, { DichCauExerciseData } from "@/components/writing/TranslationExercise";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { supabase } from "@/lib/supabase";
+
 interface DichCauExercise {
   id: string;
   exercise_id: string;
@@ -151,11 +153,44 @@ export default function TranslationHubPage() {
   };
 
   useEffect(() => {
-    fetch("/data/dich-cau/list.json")
-      .then((r) => r.json())
-      .then((d) => setDichCauExercises(d.exercises || []))
-      .catch(() => setDichCauExercises([]))
-      .finally(() => setDichCauLoading(false));
+    async function loadData() {
+      try {
+        const { data: topics, error } = await supabase
+          .from("topics")
+          .select("*")
+          .eq("category", "writing_translation");
+
+        if (error) throw error;
+
+        const parseMeta = (desc: string) => {
+          try {
+            return JSON.parse(desc);
+          } catch {
+            return { en: desc, exercise_id: "", band_target: "Bước 1", order_index: 0 };
+          }
+        };
+
+        const mapped = (topics || []).map((topic: any) => {
+          const meta = parseMeta(topic.description);
+          return {
+            id: topic.id,
+            exercise_id: meta.exercise_id || topic.id,
+            title: topic.name,
+            band_target: meta.band_target || "Bước 1",
+            order_index: meta.order_index || 0,
+          };
+        }).sort((a: any, b: any) => a.order_index - b.order_index);
+
+        setDichCauExercises(mapped);
+      } catch (err) {
+        console.error("Failed to load topics from Supabase:", err);
+        setDichCauExercises([]);
+      } finally {
+        setDichCauLoading(false);
+      }
+    }
+
+    loadData();
 
     setIsLoggedIn(true);
     setUserRole("tidian");
@@ -359,7 +394,7 @@ export default function TranslationHubPage() {
                   ) : filtered.length > 0 ? (
                     <div className="space-y-4">
                       {filtered.map((ex, i) => (
-                        <Link key={ex.id} href={`/writing/dich-cau/${ex.exercise_id}`}>
+                        <Link key={ex.id} href={`/writing/dich-cau/${ex.id}`}>
                           <div className="group flex items-center justify-between rounded-2xl border-2 border-pink-400 bg-pink-50 p-5 shadow-[4px_4px_0_rgba(0,0,0,1)] transition-all hover:-translate-y-0.5 hover:shadow-[6px_6px_0_rgba(0,0,0,1)]">
                             <div className="flex items-center gap-4">
                               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-pink-300 bg-white text-pink-500 font-black text-sm">

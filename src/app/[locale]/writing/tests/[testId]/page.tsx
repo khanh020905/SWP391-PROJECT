@@ -6,6 +6,8 @@ import { Clock, AlertCircle, Send, ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import WritingGradeUI from "@/components/writing/WritingGradeUI";
 
+import { supabase } from "@/lib/supabase";
+
 export default function TestTakingEngine({ params }: { params: Promise<{ testId: string }> }) {
   const resolvedParams = use(params);
   const { testId } = resolvedParams;
@@ -18,9 +20,17 @@ export default function TestTakingEngine({ params }: { params: Promise<{ testId:
     async function loadTestData() {
       setLoading(true);
       try {
-        const res = await fetch(`/data/writing/${testId}.json`);
-        if (res.ok) {
-          const data = await res.json();
+        console.log('Current URL param (testId):', testId);
+        
+        const { data, error } = await supabase
+          .from('writing_tasks')
+          .select('*')
+          .eq('youpass_id', testId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
           // Map database fields to frontend expectations
           const formattedData = {
             ...data,
@@ -36,11 +46,9 @@ export default function TestTakingEngine({ params }: { params: Promise<{ testId:
           };
           setTestData(formattedData);
           setTimeLeft(60 * 60); // Default to 60 mins
-        } else {
-          console.error("Error fetching writing task:", res.status);
         }
       } catch (err) {
-        console.error("Error fetching writing task:", err);
+        console.error("Error fetching writing task from Supabase:", err);
       }
       setLoading(false);
     }
