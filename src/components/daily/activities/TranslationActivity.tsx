@@ -71,14 +71,19 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
       vi_prompt: s.vi_content || ""
     }));
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
       const res = await fetch("/api/student/daily/check-translation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ items: payloadItems })
+        body: JSON.stringify({ items: payloadItems }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
@@ -109,6 +114,7 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
         throw new Error("Batch translation API failed");
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error("Batch translation check error:", err);
       // Fallback
       const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
@@ -283,16 +289,19 @@ export default function TranslationActivity({ activity, onComplete }: Translatio
       {/* Footer action buttons */}
       <div className="pt-2 border-t border-slate-200/80">
         {!checked ? (
-          <button
-            onClick={handleBatchCheck}
-            disabled={!allAnswered || checking}
-            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md ${
+            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 ${
               !allAnswered || checking
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            {checking ? "AI đang chấm điểm tất cả bản dịch..." : "Nộp bài & AI Chấm điểm"}
+            {checking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> AI đang chấm điểm tất cả bản dịch...
+              </>
+            ) : (
+              "Nộp bài & AI Chấm điểm"
+            )}
           </button>
         ) : (
           <div className="flex items-center justify-between gap-6 bg-[#F7F8F2] border border-[#E9EFE0] p-4 rounded-2xl">

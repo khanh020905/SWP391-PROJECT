@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef } from 'react';
-import { Volume2, Play, Pause, Check } from 'lucide-react';
+import { Volume2, Play, Pause, Check, Loader2 } from 'lucide-react';
 
 interface DictationActivityProps {
   activity: any;
@@ -63,14 +63,19 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
       expected: c.content || c.text || ""
     }));
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
       const res = await fetch("/api/student/daily/check-dictation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ items: payloadItems })
+        body: JSON.stringify({ items: payloadItems }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
@@ -101,6 +106,7 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
         throw new Error("Batch API failed");
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error("Batch check error:", err);
       // Fallback
       const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
@@ -237,16 +243,19 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
       {/* Footer action buttons */}
       <div className="pt-2 border-t border-slate-200/80">
         {!checked ? (
-          <button
-            onClick={handleBatchCheck}
-            disabled={!allAnswered || checking}
-            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md ${
+            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 ${
               !allAnswered || checking
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            {checking ? "AI đang chấm điểm tất cả các câu..." : "Nộp bài & AI Chấm điểm"}
+            {checking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> AI đang chấm điểm tất cả các câu...
+              </>
+            ) : (
+              "Nộp bài & AI Chấm điểm"
+            )}
           </button>
         ) : (
           <div className="flex items-center justify-between gap-6 bg-[#F7F8F2] border border-[#E9EFE0] p-4 rounded-2xl">
