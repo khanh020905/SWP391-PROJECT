@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, Play, Pause, ChevronRight, Check } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Volume2, Play, Pause, Check } from 'lucide-react';
 
 interface DictationActivityProps {
   activity: any;
@@ -12,107 +12,115 @@ interface DictationActivityProps {
 }
 
 export default function DictationActivity({ activity, onComplete }: DictationActivityProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [input, setInput] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
   const lesson = activity.data || {};
   const challenges = lesson.challenges || [];
-  const challenge = challenges[currentIndex];
 
-  useEffect(() => {
-    setIsPlaying(false);
-    setChecked(false);
-    setInput('');
-    setFeedback('');
-    if (audioRef.current) {
-      audioRef.current.load();
-    }
-  }, [currentIndex]);
+  const [inputs, setInputs] = useState<Record<string, string>>({});
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checked, setChecked] = useState(false);
+  
+  // Array of results from Gemini: { id, correct, score, feedback }
+  const [feedbackResults, setFeedbackResults] = useState<Record<string, { correct: boolean; feedback: string }>>({});
 
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+  const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
+
+  const handleInputChange = (cId: string, val: string) => {
+    if (checked) return;
+    setInputs(prev => ({ ...prev, [cId]: val }));
+  };
+
+  const togglePlay = (cId: string, audioSrc: string) => {
+    const currentAudio = audioRefs.current[cId];
+    if (!currentAudio) return;
+
+    if (playingId === cId) {
+      currentAudio.pause();
+      setPlayingId(null);
     } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+      // Pause any currently playing audio
+      if (playingId && audioRefs.current[playingId]) {
+        audioRefs.current[playingId]?.pause();
+      }
+      currentAudio.play();
+      setPlayingId(cId);
     }
   };
 
-  const handleAudioEnded = () => {
-    setIsPlaying(false);
+  const handleAudioEnded = (cId: string) => {
+    if (playingId === cId) {
+      setPlayingId(null);
+    }
   };
 
-  const checkAnswer = async () => {
-    if (!challenge || checking) return;
+  const handleBatchCheck = async () => {
+    if (checking || checked) return;
     setChecking(true);
+
+    const payloadItems = challenges.map((c: any) => ({
+      id: String(c.id),
+      input: inputs[c.id] || "",
+      expected: c.content || c.text || ""
+    }));
+
     try {
       const res = await fetch("/api/student/daily/check-dictation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          input: input,
-          expected: challenge.content || challenge.text || ""
-        })
+        body: JSON.stringify({ items: payloadItems })
       });
 
       if (res.ok) {
         const data = await res.json();
-        setFeedback(data.feedback || "");
-        setResults(prev => [
-          ...prev,
-          {
-            id: String(challenge.id),
-            correct: data.correct,
-            input: input,
-            expected: challenge.content || challenge.text || ""
-          }
-        ]);
+        const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
+        
+        if (Array.isArray(data.results)) {
+          data.results.forEach((item: any) => {
+            resultsMap[item.id] = {
+              correct: item.correct,
+              feedback: item.feedback || ""
+            };
+          });
+        }
+
+        setFeedbackResults(resultsMap);
         setChecked(true);
       } else {
-        throw new Error("API call failed");
+        throw new Error("Batch API failed");
       }
     } catch (err) {
+      console.error("Batch check error:", err);
       // Fallback
-      const cleanExpected = (challenge.content || challenge.text || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
-      const cleanInput = input.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
-      const correct = cleanExpected === cleanInput;
-
-      setFeedback(correct ? "Chính xác!" : "Chưa chính xác. Vui lòng đối chiếu với đáp án.");
-      setResults(prev => [
-        ...prev,
-        {
-          id: String(challenge.id),
+      const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
+      challenges.forEach((c: any) => {
+        const cleanExpected = (c.content || c.text || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
+        const cleanInput = (inputs[c.id] || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
+        const correct = cleanExpected === cleanInput;
+        resultsMap[c.id] = {
           correct,
-          input: input,
-          expected: challenge.content || challenge.text || ""
-        }
-      ]);
+          feedback: correct ? "Chính xác!" : "Chưa chính xác. Vui lòng đối chiếu với đáp án."
+        };
+      });
+      setFeedbackResults(resultsMap);
       setChecked(true);
     } finally {
       setChecking(false);
     }
   };
 
-  const handleNext = () => {
-    if (currentIndex < challenges.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    }
-  };
-
   const handleDone = () => {
+    const finalResults = challenges.map((c: any) => ({
+      id: String(c.id),
+      correct: feedbackResults[c.id]?.correct || false,
+      input: inputs[c.id] || "",
+      expected: c.content || c.text || ""
+    }));
+
     onComplete({
       itemIds: challenges.map((c: any) => String(c.id)),
-      results: results,
+      results: finalResults,
       xpEarned: activity.xp
     });
   };
@@ -131,110 +139,118 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
     );
   }
 
-  const isLast = currentIndex === challenges.length - 1;
-  const audioSrc = challenge?.audioSrc;
+  const allAnswered = challenges.every((c: any) => (inputs[c.id] || "").trim().length > 0);
+  const correctCount = challenges.filter((c: any) => feedbackResults[c.id]?.correct).length;
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Audio Element */}
-      {audioSrc && (
-        <audio 
-          ref={audioRef} 
-          src={audioSrc} 
-          onEnded={handleAudioEnded}
-          className="hidden"
-        />
-      )}
+    <div className="flex flex-col space-y-6">
+      {/* Scrollable List of dictations */}
+      <div className="space-y-6 max-h-[55vh] overflow-y-auto pr-2">
+        {challenges.map((c: any, idx: number) => {
+          const isCurrentPlaying = playingId === c.id;
+          const result = feedbackResults[c.id];
 
-      {/* Progress */}
-      <div className="w-full flex items-center justify-between text-xs font-bold text-slate-400 mb-6">
-        <span>Câu {currentIndex + 1} / {challenges.length}</span>
-        <span>Đúng: {results.filter(r => r.correct).length}</span>
-      </div>
+          return (
+            <div key={c.id} className="bg-white border-2 border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+              {/* Audio controller */}
+              {c.audioSrc && (
+                <audio 
+                  ref={el => { audioRefs.current[c.id] = el; }} 
+                  src={c.audioSrc} 
+                  onEnded={() => handleAudioEnded(c.id)}
+                  className="hidden"
+                />
+              )}
 
-      {/* Audio Controller Card */}
-      <div className="w-full bg-[#F7F8F2] border border-[#E9EFE0] p-6 rounded-2xl flex flex-col items-center justify-center mb-6">
-        <button 
-          onClick={togglePlay}
-          className="w-16 h-16 rounded-full bg-[#5D6B2D] hover:bg-[#46531F] text-[#FFF8EB] flex items-center justify-center shadow-md active:scale-95 transition-all mb-3"
-        >
-          {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 translate-x-0.5" />}
-        </button>
-        <span className="text-xs font-bold text-slate-500">
-          {isPlaying ? "Đang phát âm thanh..." : "Nhấp phát để nghe"}
-        </span>
-      </div>
-
-      {/* Input */}
-      <div className="w-full mb-6">
-        <label className="text-xs font-black text-slate-400 uppercase tracking-wider block mb-2">Bản dịch / Gõ lại câu bạn nghe được:</label>
-        <textarea
-          rows={3}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={checked}
-          placeholder="Nhập câu bạn nghe được..."
-          className="w-full border-2 border-slate-200/80 rounded-xl p-4 text-sm font-bold focus:border-[#5D6B2D] focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 transition-colors"
-        />
-      </div>
-
-      {/* Checked Result comparison */}
-      {checked && challenge && (
-        <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 space-y-2">
-          <p className="text-xs font-semibold text-slate-500">
-            <strong className="block text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Đáp án đúng:</strong>
-            {challenge.content || challenge.text}
-          </p>
-          <div className="flex flex-col gap-1 mt-2">
-            <div>
-              {results[currentIndex]?.correct ? (
-                <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  Chính xác (Đạt yêu cầu) ✓
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
+                  Câu {idx + 1} / {challenges.length}
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
-                  Chưa chính xác ✗
-                </span>
+                
+                <button
+                  onClick={() => togglePlay(c.id, c.audioSrc)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-black flex items-center gap-1.5 shadow-sm transition-all active:scale-95 ${
+                    isCurrentPlaying
+                      ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                      : 'bg-[#E9EFE0] text-[#5D6B2D] border border-[#D5DFC6]'
+                  }`}
+                >
+                  {isCurrentPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                  {isCurrentPlaying ? "Tạm dừng" : "Nghe Audio"}
+                </button>
+              </div>
+
+              {/* Input field */}
+              <div>
+                <textarea
+                  rows={2}
+                  value={inputs[c.id] || ""}
+                  onChange={(e) => handleInputChange(c.id, e.target.value)}
+                  disabled={checked}
+                  placeholder="Gõ lại câu bạn nghe được..."
+                  className="w-full border-2 border-slate-200/80 rounded-xl p-3 text-sm font-bold focus:border-[#5D6B2D] focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 transition-colors"
+                />
+              </div>
+
+              {/* Grading Result */}
+              {checked && result && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-xs">
+                  <p className="text-slate-500 font-semibold">
+                    <strong className="block text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Đáp án đúng:</strong>
+                    {c.content || c.text}
+                  </p>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div>
+                      {result.correct ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                          Chính xác ✓
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+                          Chưa chính xác ✗
+                        </span>
+                      )}
+                    </div>
+                    {result.feedback && (
+                      <p className="text-slate-500 mt-1 pl-1 border-l-2 border-[#B38F4D]">
+                        💡 <span className="font-bold text-slate-700">AI:</span> {result.feedback}
+                      </p>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-            {feedback && (
-              <p className="text-xs font-semibold text-slate-500 mt-1 pl-1 border-l-2 border-[#B38F4D]">
-                💡 <span className="font-bold text-slate-700">AI Nhận xét:</span> {feedback}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Actions */}
-      <div className="w-full">
+      {/* Footer action buttons */}
+      <div className="pt-2 border-t border-slate-200/80">
         {!checked ? (
           <button
-            onClick={checkAnswer}
-            disabled={!input.trim() || checking}
-            className={`w-full py-3.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm ${
-              !input.trim() || checking
+            onClick={handleBatchCheck}
+            disabled={!allAnswered || checking}
+            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md ${
+              !allAnswered || checking
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            {checking ? "AI đang chấm điểm..." : "Kiểm tra kết quả"}
+            {checking ? "AI đang chấm điểm tất cả các câu..." : "Nộp bài & AI Chấm điểm"}
           </button>
         ) : (
-          <button
-            onClick={isLast ? handleDone : handleNext}
-            className="w-full py-3.5 bg-[#5D6B2D] hover:bg-[#46531F] text-[#FFF8EB] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
-          >
-            {isLast ? (
-              <>
-                <Check className="w-4 h-4" /> Hoàn thành
-              </>
-            ) : (
-              <>
-                Câu tiếp theo <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          <div className="flex items-center justify-between gap-6 bg-[#F7F8F2] border border-[#E9EFE0] p-4 rounded-2xl">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Kết quả ôn tập</p>
+              <h4 className="text-lg font-black text-[#5D6B2D] mt-1">Đúng {correctCount} / {challenges.length} câu</h4>
+            </div>
+            <button
+              onClick={handleDone}
+              className="px-8 py-3.5 bg-[#5D6B2D] hover:bg-[#46531F] text-[#FFF8EB] rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <Check className="w-4 h-4" /> Hoàn thành
+            </button>
+          </div>
         )}
       </div>
     </div>
