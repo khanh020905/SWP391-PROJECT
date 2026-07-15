@@ -116,12 +116,39 @@ export async function POST(request: NextRequest) {
     const { data: topicList } = await topicQuery;
     const selectedTopic = topicList?.[0] || null;
 
-    // 7. Mini test: 5 questions mixed from questions table
-    const { data: testQuestions } = await supabaseAdmin
-      .from('questions')
-      .select('id, question_type, text, options, correct_answer')
-      .in('question_type', ['multiple_choice', 'multiple-choice', 'true_false'])
-      .limit(5);
+    // 7. Mini test: 1 reading passage and its questions from reading_passages table
+    const { data: passagesList } = await supabaseAdmin
+      .from('reading_passages')
+      .select('id, title, content_html, questions')
+      .not('questions', 'is', null);
+
+    let selectedPassage = null;
+    let testQuestions: any[] = [];
+
+    if (passagesList && passagesList.length > 0) {
+      // Pick a random passage or order by id
+      selectedPassage = passagesList[0];
+      const rawQuestions = Array.isArray(selectedPassage.questions) 
+        ? selectedPassage.questions 
+        : typeof selectedPassage.questions === 'object' && selectedPassage.questions !== null
+        ? Object.values(selectedPassage.questions)
+        : [];
+
+      testQuestions = rawQuestions.slice(0, 5).map((q: any) => ({
+        id: q.id || Math.random().toString(),
+        question_type: q.type === 'multiple_choice' || q.type === 'multiple-choice' ? 'multiple_choice' : 'true_false',
+        text: q.statement || q.text || "",
+        options: q.options || null,
+        correct_answer: q.correct_answer || q.answer || "",
+        explanation: q.explanation || ""
+      }));
+    }
+
+    const miniTestData = selectedPassage ? {
+      passage_title: selectedPassage.title,
+      passage_text: selectedPassage.content_html,
+      questions: testQuestions
+    } : testQuestions;
 
     // Create activities array
     const activities = [
@@ -179,7 +206,7 @@ export async function POST(request: NextRequest) {
         xp: 30,
         completed: false,
         locked: true,
-        data: testQuestions || []
+        data: miniTestData || []
       }
     ];
 
