@@ -16,6 +16,8 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
   const [input, setInput] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [feedback, setFeedback] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -27,6 +29,7 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
     setIsPlaying(false);
     setChecked(false);
     setInput('');
+    setFeedback('');
     if (audioRef.current) {
       audioRef.current.load();
     }
@@ -47,22 +50,57 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
     setIsPlaying(false);
   };
 
-  const checkAnswer = () => {
-    if (!challenge) return;
-    const cleanExpected = (challenge.content || challenge.text || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
-    const cleanInput = input.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
-    const correct = cleanExpected === cleanInput;
+  const checkAnswer = async () => {
+    if (!challenge || checking) return;
+    setChecking(true);
+    try {
+      const res = await fetch("/api/student/daily/check-dictation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: input,
+          expected: challenge.content || challenge.text || ""
+        })
+      });
 
-    setResults(prev => [
-      ...prev,
-      {
-        id: String(challenge.id),
-        correct,
-        input: input,
-        expected: challenge.content || challenge.text || ""
+      if (res.ok) {
+        const data = await res.json();
+        setFeedback(data.feedback || "");
+        setResults(prev => [
+          ...prev,
+          {
+            id: String(challenge.id),
+            correct: data.correct,
+            input: input,
+            expected: challenge.content || challenge.text || ""
+          }
+        ]);
+        setChecked(true);
+      } else {
+        throw new Error("API call failed");
       }
-    ]);
-    setChecked(true);
+    } catch (err) {
+      // Fallback
+      const cleanExpected = (challenge.content || challenge.text || "").trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
+      const cleanInput = input.trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase();
+      const correct = cleanExpected === cleanInput;
+
+      setFeedback(correct ? "Chính xác!" : "Chưa chính xác. Vui lòng đối chiếu với đáp án.");
+      setResults(prev => [
+        ...prev,
+        {
+          id: String(challenge.id),
+          correct,
+          input: input,
+          expected: challenge.content || challenge.text || ""
+        }
+      ]);
+      setChecked(true);
+    } finally {
+      setChecking(false);
+    }
   };
 
   const handleNext = () => {
@@ -147,15 +185,24 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
             <strong className="block text-[10px] text-slate-400 font-black uppercase tracking-wider mb-0.5">Đáp án đúng:</strong>
             {challenge.content || challenge.text}
           </p>
-          {results[currentIndex]?.correct ? (
-            <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-              Chính xác ✓
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
-              Chưa chính xác ✗
-            </span>
-          )}
+          <div className="flex flex-col gap-1 mt-2">
+            <div>
+              {results[currentIndex]?.correct ? (
+                <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                  Chính xác (Đạt yêu cầu) ✓
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                  Chưa chính xác ✗
+                </span>
+              )}
+            </div>
+            {feedback && (
+              <p className="text-xs font-semibold text-slate-500 mt-1 pl-1 border-l-2 border-[#B38F4D]">
+                💡 <span className="font-bold text-slate-700">AI Nhận xét:</span> {feedback}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -164,14 +211,14 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
         {!checked ? (
           <button
             onClick={checkAnswer}
-            disabled={!input.trim()}
+            disabled={!input.trim() || checking}
             className={`w-full py-3.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm ${
-              !input.trim()
+              !input.trim() || checking
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            Kiểm tra kết quả
+            {checking ? "AI đang chấm điểm..." : "Kiểm tra kết quả"}
           </button>
         ) : (
           <button
