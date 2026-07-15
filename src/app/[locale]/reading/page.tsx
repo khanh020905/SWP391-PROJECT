@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cambridgeTests, essentialWordsUnits, tidPracticeTests, workbookUnits, deVolTests, getCambridgeByBook, questionTypes } from "@/data/reading-data";
 import type { CambridgeTest, ReadingUnit } from "@/data/reading-data";
+import { supabase } from "@/lib/supabase";
 
 const BAND_FILTERS = ["5.0", "5.5", "6.0", "6.5", "7.0", "7.5", "8.0+"];
 const QTYPE_FILTERS = ["True/False/Not Given", "Multiple Choice", "Matching Headings", "Matching Information", "Short Answer", "Note/Summary Completion", "Diagram Labelling", "Map Labelling"];
@@ -24,19 +25,30 @@ export default function ReadingListPage() {
   const [taggedPassages, setTaggedPassages] = useState<{ youpass_id: string; band_level?: string; question_types?: string[]; title?: string }[]>([]);
   const [selectedBand, setSelectedBand] = useState<string | null>(null);
   const [selectedQType, setSelectedQType] = useState<string | null>(null);
-  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
-  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showCamLockModal, setShowCamLockModal] = useState(false);
+  const itemsPerPage = 6;
   const { isVip } = useSubscription();
+  const [isFilterExpanded, setIsFilterExpanded] = useState(true);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [showCamLockModal, setShowCamLockModal] = useState(false);
   const isAdmin = isVip;
   const daysLeft = Math.max(0, Math.ceil((new Date('2026-06-12').getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-  const itemsPerPage = 6;
   const cambridgeByBook = getCambridgeByBook();
-  const getAvailablePassageIds = (testId: string) => [1, 2, 3]
-    .map((passageNumber) => `${testId}-${passageNumber}`)
-    .filter((passageId) => availableReadingIds.has(passageId));
+
+  const getAvailablePassageIds = (testId: string) => {
+    // testId is like "cam10-1" or "ew-1"
+    const [type, num, testNum] = testId.split('-');
+    if (type === "cam") {
+      return [`cam-${num}-${testNum}-1`, `cam-${num}-${testNum}-2`, `cam-${num}-${testNum}-3`].filter(id => availableReadingIds.has(id));
+    }
+    if (type === "ew") {
+      return [`ew-${num}-1`, `ew-${num}-2`, `ew-${num}-3`].filter(id => availableReadingIds.has(id));
+    }
+    return [];
+  };
+
   const getFirstAvailablePassageId = (testId: string) => getAvailablePassageIds(testId)[0] ?? null;
   const workingCambridgeTests = cambridgeTests.filter((test) => getAvailablePassageIds(test.id).length > 0);
   const bookNumbers = Array.from(new Set(workingCambridgeTests.map((test) => test.book))).sort((a, b) => b - a);
@@ -48,13 +60,38 @@ export default function ReadingListPage() {
   useEffect(() => {
     async function loadAvailableReadingIds() {
       try {
-        const res = await fetch("/data/reading/index.json");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: { youpass_id: string; band_level?: string; question_types?: string[]; title?: string }[] = await res.json();
-        setAvailableReadingIds(new Set((data || []).map((row) => row.youpass_id).filter(Boolean)));
-        setTaggedPassages(data || []);
+        const { data, error } = await supabase
+          .from('exam_sections')
+          .select('id, exam_id, section_no, title, exams(title, category, status, cambridge_no, test_no)')
+          .eq('exams.category', 'reading')
+          .eq('exams.status', 'published');
+
+        if (error) throw error;
+
+        const formatted = (data || []).filter((row: any) => row.exams).map((row: any) => {
+          let youpass_id = row.id;
+          const exam = row.exams;
+          if (exam.cambridge_no) {
+            youpass_id = `cam-${exam.cambridge_no}-${exam.test_no}-${row.section_no}`;
+          } else if (exam.title.startsWith("Essential Words")) {
+            youpass_id = `ew-${exam.test_no}-${row.section_no}`;
+          } else if (exam.title.startsWith("TID")) {
+            youpass_id = `tid-${exam.test_no}-${row.section_no}`;
+          }
+
+          return {
+            youpass_id,
+            id: row.id,
+            title: row.title,
+            band_level: null,
+            question_types: []
+          };
+        });
+
+        setAvailableReadingIds(new Set((formatted || []).map((row) => row.youpass_id).filter(Boolean)));
+        setTaggedPassages(formatted || []);
       } catch (error) {
-        console.error("Error fetching reading availability:", error);
+        console.error("Error fetching reading availability from Supabase:", error);
       }
     }
 

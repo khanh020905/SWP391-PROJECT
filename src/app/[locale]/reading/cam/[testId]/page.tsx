@@ -5,6 +5,7 @@ import { X, Clock, CheckCircle2, AlertCircle, Sparkles, BookOpen, ArrowLeft, Arr
 import { ResultSunMascot } from "@/components/sunMascot";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 import { useSearchParams, useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { repairPassageHtml } from "@/utils/repairPassageHtml";
@@ -1683,45 +1684,70 @@ function ReadingPracticeContent({ params }: { params: Promise<{ testId: string }
       setLoading(true);
       try {
         const targetId = resolvedParams.testId;
-        const candidateIds = [targetId, ...[1, 2, 3].map((passageNumber) => `${targetId}-${passageNumber}`)];
-        // Passages are served as static JSON exported from the source database.
-        const data: any[] = (
-          await Promise.all(
-            candidateIds.map(async (id) => {
-              try {
-                const res = await fetch(`/data/reading/${id}.json`);
-                return res.ok ? await res.json() : null;
-              } catch {
-                return null;
-              }
-            })
-          )
-        ).filter(Boolean);
+        console.log('Current URL param (testId):', targetId);
 
-        // Preserve display order for full tests while loading content from static data only.
-        const rowsById = new Map((data || []).map((row) => [row.youpass_id, row]));
-        let loadedPassages = candidateIds
-          .map((id) => rowsById.get(id))
-          .filter((row) => row?.content_html)
-          .map((row) => normalizeReadingPayload(row));
+        // Fetch from API route to bypass client RLS issues
+        const res = await fetch(`/api/reading/practice/${targetId}`);
+        if (!res.ok) throw new Error("Failed to fetch practice exam data");
+        const { exam, questions, targetSectionNo } = await res.json();
+
+        // Map/Filter sections and questions into frontend passages format
+        const loadedPassages = (exam.exam_sections || [])
+          .sort((a: any, b: any) => a.section_no - b.section_no)
+          .map((sec: any) => {
+            const secQuestions = (questions || []).filter((q: any) => q.section === sec.section_no);
+
+            let youpassId = sec.id;
+            if (exam.cambridge_no) {
+              youpassId = `cam-${exam.cambridge_no}-${exam.test_no}-${sec.section_no}`;
+            } else if (exam.title.startsWith("Essential Words")) {
+              youpassId = `ew-${exam.test_no}-${sec.section_no}`;
+            } else if (exam.title.startsWith("TID")) {
+              youpassId = `tid-${exam.test_no}-${sec.section_no}`;
+            }
+
+            const rawSectionData = {
+              id: sec.id,
+              youpass_id: youpassId,
+              title: sec.title,
+              topic: sec.title,
+              content_html: sec.content,
+              questions: secQuestions.map((q: any) => ({
+                id: q.order_index,
+                text: q.text,
+                type: q.question_type,
+                options: q.options || [],
+                correct_answer: q.correct_answer,
+                explanation: ""
+              }))
+            };
+
+            return normalizeReadingPayload(rawSectionData);
+          });
 
         if (cancelled) return;
 
-        const passageParam = searchParams.get("passage");
-        if (passageParam) {
-          const targetPassageId = `${targetId}-${passageParam}`;
-          loadedPassages = loadedPassages.filter(p => p.youpass_id === targetPassageId);
+        // Filter by passage if specified or derived from targetId
+        let filteredPassages = loadedPassages;
+        if (targetSectionNo !== null) {
+          filteredPassages = loadedPassages.filter(p => p.passageNumber === targetSectionNo);
+        } else {
+          const passageParam = searchParams.get("passage");
+          if (passageParam) {
+            const passageNum = parseInt(passageParam);
+            filteredPassages = loadedPassages.filter(p => p.passageNumber === passageNum);
+          }
         }
 
-        if (loadedPassages.length > 0) {
-          setPassages(loadedPassages);
+        if (filteredPassages.length > 0) {
+          setPassages(filteredPassages);
           setActivePassageIndex(0);
         } else {
           setPassages([]);
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("Error loading reading data:", err);
+          console.error("Error loading reading data from API:", err);
           setPassages([]);
         }
       }

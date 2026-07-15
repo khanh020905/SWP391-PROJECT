@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { useParams, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { CheckCircle, XCircle, ArrowLeft, Loader2, RotateCcw, BookOpen, MessageCircle, ChevronRight } from "lucide-react";
 import { ResultSunMascot } from "@/components/sunMascot";
 import { matchesAnswerKey } from "@/utils/answerMatch";
@@ -95,35 +96,66 @@ export default function ReadingReviewPage() {
     if (!submission || hasSnapshot) return;
     async function load() {
       try {
-        const candidateIds = [testId, ...[1, 2, 3].map((n) => `${testId}-${n}`)];
-        // Passages are served as static JSON exported from the source database.
-        const data: any[] = (
-          await Promise.all(
-            candidateIds.map(async (id) => {
-              try {
-                const res = await fetch(`/data/reading/${id}.json`);
-                return res.ok ? await res.json() : null;
-              } catch {
-                return null;
-              }
-            })
-          )
-        ).filter(Boolean);
-        if (data && data.length > 0) {
-          let sorted = data.sort((a, b) => (a.youpass_id || "").localeCompare(b.youpass_id || ""));
+        console.log('Current URL param (testId):', testId);
 
-          if (passageParam) {
-            const targetPassageId = `${testId}-${passageParam}`;
-            sorted = sorted.filter(p => p.youpass_id === targetPassageId);
-          }
+        // Fetch from API route to bypass client RLS issues
+        const res = await fetch(`/api/reading/practice/${testId}`);
+        if (!res.ok) throw new Error("Failed to fetch practice exam data");
+        const { exam, questions, targetSectionNo } = await res.json();
 
-          if (sorted.length > 0) {
-            setReadingTestData({ ...sorted[0], questions: sorted.flatMap((p) => p.questions || []) });
-          } else {
-            setError("Không tìm thấy dữ liệu bài đọc cho passage này.");
-          }
+        // Map sections and questions into the structure expected by the review page
+        const loadedSections = (exam.exam_sections || [])
+          .sort((a: any, b: any) => a.section_no - b.section_no)
+          .map((sec: any) => {
+            const secQuestions = (questions || []).filter((q: any) => q.section === sec.section_no);
+
+            let youpassId = sec.id;
+            if (exam.cambridge_no) {
+              youpassId = `cam-${exam.cambridge_no}-${exam.test_no}-${sec.section_no}`;
+            } else if (exam.title.startsWith("Essential Words")) {
+              youpassId = `ew-${exam.test_no}-${sec.section_no}`;
+            } else if (exam.title.startsWith("TID")) {
+              youpassId = `tid-${exam.test_no}-${sec.section_no}`;
+            }
+
+            return {
+              id: sec.id,
+              youpass_id: youpassId,
+              title: sec.title,
+              topic: sec.title,
+              content_html: sec.content,
+              questions: secQuestions.map((q: any) => ({
+                id: q.order_index,
+                text: q.text,
+                type: q.question_type,
+                options: q.options || [],
+                correct_answer: q.correct_answer,
+                explanation: ""
+              }))
+            };
+          });
+
+        let sortedSections = loadedSections;
+        if (targetSectionNo !== null) {
+          sortedSections = loadedSections.filter(p => {
+            const match = p.youpass_id.match(/-(\d+)$/);
+            return match && parseInt(match[1]) === targetSectionNo;
+          });
+        } else if (passageParam) {
+          const passageNum = parseInt(passageParam);
+          sortedSections = loadedSections.filter(p => {
+            const match = p.youpass_id.match(/-(\d+)$/);
+            return match && parseInt(match[1]) === passageNum;
+          });
+        }
+
+        if (sortedSections.length > 0) {
+          setReadingTestData({
+            ...sortedSections[0],
+            questions: sortedSections.flatMap((p) => p.questions || [])
+          });
         } else {
-          setError("Không tìm thấy dữ liệu bài đọc.");
+          setError("Không tìm thấy dữ liệu bài đọc cho passage này.");
         }
       } catch (err: any) {
         setError("Lỗi khi tải dữ liệu bài giải: " + (err.message || "Unknown error"));
