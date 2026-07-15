@@ -76,14 +76,24 @@ export default function DictationActivity({ activity, onComplete }: DictationAct
         const data = await res.json();
         const resultsMap: Record<string, { correct: boolean; feedback: string }> = {};
         
-        if (Array.isArray(data.results)) {
-          data.results.forEach((item: any) => {
+        const itemsList = Array.isArray(data.results) 
+          ? data.results 
+          : Array.isArray(data)
+          ? data
+          : data.results && typeof data.results === 'object'
+          ? [data.results]
+          : data && typeof data === 'object'
+          ? [data]
+          : [];
+
+        itemsList.forEach((item: any) => {
+          if (item && item.id) {
             resultsMap[item.id] = {
-              correct: item.correct,
+              correct: !!item.correct,
               feedback: item.feedback || ""
             };
-          });
-        }
+          }
+        });
 
         setFeedbackResults(resultsMap);
         setChecked(true);
