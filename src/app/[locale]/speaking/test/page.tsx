@@ -43,6 +43,9 @@ const NO_SPEECH_MESSAGE =
   "(Không phát hiện lời nói. Bạn hãy kiểm tra lại micro và nói rõ hơn nhé.)";
 
 async function transcribeWithGroq(audioBlob: Blob): Promise<string> {
+  const sessionRes = await supabase.auth.getSession();
+  const token = sessionRes.data.session?.access_token || "";
+
   const formData = new FormData();
   const ext = audioBlob.type.includes("mp4")
     ? "m4a"
@@ -52,8 +55,11 @@ async function transcribeWithGroq(audioBlob: Blob): Promise<string> {
   formData.append("file", audioBlob, `recording.${ext}`);
   formData.append("language", "en");
 
-  const res = await fetch("/api/speaking/transcribe", {
+  const res = await fetch("/api/student/speech-to-text", {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: formData,
   });
 
@@ -64,8 +70,8 @@ async function transcribeWithGroq(audioBlob: Blob): Promise<string> {
     );
   }
 
-  const data = (await res.json()) as { text?: string };
-  return (data.text || "").trim();
+  const data = (await res.json()) as { text?: string; transcript?: string };
+  return (data.text || data.transcript || "").trim();
 }
 
 const getBrowserErrorName = (error: unknown) => {
