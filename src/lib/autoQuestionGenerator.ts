@@ -4,7 +4,7 @@ function getQuestionsBlock(content: string): string {
   if (!content) return "";
   const regex = /\bQuestions\b/i;
   const match = content.match(regex);
-  if (match) {
+  if (match && match.index !== undefined) {
     return content.substring(match.index);
   }
   return content;
@@ -61,8 +61,59 @@ export async function autoGenerateQuestions(
   category: string,
   sections: any[]
 ): Promise<any[]> {
-  // Only auto-generate for reading and listening
-  if (category !== "reading" && category !== "listening") {
+  // Only auto-generate for reading, listening, and speaking
+  if (category !== "reading" && category !== "listening" && category !== "speaking") {
+    return sections;
+  }
+
+  if (category === "speaking") {
+    console.log(`[Auto Generator] Generating questions for speaking exam ${examId}...`);
+    // 1. Delete existing questions for this exam
+    const { error: deleteError } = await supabaseAdmin
+      .from("questions")
+      .delete()
+      .eq("exam_id", examId);
+
+    if (deleteError) {
+      console.error("[Auto Generator] Error deleting old questions:", deleteError);
+    }
+
+    const questionsToInsert: any[] = [];
+    for (const s of sections) {
+      if (s.section_no === 1 || s.section_no === 3) {
+        let qsArr: string[] = [];
+        if (typeof s.answers === "string" && s.answers.trim()) {
+          try {
+            qsArr = JSON.parse(s.answers);
+          } catch {}
+        } else if (Array.isArray(s.answers)) {
+          qsArr = s.answers;
+        }
+
+        if (Array.isArray(qsArr)) {
+          qsArr.forEach((qText: string, idx: number) => {
+            if (qText && qText.trim()) {
+              questionsToInsert.push({
+                exam_id: examId,
+                section: s.section_no,
+                question_type: "speaking",
+                text: qText.trim(),
+                correct_answer: "",
+                options: null,
+                order_index: idx + 1,
+              });
+            }
+          });
+        }
+      }
+    }
+
+    if (questionsToInsert.length > 0) {
+      const { error: insertError } = await supabaseAdmin.from("questions").insert(questionsToInsert);
+      if (insertError) {
+        console.error("[Auto Generator] Error inserting speaking questions:", insertError);
+      }
+    }
     return sections;
   }
 

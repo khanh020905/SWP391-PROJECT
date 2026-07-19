@@ -98,6 +98,19 @@
       "todayMinutes": 0,
       "lastGoalMetDate": null,
       "history": {}
+    },
+    "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9": {
+      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": "2026-07-12",
+      "lastStudyTimestamp": "2026-07-12T15:42:14.281Z",
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 10,
+      "lastGoalMetDate": null,
+      "history": {
+        "2026-07-12": 10
+      }
     }
   },
   "studyLogs": [
@@ -169,6 +182,13 @@
       "userId": "21f122e7-06c7-4df1-af22-4f2adca21c95",
       "date": "2026-07-15",
       "timestamp": "2026-07-15T08:15:19.864Z",
+      "activity": "Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: Cambridge 18 Speaking Test 1 (Đạt điểm AI: 6.0)"
+    },
+    {
+      "id": "log_xda2szo",
+      "userId": "e1344f02-3f3f-49f1-8fe8-dcd1fa316ed9",
+      "date": "2026-07-12",
+      "timestamp": "2026-07-12T15:42:14.281Z",
       "activity": "Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: Cambridge 18 Speaking Test 1 (Đạt điểm AI: 6.0)"
     }
   ],

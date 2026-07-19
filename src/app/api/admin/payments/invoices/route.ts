@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, ADMIN_ONLY } from "@/lib/roles";
 import { getInvoices, createInvoice } from "@/lib/paymentDb";
+import { supabaseAdmin } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLogger";
 
 export async function GET(request: NextRequest) {
@@ -16,6 +17,34 @@ export async function GET(request: NextRequest) {
 
   try {
     let invoices = await getInvoices();
+
+    // Merge invoices from Supabase Auth user_metadata (for Vercel cross-lambda completeness)
+    try {
+      const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+      if (!listErr && users) {
+        users.forEach((u: any) => {
+          const meta = u.user_metadata || {};
+          const pending = meta.pendingInvoice;
+          const paid = meta.paidInvoice;
+          const userInvoices = meta.invoices || [];
+
+          [pending, paid, ...userInvoices].forEach((inv: any) => {
+            if (inv && inv.id) {
+              const idx = invoices.findIndex(i => i.id === inv.id);
+              if (idx === -1) {
+                invoices.unshift(inv);
+              } else {
+                if (inv.status === "PAID" && invoices[idx].status !== "PAID") {
+                  invoices[idx] = inv;
+                }
+              }
+            }
+          });
+        });
+      }
+    } catch (err: any) {
+      console.warn("⚠️ Error merging user_metadata invoices in admin API:", err?.message);
+    }
 
     // 1. Search filter
     if (search) {

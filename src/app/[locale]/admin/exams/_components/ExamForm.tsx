@@ -817,26 +817,129 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                   </div>
 
                   {/* Transcript / Questions */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
-                      {getTranscriptLabel()}
-                    </label>
-                    <textarea
-                      value={section.content}
-                      onChange={(e) => updateSection(idx, "content", e.target.value)}
-                      placeholder={
-                        form.category === "writing"
-                          ? (isEn ? "Enter writing task prompt, target word count, and chart description..." : "Nhập đề bài viết, số lượng từ yêu cầu, mô tả biểu đồ hoặc câu hỏi thảo luận...")
-                          : form.category === "reading"
-                          ? (isEn ? "Enter reading passage content followed by the questions..." : "Nhập nội dung bài đọc và theo sau là các câu hỏi...")
-                          : form.category === "speaking"
-                          ? (isEn ? "Describe the speaking part topic or cue card instructions..." : "Nhập chủ đề phần thi nói hoặc mô tả cue card (ví dụ: Describe a place you like to visit)...")
-                          : t.placeholderTranscript(section.section_no)
-                      }
-                      rows={10}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-y font-mono"
-                    />
-                  </div>
+                  {form.category === "speaking" ? (
+                    section.section_no === 2 ? (
+                      /* Part 2 Cue Card Formats */
+                      <div className="space-y-4 pt-2">
+                        <div>
+                          <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                            {isEn ? "Cue Card Topic / Prompt" : "Chủ đề Cue Card (Topic)"} <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={(() => {
+                              try {
+                                const obj = JSON.parse(section.answers);
+                                return obj?.cue_card || section.content || "";
+                              } catch {
+                                return section.content || "";
+                              }
+                            })()}
+                            onChange={(e) => {
+                              const cueVal = e.target.value;
+                              let currentBullets: string[] = [];
+                              try {
+                                const obj = JSON.parse(section.answers);
+                                if (obj && Array.isArray(obj.bullet_points)) {
+                                  currentBullets = obj.bullet_points;
+                                }
+                              } catch {}
+                              updateSection(idx, "content", cueVal);
+                              updateSection(idx, "answers", JSON.stringify({ cue_card: cueVal, bullet_points: currentBullets }));
+                            }}
+                            placeholder={isEn ? "e.g. Describe a subject you enjoyed studying in high school." : "VD: Describe a subject you enjoyed studying in high school."}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                            {isEn ? "Bullet Points (One per line)" : "Các ý gợi ý / Bullet Points (Mỗi gợi ý trên một dòng)"}
+                          </label>
+                          <textarea
+                            value={(() => {
+                              try {
+                                const obj = JSON.parse(section.answers);
+                                if (obj && Array.isArray(obj.bullet_points)) {
+                                  return obj.bullet_points.join("\n");
+                                }
+                              } catch {}
+                              return "";
+                            })()}
+                            onChange={(e) => {
+                              const bulletsVal = e.target.value;
+                              const lines = bulletsVal.split("\n").map(l => l.trim()).filter(Boolean);
+                              let currentCue = section.content || "";
+                              try {
+                                const obj = JSON.parse(section.answers);
+                                if (obj && obj.cue_card) {
+                                  currentCue = obj.cue_card;
+                                }
+                              } catch {}
+                              updateSection(idx, "answers", JSON.stringify({ cue_card: currentCue, bullet_points: lines }));
+                            }}
+                            placeholder={isEn ? "What the subject was\nWho the teacher was\nExplain why you found it enjoyable." : "What the subject was\nWho the teacher was\nExplain why you found it enjoyable."}
+                            rows={6}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-y font-mono"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      /* Part 1 & Part 3 Question Lists */
+                      <div className="pt-2">
+                        <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                          {isEn ? "Questions List (One per line)" : "Danh sách câu hỏi (Mỗi câu hỏi trên một dòng)"} <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          value={(() => {
+                            try {
+                              const arr = JSON.parse(section.answers);
+                              if (Array.isArray(arr)) {
+                                return arr.join("\n");
+                              }
+                            } catch {}
+                            return section.content || "";
+                          })()}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const lines = val.split("\n").map(l => l.trim()).filter(Boolean);
+                            updateSection(idx, "content", val);
+                            updateSection(idx, "answers", JSON.stringify(lines));
+                          }}
+                          placeholder={
+                            section.section_no === 1
+                              ? (isEn
+                                  ? "Let's talk about your hometown. Where is your hometown located?\nWhat do you like most about your hometown?"
+                                  : "Let's talk about your hometown. Where is your hometown located?\nWhat do you like most about your hometown?")
+                              : (isEn
+                                  ? "How do you think education will change in the future due to AI?\nDo you think schools should focus more on academic subjects?"
+                                  : "How do you think education will change in the future due to AI?\nDo you think schools should focus more on academic subjects?")
+                          }
+                          rows={8}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-y font-mono"
+                        />
+                      </div>
+                    )
+                  ) : (
+                    /* Generic Transcript Textarea */
+                    <div>
+                      <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                        {getTranscriptLabel()}
+                      </label>
+                      <textarea
+                        value={section.content}
+                        onChange={(e) => updateSection(idx, "content", e.target.value)}
+                        placeholder={
+                          form.category === "writing"
+                            ? (isEn ? "Enter writing task prompt, target word count, and chart description..." : "Nhập đề bài viết, số lượng từ yêu cầu, mô tả biểu đồ hoặc câu hỏi thảo luận...")
+                            : form.category === "reading"
+                            ? (isEn ? "Enter reading passage content followed by the questions..." : "Nhập nội dung bài đọc và theo sau là các câu hỏi...")
+                            : t.placeholderTranscript(section.section_no)
+                        }
+                        rows={10}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 focus:border-[#3B5C37] transition-colors resize-y font-mono"
+                      />
+                    </div>
+                  )}
 
                   {/* Audio Upload for Section (Listening Category Only) */}
                   {form.category === "listening" && (
@@ -996,45 +1099,39 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
                   )}
 
                   {/* Answers JSON */}
-                  <div>
-                    <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
-                      {getAnswersLabel()}
-                    </label>
-                    <textarea
-                      value={section.answers}
-                      onChange={(e) => updateSection(idx, "answers", e.target.value)}
-                      placeholder={
-                        form.category === "writing"
-                          ? `{\n  "sample_answer": "Enter sample essay for Band 8.0+ here...",\n  "key_vocabulary": ["vocabulary 1", "vocabulary 2"],\n  "grading_tips": "Tips for Task Response, Coherence, Lexical Resource, Grammar..."\n}`
-                          : form.category === "speaking"
-                            ? section.section_no === 2
-                              ? `{\n  "cue_card": "Describe a subject you enjoyed studying in high school.",\n  "bullet_points": [\n    "What the subject was",\n    "Who the teacher was and how they taught it",\n    "And explain why you found this subject so enjoyable."\n  ]\n}`
-                              : `[\n  "Let's talk about your hometown. Where is your hometown located?",\n  "What do you like most about your hometown?",\n  "Do you prefer living in a city or the countryside?"\n]`
+                  {form.category !== "speaking" && (
+                    <div>
+                      <label className="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                        {getAnswersLabel()}
+                      </label>
+                      <textarea
+                        value={section.answers}
+                        onChange={(e) => updateSection(idx, "answers", e.target.value)}
+                        placeholder={
+                          form.category === "writing"
+                            ? `{\n  "sample_answer": "Enter sample essay for Band 8.0+ here...",\n  "key_vocabulary": ["vocabulary 1", "vocabulary 2"],\n  "grading_tips": "Tips for Task Response, Coherence, Lexical Resource, Grammar..."\n}`
                             : `{"${(section.section_no - 1) * 10 + 1}": "A", "${(section.section_no - 1) * 10 + 2}": "castle", "${(section.section_no - 1) * 10 + 3}": "B"}`
-                      }
-                      rows={6}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors resize-y font-mono ${
-                        errors[`section_${idx}_answers`]
-                          ? "border-red-400 bg-red-50/30"
-                          : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
-                      }`}
-                    />
-                    {errors[`section_${idx}_answers`] && (
-                      <p className="mt-1 text-xs font-bold text-red-500 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        {errors[`section_${idx}_answers`]}
+                        }
+                        rows={6}
+                        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-[#0d153a] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B5C37]/30 transition-colors resize-y font-mono ${
+                          errors[`section_${idx}_answers`]
+                            ? "border-red-400 bg-red-50/30"
+                            : "border-slate-200 bg-slate-50 focus:border-[#3B5C37]"
+                        }`}
+                      />
+                      {errors[`section_${idx}_answers`] && (
+                        <p className="mt-1 text-xs font-bold text-red-500 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          {errors[`section_${idx}_answers`]}
+                        </p>
+                      )}
+                      <p className="mt-1.5 text-[10px] text-slate-400 font-medium">
+                        {form.category === "writing"
+                          ? (isEn ? "Format: JSON containing sample_answer, key_vocabulary, and grading_tips." : "Định dạng: Chuỗi JSON chứa sample_answer, key_vocabulary, và grading_tips.")
+                          : t.answersFormatHelp}
                       </p>
-                    )}
-                    <p className="mt-1.5 text-[10px] text-slate-400 font-medium">
-                      {form.category === "writing"
-                        ? (isEn ? "Format: JSON containing sample_answer, key_vocabulary, and grading_tips." : "Định dạng: Chuỗi JSON chứa sample_answer, key_vocabulary, và grading_tips.")
-                        : form.category === "speaking"
-                        ? section.section_no === 2
-                          ? (isEn ? "Format: JSON containing cue_card and bullet_points array." : "Định dạng: Chuỗi JSON chứa cue_card và mảng bullet_points.")
-                          : (isEn ? "Format: JSON array of strings for Part 1/Part 3 questions." : "Định dạng: Mảng chuỗi JSON chứa danh sách câu hỏi Part 1/Part 3.")
-                        : t.answersFormatHelp}
-                    </p>
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

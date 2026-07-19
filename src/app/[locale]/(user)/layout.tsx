@@ -10,6 +10,11 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const isPremium = !!user && (
+    user.user_metadata?.role === "ADMIN" ||
+    user.user_metadata?.role === "INSTRUCTOR" ||
+    ["pkg_1", "pkg_2", "pkg_3", "premium", "vip", "master"].includes(user.user_metadata?.packageId)
+  );
 
   // Notification and streak state
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -294,19 +299,28 @@ export default function UserAreaLayout({ children }: { children: React.ReactNode
           {/* Sidebar */}
           <aside className="md:col-span-1 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm h-fit space-y-6">
             <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
-              {user.user_metadata?.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="Avatar"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5C37] shadow-md"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D] text-white flex items-center justify-center text-3xl font-black border-2 border-white shadow-md">
-                  {initialsFallback}
-                </div>
-              )}
-              <h3 className="font-extrabold text-[#0d153a] mt-3 leading-tight text-base">{user.user_metadata?.name || "Người dùng"}</h3>
+              <div className={isPremium ? "premium-avatar-wrapper mb-3" : "relative mb-3"}>
+                {isPremium && <div className="premium-avatar-ring" style={{ inset: "-3px" }} />}
+                {user.user_metadata?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Avatar"
+                    className={`w-20 h-20 rounded-full object-cover shadow-md ${
+                      isPremium ? "premium-avatar-inner" : "border-2 border-[#3B5C37]"
+                    }`}
+                  />
+                ) : (
+                  <div className={`w-20 h-20 rounded-full text-white flex items-center justify-center text-3xl font-black shadow-md ${
+                    isPremium 
+                      ? "premium-avatar-inner bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D]" 
+                      : "border-2 border-white bg-gradient-to-tr from-[#3B5C37] to-[#B38F4D]"
+                  }`}>
+                    {initialsFallback}
+                  </div>
+                )}
+              </div>
+              <h3 className="font-extrabold text-[#0d153a] leading-tight text-base">{user.user_metadata?.name || "Người dùng"}</h3>
               <span className="text-[10px] font-black tracking-wider text-[#3B5C37] bg-[#fff4e6] px-2.5 py-1 rounded-full mt-1.5 uppercase">
                 {user.user_metadata?.role || "STUDENT"}
               </span>

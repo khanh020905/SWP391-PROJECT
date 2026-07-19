@@ -26,16 +26,20 @@ export async function GET(request: NextRequest) {
       throw new Error(error.message);
     }
 
-    // Fetch subscription details
-    const { data: subs } = await supabaseAdmin
-      .from("subscriptions")
-      .select("user_id, status, plan, expires_at");
-
+    // Fetch subscription details if table exists
     const subsMap = new Map();
-    if (subs) {
-      subs.forEach((s: any) => {
-        subsMap.set(s.user_id, s);
-      });
+    try {
+      const { data: subs, error: subErr } = await supabaseAdmin
+        .from("subscriptions")
+        .select("user_id, status, plan, expires_at");
+
+      if (!subErr && subs) {
+        subs.forEach((s: any) => {
+          subsMap.set(s.user_id, s);
+        });
+      }
+    } catch {
+      // Ignore if table doesn't exist
     }
 
     // Format danh sách người dùng từ Supabase Auth thành định dạng mong muốn
@@ -44,12 +48,26 @@ export async function GET(request: NextRequest) {
       const metadata = user.user_metadata || {};
       const isLocked = metadata.isLocked === true || !!user.banned_until;
       const sub = subsMap.get(user.id);
-      
+
       let planTier = null;
+      let subStatus = "inactive";
+      let expiresAt = null;
+
       if (sub && sub.plan) {
         if (sub.plan === "premium" || sub.plan === "pkg_1") planTier = "pkg_1";
         else if (sub.plan === "vip" || sub.plan === "pkg_2") planTier = "pkg_2";
         else if (sub.plan === "master" || sub.plan === "pkg_3") planTier = "pkg_3";
+        else planTier = sub.plan;
+        subStatus = sub.status || "active";
+        expiresAt = sub.expires_at;
+      } else if (metadata.packageId && metadata.packageId !== "none") {
+        planTier = metadata.packageId;
+        subStatus = "active";
+        expiresAt = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
+      } else if (metadata.role === "ADMIN") {
+        planTier = "pkg_3";
+        subStatus = "active";
+        expiresAt = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
       }
 
       return {
@@ -60,10 +78,10 @@ export async function GET(request: NextRequest) {
         isLocked: isLocked,
         createdAt: user.created_at,
         updatedAt: user.updated_at || user.created_at,
-        subscription: sub ? {
-          status: sub.status,
+        subscription: planTier ? {
+          status: subStatus,
           plan_tier: planTier,
-          expires_at: sub.expires_at
+          expires_at: expiresAt
         } : null
       };
     });

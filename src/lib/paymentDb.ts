@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface PaymentPackage {
   id: string;
@@ -43,13 +44,71 @@ const PACKAGES_FILE = path.join(process.cwd(), "src", "lib", "paymentPackages.js
 const INVOICES_FILE = path.join(process.cwd(), "src", "lib", "paymentInvoices.json");
 const SEPAY_FILE = path.join(process.cwd(), "src", "lib", "sepayTransactions.json");
 
-function ensureFileExists(filePath: string, defaultData: any): void {
-  const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+declare global {
+  var __paymentPackagesCache: PaymentPackage[] | undefined;
+  var __paymentInvoicesCache: PaymentInvoice[] | undefined;
+  var __sepayTransactionsCache: SepayTransaction[] | undefined;
+}
+
+function getTmpPath(filePath: string): string {
+  const filename = path.basename(filePath);
+  return path.join("/tmp", filename);
+}
+
+function safeReadFile<T>(filePath: string, defaultData: T): T {
+  // 1. Try reading from primary path (process.cwd/src/lib/...)
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf-8");
+      if (data && data.trim().length > 0) {
+        return JSON.parse(data);
+      }
+    }
+  } catch {
+    // Ignore error and fallback
   }
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
+
+  // 2. Try reading from /tmp path
+  try {
+    const tmpPath = getTmpPath(filePath);
+    if (fs.existsSync(tmpPath)) {
+      const data = fs.readFileSync(tmpPath, "utf-8");
+      if (data && data.trim().length > 0) {
+        return JSON.parse(data);
+      }
+    }
+  } catch {
+    // Ignore error and fallback
+  }
+
+  return defaultData;
+}
+
+function safeWriteFile(filePath: string, data: any): void {
+  const jsonStr = JSON.stringify(data, null, 2);
+
+  // 1. Try writing to primary path (process.cwd/src/lib/...)
+  try {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, jsonStr, "utf-8");
+    return;
+  } catch {
+    // Primary path failed (e.g. read-only file system on Vercel)
+  }
+
+  // 2. Try writing to /tmp directory
+  try {
+    const tmpPath = getTmpPath(filePath);
+    const dir = path.dirname(tmpPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(tmpPath, jsonStr, "utf-8");
+  } catch (err) {
+    console.warn(`[paymentDb] Unable to write file to /tmp:`, err);
   }
 }
 
@@ -105,20 +164,21 @@ const initialPackages: PaymentPackage[] = [
 ];
 
 const initialInvoices: PaymentInvoice[] = [];
-
 const initialSepayTransactions: SepayTransaction[] = [];
 
 // Packages APIs
 export async function getPackages(): Promise<PaymentPackage[]> {
-  ensureFileExists(PACKAGES_FILE, initialPackages);
-  const data = await fs.promises.readFile(PACKAGES_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__paymentPackagesCache) {
+    return globalThis.__paymentPackagesCache;
+  }
+  const packages = safeReadFile(PACKAGES_FILE, initialPackages);
+  globalThis.__paymentPackagesCache = packages;
+  return packages;
 }
 
 export async function savePackages(packages: PaymentPackage[]): Promise<void> {
-  const dir = path.dirname(PACKAGES_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(PACKAGES_FILE, JSON.stringify(packages, null, 2), "utf-8");
+  globalThis.__paymentPackagesCache = packages;
+  safeWriteFile(PACKAGES_FILE, packages);
 }
 
 export async function createPackage(pkgData: Omit<PaymentPackage, "id" | "createdAt">): Promise<PaymentPackage> {
@@ -156,15 +216,17 @@ export async function deletePackage(id: string): Promise<boolean> {
 
 // Invoices APIs
 export async function getInvoices(): Promise<PaymentInvoice[]> {
-  ensureFileExists(INVOICES_FILE, initialInvoices);
-  const data = await fs.promises.readFile(INVOICES_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__paymentInvoicesCache) {
+    return globalThis.__paymentInvoicesCache;
+  }
+  const invoices = safeReadFile(INVOICES_FILE, initialInvoices);
+  globalThis.__paymentInvoicesCache = invoices;
+  return invoices;
 }
 
 export async function saveInvoices(invoices: PaymentInvoice[]): Promise<void> {
-  const dir = path.dirname(INVOICES_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(INVOICES_FILE, JSON.stringify(invoices, null, 2), "utf-8");
+  globalThis.__paymentInvoicesCache = invoices;
+  safeWriteFile(INVOICES_FILE, invoices);
 }
 
 export async function createInvoice(invoiceData: Omit<PaymentInvoice, "id" | "status" | "createdAt" | "paidAt" | "paymentMethod" | "sepayTransactionId">): Promise<PaymentInvoice> {
@@ -201,15 +263,17 @@ export async function updateInvoiceStatus(id: string, status: PaymentInvoice["st
 
 // Sepay Transactions APIs
 export async function getSepayTransactions(): Promise<SepayTransaction[]> {
-  ensureFileExists(SEPAY_FILE, initialSepayTransactions);
-  const data = await fs.promises.readFile(SEPAY_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__sepayTransactionsCache) {
+    return globalThis.__sepayTransactionsCache;
+  }
+  const transactions = safeReadFile(SEPAY_FILE, initialSepayTransactions);
+  globalThis.__sepayTransactionsCache = transactions;
+  return transactions;
 }
 
 export async function saveSepayTransactions(transactions: SepayTransaction[]): Promise<void> {
-  const dir = path.dirname(SEPAY_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(SEPAY_FILE, JSON.stringify(transactions, null, 2), "utf-8");
+  globalThis.__sepayTransactionsCache = transactions;
+  safeWriteFile(SEPAY_FILE, transactions);
 }
 
 export async function createSepayTransaction(txData: Omit<SepayTransaction, "status" | "matchedInvoiceId">): Promise<SepayTransaction> {
@@ -246,4 +310,90 @@ export async function matchTransactionAndInvoice(txId: string, invoiceId: string
   await saveInvoices(invoices);
   await saveSepayTransactions(transactions);
   return true;
+}
+
+export async function fulfillPaidInvoice(
+  invoice: PaymentInvoice,
+  paymentMethod: "SEPAY" | "MANUAL_BANK" = "SEPAY",
+  sepayTransactionId?: string
+): Promise<PaymentInvoice> {
+  const invoices = await getInvoices();
+  const idx = invoices.findIndex(i => i.id === invoice.id);
+  const paidAt = new Date().toISOString();
+
+  const updatedInvoice: PaymentInvoice = {
+    ...invoice,
+    status: "PAID",
+    paidAt: invoice.paidAt || paidAt,
+    paymentMethod: paymentMethod || invoice.paymentMethod || "SEPAY",
+    sepayTransactionId: sepayTransactionId || invoice.sepayTransactionId || null
+  };
+
+  if (idx !== -1) {
+    invoices[idx] = updatedInvoice;
+  } else {
+    invoices.unshift(updatedInvoice);
+  }
+  await saveInvoices(invoices);
+
+  // Sync Supabase Auth user_metadata, profiles table, and subscriptions table
+  try {
+    const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (!listErr && users) {
+      const matchUser = users.find(u =>
+        (invoice.userId && u.id === invoice.userId) ||
+        (u.email?.toLowerCase() === invoice.userEmail?.toLowerCase())
+      );
+
+      if (matchUser) {
+        const currentMetadata = matchUser.user_metadata || {};
+        const newRole = currentMetadata.role === "ADMIN" ? "ADMIN" : "STUDENT";
+
+        await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
+          user_metadata: {
+            ...currentMetadata,
+            role: newRole,
+            packageId: invoice.packageId,
+            packageName: invoice.packageName,
+            pendingInvoice: null,
+            paidInvoice: updatedInvoice,
+            invoices: [
+              updatedInvoice,
+              ...(currentMetadata.invoices || []).filter((i: any) => i.id !== invoice.id)
+            ]
+          }
+        });
+
+        // Sync profiles table
+        try {
+          await supabaseAdmin.from("profiles").upsert({
+            id: matchUser.id,
+            role: newRole
+          }, { onConflict: "id" });
+        } catch (pErr: any) {
+          console.warn("⚠️ Could not sync profiles table:", pErr?.message);
+        }
+
+        // Sync subscriptions table
+        try {
+          const durationDays = invoice.packageId === "pkg_1" ? 90 : invoice.packageId === "pkg_2" ? 180 : 365;
+          const expiresAt = new Date(Date.now() + durationDays * 24 * 3600 * 1000).toISOString();
+          const planName = invoice.packageId === "pkg_1" ? "premium" : invoice.packageId === "pkg_2" ? "vip" : "master";
+
+          await supabaseAdmin.from("subscriptions").upsert({
+            user_id: matchUser.id,
+            plan: planName,
+            status: "active",
+            expires_at: expiresAt
+          }, { onConflict: "user_id" });
+        } catch (subErr: any) {
+          console.warn("⚠️ Could not sync subscriptions table:", subErr?.message);
+        }
+      }
+    }
+  } catch (err: any) {
+    console.error("⚠️ Error in fulfillPaidInvoice Supabase sync:", err?.message);
+  }
+
+  return updatedInvoice;
 }
