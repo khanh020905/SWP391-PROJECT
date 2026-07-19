@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { PDFParse } from "pdf-parse";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import zlib from "zlib";
 import { v2 as cloudinary } from "cloudinary";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 async function uploadImageBufferToCloudinary(buffer: Buffer, mimeType: string = "image/png"): Promise<string | null> {
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
     try {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
       const uploadResult = await new Promise<any>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: "swp391_exams" },
@@ -602,10 +600,16 @@ export async function POST(req: Request) {
 
     if (isPdf) {
       try {
-        const parser = new PDFParse({ data: new Uint8Array(arrayBuffer) });
-        const textResult = await parser.getText();
-        rawExtractedText = textResult.text;
-        await parser.destroy();
+        const pdfModule = require("pdf-parse");
+        if (typeof pdfModule === "function") {
+          const textResult = await pdfModule(Buffer.from(arrayBuffer));
+          rawExtractedText = textResult.text || "";
+        } else if (pdfModule?.PDFParse) {
+          const parser = new pdfModule.PDFParse({ data: new Uint8Array(arrayBuffer) });
+          const textResult = await parser.getText();
+          rawExtractedText = textResult.text || "";
+          if (parser.destroy) await parser.destroy();
+        }
       } catch (pdfErr) {
         console.error("PDFParse error:", pdfErr);
       }
