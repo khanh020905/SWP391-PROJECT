@@ -883,95 +883,30 @@ function SpeakingTestRoomContent() {
     }
   };
 
-  // Client-Side AI Grader and Scoring logic
-  const finishAndSubmitExam = () => {
+  const finishAndSubmitExam = async () => {
     setCurrentStep("submitting");
     if (timerRef.current) clearInterval(timerRef.current);
     const submittedAnswers = answersRef.current;
 
-    setTimeout(() => {
-      // IELTS vocabulary & grammar dictionaries for advanced grading
-      const advancedVocabulary = [
-        "exceptional", "significantly", "detrimental", "crucial", "indispensable", 
-        "ubiquitous", "substantial", "furthermore", "consequently", "nevertheless", 
-        "perspective", "advocate", "implementation", "innovative", "revolutionary", 
-        "facilitate", "paramount", "myriad", "foster", "mitigate"
-      ];
-
-      const grammaticalConnectors = [
-        "whereas", "although", "consequently", "specifically", "on the contrary", 
-        "nevertheless", "furthermore", "in addition", "to illustrate", "as a result"
-      ];
-
-      // Calculate component scores based on the collected transcripts
-      let totalWords = 0;
-      let vocabMatches = 0;
-      let grammarMatches = 0;
-      let passiveVoiceCount = 0;
-
-      submittedAnswers.forEach(ans => {
-        const text = ans.transcript.toLowerCase();
-        totalWords += text.split(/\s+/).length;
-
-        // Check vocabulary matches
-        advancedVocabulary.forEach(v => {
-          if (text.includes(v)) vocabMatches++;
-        });
-
-        // Check complex connectors
-        grammaticalConnectors.forEach(c => {
-          if (text.includes(c)) grammarMatches++;
-        });
-
-        // Check passive voice structures (be + past participle)
-        if (/(is|are|was|were|be|been)\s+\w+ed/.test(text)) {
-          passiveVoiceCount++;
-        }
+    try {
+      const res = await fetch("/api/speaking/grade", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          answers: submittedAnswers,
+          mode,
+          topic: topicKey
+        })
       });
 
-      // Grade Fluency & Coherence (FC)
-      // Criteria: words count per answer & logical transitions
-      let fcScore = 6.0;
-      if (totalWords > 400) fcScore = 7.5;
-      else if (totalWords > 250) fcScore = 7.0;
-      else if (totalWords > 150) fcScore = 6.5;
-      else if (totalWords > 80) fcScore = 5.5;
-      else fcScore = 5.0;
+      if (!res.ok) {
+        throw new Error("Không thể chấm điểm qua Gemini API");
+      }
 
-      if (grammarMatches >= 4) fcScore += 0.5;
-
-      // Grade Lexical Resource (LR)
-      // Criteria: advanced vocabulary count
-      let lrScore = 5.5;
-      if (vocabMatches >= 5) lrScore = 8.0;
-      else if (vocabMatches >= 3) lrScore = 7.5;
-      else if (vocabMatches >= 2) lrScore = 7.0;
-      else if (vocabMatches >= 1) lrScore = 6.5;
-      else if (totalWords > 100) lrScore = 6.0;
-
-      // Grade Grammatical Range & Accuracy (GRA)
-      // Criteria: passive structures & complexity
-      let graScore = 6.0;
-      if (passiveVoiceCount >= 3 && grammarMatches >= 3) graScore = 7.5;
-      else if (passiveVoiceCount >= 1 && grammarMatches >= 2) graScore = 7.0;
-      else if (grammarMatches >= 1) graScore = 6.5;
-
-      // Grade Pronunciation (P)
-      // Simulating a realistic score
-      const pScore = parseFloat((6.5 + Math.random()).toFixed(1));
-
-      // Calculate overall band score using dynamic weights if configured
-      const fluencyWeight = settings?.bandScore?.fluencyWeight ?? 0.25;
-      const lexicalWeight = settings?.bandScore?.lexicalWeight ?? 0.25;
-      const grammarWeight = settings?.bandScore?.grammarWeight ?? 0.25;
-      const pronunciationWeight = settings?.bandScore?.pronunciationWeight ?? 0.25;
-
-      const exactAverage = 
-        (fcScore * fluencyWeight) + 
-        (lrScore * lexicalWeight) + 
-        (graScore * grammarWeight) + 
-        (pScore * pronunciationWeight);
-      const roundedBand = Math.round(exactAverage * 2) / 2;
+      const data = await res.json();
+      const grade = data.grade;
 
       // Generate a mock ID
       const attemptId = "speaking_" + Math.random().toString(36).substring(2, 9);
@@ -981,17 +916,18 @@ function SpeakingTestRoomContent() {
         timestamp: new Date().toISOString(),
         mode,
         topic: topicKey,
-        band: roundedBand.toFixed(1),
+        band: parseFloat(grade.overallBand || 6.0).toFixed(1),
         scores: {
-          fc: fcScore.toFixed(1),
-          lr: lrScore.toFixed(1),
-          gra: graScore.toFixed(1),
-          p: pScore.toFixed(1)
+          fc: parseFloat(grade.fc || 6.0).toFixed(1),
+          lr: parseFloat(grade.lr || 6.0).toFixed(1),
+          gra: parseFloat(grade.gra || 6.0).toFixed(1),
+          p: parseFloat(grade.p || 6.0).toFixed(1)
         },
+        feedback: grade,
         answers: submittedAnswers
       };
 
-       // Read history, push new one, write back
+      // Read history, push new one, write back
       const history = localStorage.getItem("ielts-speaking-attempts");
       const list = history ? JSON.parse(history) : [];
       list.unshift(newAttempt);
@@ -1007,7 +943,7 @@ function SpeakingTestRoomContent() {
               "Authorization": `Bearer ${session.access_token}`
             },
             body: JSON.stringify({
-              activity: `Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: ${currentExam.title} (Đạt điểm AI: ${roundedBand.toFixed(1)})`
+              activity: `Hoàn thành bài Luyện nói IELTS Speaking - Chủ đề: ${currentExam.title} (Đạt điểm AI: ${parseFloat(grade.overallBand || 6.0).toFixed(1)})`
             })
           }).catch(e => console.error("Không thể ghi nhận study log:", e));
         }
@@ -1021,7 +957,32 @@ function SpeakingTestRoomContent() {
       const taskId = sp?.get("task_id");
       const queryAppend = source && taskId ? `&source=${source}&task_id=${taskId}` : "";
       router.push(`/speaking/feedback?id=${attemptId}${queryAppend}`);
-    }, 2500);
+    } catch (e: any) {
+      console.error("Speaking AI grading failed, falling back to rule engine:", e);
+      // Fallback local scoring in case API fails
+      const totalWords = submittedAnswers.reduce((sum, ans) => sum + ans.transcript.split(/\s+/).length, 0);
+      const roundedBand = totalWords > 150 ? 6.5 : 5.5;
+      const attemptId = "speaking_" + Math.random().toString(36).substring(2, 9);
+      const fallbackAttempt = {
+        id: attemptId,
+        timestamp: new Date().toISOString(),
+        mode,
+        topic: topicKey,
+        band: roundedBand.toFixed(1),
+        scores: { fc: "6.0", lr: "6.0", gra: "6.0", p: "6.0" },
+        answers: submittedAnswers
+      };
+      const history = localStorage.getItem("ielts-speaking-attempts");
+      const list = history ? JSON.parse(history) : [];
+      list.unshift(fallbackAttempt);
+      localStorage.setItem("ielts-speaking-attempts", JSON.stringify(list));
+
+      const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const source = sp?.get("source");
+      const taskId = sp?.get("task_id");
+      const queryAppend = source && taskId ? `&source=${source}&task_id=${taskId}` : "";
+      router.push(`/speaking/feedback?id=${attemptId}${queryAppend}`);
+    }
   };
 
   if (isLoadingExam || !currentExam) {

@@ -193,6 +193,9 @@ function SpeakingFeedbackContent() {
   };
 
   const getBandFeedback = (bandScore: number) => {
+    if (attempt?.feedback?.feedbackVi) {
+      return attempt.feedback.feedbackVi;
+    }
     if (!settings || !settings.bandScore) {
       // Fallback default feedback
       if (bandScore <= 4.5) return "Bạn đang ở cấp độ cơ bản. Hãy tập trung cải thiện phát âm các từ đơn lẻ và mở rộng vốn từ vựng thông dụng cơ bản trước.";
@@ -404,9 +407,9 @@ function SpeakingFeedbackContent() {
               vietnamese: "Độ trôi chảy & Mạch lạc",
               color: "text-blue-500", 
               bg: "bg-blue-500/10",
-              desc: parseFloat(attempt.scores.fc) >= 7.0 
+              desc: attempt.feedback?.fcComment || (parseFloat(attempt.scores.fc) >= 7.0 
                 ? "Nói mạch lạc, sử dụng liên từ tự nhiên, ít ngập ngừng." 
-                : "Nói tương đối rõ ràng nhưng đôi chỗ còn dừng lâu hoặc ngập ngừng tìm từ."
+                : "Nói tương đối rõ ràng nhưng đôi chỗ còn dừng lâu hoặc ngập ngừng tìm từ.")
             },
             { 
               score: attempt.scores.lr, 
@@ -414,9 +417,9 @@ function SpeakingFeedbackContent() {
               vietnamese: "Vốn từ vựng",
               color: "text-purple-500", 
               bg: "bg-purple-500/10",
-              desc: parseFloat(attempt.scores.lr) >= 7.0 
+              desc: attempt.feedback?.lrComment || (parseFloat(attempt.scores.lr) >= 7.0 
                 ? "Sử dụng từ vựng đa dạng, có sử dụng collocation và từ vựng nâng cao." 
-                : "Sử dụng từ phổ thông thường xuyên. Cần nâng cấp các từ đồng nghĩa cao cấp."
+                : "Sử dụng từ phổ thông thường xuyên. Cần nâng cấp các từ đồng nghĩa cao cấp.")
             },
             { 
               score: attempt.scores.gra, 
@@ -424,9 +427,9 @@ function SpeakingFeedbackContent() {
               vietnamese: "Ngữ pháp phong phú",
               color: "text-amber-500", 
               bg: "bg-amber-500/10",
-              desc: parseFloat(attempt.scores.gra) >= 7.0 
+              desc: attempt.feedback?.graComment || (parseFloat(attempt.scores.gra) >= 7.0 
                 ? "Kết hợp tốt câu đơn và câu phức (relative clauses, passives, conditionals)." 
-                : "Cấu trúc câu đa số ở câu đơn giản. Xuất hiện một số lỗi chia động từ cơ bản."
+                : "Cấu trúc câu đa số ở câu đơn giản. Xuất hiện một số lỗi chia động từ cơ bản.")
             },
             { 
               score: attempt.scores.p, 
@@ -434,9 +437,9 @@ function SpeakingFeedbackContent() {
               vietnamese: "Phát âm & Ngữ điệu",
               color: "text-emerald-500", 
               bg: "bg-emerald-500/10",
-              desc: parseFloat(attempt.scores.p) >= 7.0 
+              desc: attempt.feedback?.pComment || (parseFloat(attempt.scores.p) >= 7.0 
                 ? "Phát âm các phụ âm cuối rõ ràng, ngữ điệu lên xuống tự nhiên." 
-                : "Phát âm rõ ràng giúp hiểu được ý chính, tuy nhiên ngữ điệu hơi đều và bằng phẳng."
+                : "Phát âm rõ ràng giúp hiểu được ý chính, tuy nhiên ngữ điệu hơi đều và bằng phẳng.")
             }
           ].map((card) => (
             <div key={card.label} className="bg-white rounded-2xl p-5 border border-[#e8ebf3] shadow-[0_4px_24px_rgba(20,28,60,0.02)] flex flex-col justify-between">
