@@ -11,8 +11,12 @@ export async function fetchDiagnosticQuestions() {
       .not("audio_url", "is", null);
 
     if (exams && exams.length > 0) {
-      // Pick a random listening exam
-      const randomExam = exams[Math.floor(Math.random() * exams.length)];
+      // Filter out exams that do not have their corresponding JSON files (e.g. Cambridge 7 Test 1)
+      const validExams = exams.filter(e => !(e.cambridge_no === 7 && e.test_no === 1));
+      
+      if (validExams.length > 0) {
+        // Pick a random listening exam from validExams
+        const randomExam = validExams[Math.floor(Math.random() * validExams.length)];
       
       // Load static JSON file to extract rich question text
       let localTestData: any = null;
@@ -143,6 +147,7 @@ export async function fetchDiagnosticQuestions() {
         });
       }
     }
+  }
   } catch (err) {
     console.error("Listening diagnostic Cambridge query failed:", err);
   }
