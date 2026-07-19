@@ -57,55 +57,159 @@ export async function fetchDiagnosticQuestions() {
 
   let reading: any[] = [];
   try {
-    const { data: passagesList } = await supabase
-      .from("reading_passages")
-      .select("*")
-      .eq("is_visible", true);
+    // 1. Fetch reading exams from exams table
+    const { data: readingExams } = await supabase
+      .from("exams")
+      .select("id, title")
+      .eq("category", "reading");
+
+    let loadedFromExams = false;
+
+    if (readingExams && readingExams.length > 0) {
+      // Pick a random reading exam with at least 2 sections (try up to 10 times)
+      let randomExam = null;
+      let dbSections: any[] = [];
       
-    const validPassages = passagesList ? passagesList.filter(p => p.questions && p.questions.length > 0) : [];
-    if (validPassages.length >= 2) {
-      const selected = validPassages.sort(() => 0.5 - Math.random()).slice(0, 2);
-      
-      // Passage 1: True/False/Not Given
-      const p1 = selected[0];
-      const p1TfngQs = (p1.questions || []).filter((q: any) => q.type === "true_false_not_given" || q.type === "tfng");
-      const p1Questions = p1TfngQs.length >= 3 ? p1TfngQs.slice(0, 3) : (p1.questions || []).slice(0, 3);
-      
-      reading.push({
-        id: "r1",
-        skill: "reading",
-        content: {
-          title: p1.title,
-          content_html: p1.content_html
-        },
-        extra_data: {
-          type: "true_false_not_given",
-          items: p1Questions.map((q: any) => ({
-            statement: q.statement || q.text || q.prompt || "",
-            correctAnswer: q.correct_answer || ""
-          }))
+      for (let attempt = 0; attempt < 10; attempt++) {
+        randomExam = readingExams[Math.floor(Math.random() * readingExams.length)];
+        const { data, error } = await supabase
+          .from("exam_sections")
+          .select("id, section_no, title, content")
+          .eq("exam_id", randomExam.id)
+          .order("section_no", { ascending: true });
+        
+        if (!error && data && data.length >= 2) {
+          dbSections = data;
+          break;
         }
-      });
-      
-      // Passage 2: Multiple Choice
-      const p2 = selected[1];
-      const p2McqQs = (p2.questions || []).filter((q: any) => q.type === "multiple_choice" || q.type === "mcq");
-      const p2Question = p2McqQs.length > 0 ? p2McqQs[0] : (p2.questions || [])[0];
-      
-      reading.push({
-        id: "r2",
-        skill: "reading",
-        content: {
-          title: p2.title,
-          content_html: p2.content_html
-        },
-        extra_data: {
-          type: "multiple_choice",
-          questionText: p2Question ? (p2Question.statement || p2Question.text || p2Question.prompt || "") : "",
-          options: p2Question ? (p2Question.options || []) : [],
-          correctAnswer: p2Question ? (p2Question.correct_answer || p2Question.correctAnswer || "") : ""
+      }
+
+      if (dbSections && dbSections.length >= 2) {
+        const s1 = dbSections[0];
+        const s2 = dbSections[1];
+
+        // Fetch questions for Section 1
+        const { data: qList1 } = await supabase
+          .from("questions")
+          .select("*")
+          .eq("exam_id", randomExam.id)
+          .eq("section", s1.section_no)
+          .order("order_index", { ascending: true });
+
+        // Fetch questions for Section 2
+        const { data: qList2 } = await supabase
+          .from("questions")
+          .select("*")
+          .eq("exam_id", randomExam.id)
+          .eq("section", s2.section_no)
+          .order("order_index", { ascending: true });
+
+        if (qList1 && qList1.length > 0 && qList2 && qList2.length > 0) {
+          // Passage 1: TFNG
+          const tfngQs = qList1.filter(
+            (q: any) =>
+              q.question_type === "true_false_not_given" ||
+              q.question_type === "tfng"
+          );
+          const selectedTfngQs = tfngQs.length >= 3 ? tfngQs.slice(0, 3) : qList1.slice(0, 3);
+
+          reading.push({
+            id: "r1",
+            skill: "reading",
+            content: {
+              title: s1.title || `Passage 1`,
+              content_html: s1.content || ""
+            },
+            extra_data: {
+              type: "true_false_not_given",
+              items: selectedTfngQs.map((q: any) => ({
+                statement: q.text || "",
+                correctAnswer: q.correct_answer || ""
+              }))
+            }
+          });
+
+          // Passage 2: MCQ
+          const mcqQs = qList2.filter(
+            (q: any) =>
+              q.question_type === "multiple_choice" ||
+              q.question_type === "mcq"
+          );
+          const selectedMcqQ = mcqQs.length > 0 ? mcqQs[0] : qList2[0];
+          const options = Array.isArray(selectedMcqQ.options) ? selectedMcqQ.options : [];
+
+          reading.push({
+            id: "r2",
+            skill: "reading",
+            content: {
+              title: s2.title || `Passage 2`,
+              content_html: s2.content || ""
+            },
+            extra_data: {
+              type: "multiple_choice",
+              questionText: selectedMcqQ.text || "",
+              options: options,
+              correctAnswer: selectedMcqQ.correct_answer || ""
+            }
+          });
+
+          loadedFromExams = true;
         }
-      });
+      }
+    }
+
+    // Fallback to reading_passages table if we couldn't load from exams/exam_sections
+    if (!loadedFromExams) {
+      const { data: passagesList } = await supabase
+        .from("reading_passages")
+        .select("*")
+        .eq("is_visible", true);
+        
+      const validPassages = passagesList ? passagesList.filter(p => p.questions && p.questions.length > 0) : [];
+      if (validPassages.length >= 2) {
+        const selected = validPassages.sort(() => 0.5 - Math.random()).slice(0, 2);
+        
+        // Passage 1: True/False/Not Given
+        const p1 = selected[0];
+        const p1TfngQs = (p1.questions || []).filter((q: any) => q.type === "true_false_not_given" || q.type === "tfng");
+        const p1Questions = p1TfngQs.length >= 3 ? p1TfngQs.slice(0, 3) : (p1.questions || []).slice(0, 3);
+        
+        reading.push({
+          id: "r1",
+          skill: "reading",
+          content: {
+            title: p1.title,
+            content_html: p1.content_html
+          },
+          extra_data: {
+            type: "true_false_not_given",
+            items: p1Questions.map((q: any) => ({
+              statement: q.statement || q.text || q.prompt || "",
+              correctAnswer: q.correct_answer || ""
+            }))
+          }
+        });
+        
+        // Passage 2: Multiple Choice
+        const p2 = selected[1];
+        const p2McqQs = (p2.questions || []).filter((q: any) => q.type === "multiple_choice" || q.type === "mcq");
+        const p2Question = p2McqQs.length > 0 ? p2McqQs[0] : (p2.questions || [])[0];
+        
+        reading.push({
+          id: "r2",
+          skill: "reading",
+          content: {
+            title: p2.title,
+            content_html: p2.content_html
+          },
+          extra_data: {
+            type: "multiple_choice",
+            questionText: p2Question ? (p2Question.statement || p2Question.text || p2Question.prompt || "") : "",
+            options: p2Question ? (p2Question.options || []) : [],
+            correctAnswer: p2Question ? (p2Question.correct_answer || p2Question.correctAnswer || "") : ""
+          }
+        });
+      }
     }
   } catch (err) {
     console.error("Reading diagnostic random query failed:", err);
