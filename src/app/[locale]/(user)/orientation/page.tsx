@@ -484,11 +484,8 @@ export default function OrientationPage() {
       {questions.listening.map((q: any, idx: number) => (
         <div key={q.id} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-3">
           <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
               Audio {idx + 1} — {q.audioDescription}
-            </p>
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic whitespace-pre-line">
-              {q.transcript}
             </p>
           </div>
 
@@ -722,12 +719,9 @@ export default function OrientationPage() {
         {questions.speaking[0]?.questions?.map((q: string, idx: number) => (
           <div key={idx} className="space-y-2 border-b border-slate-50 pb-3">
             <label className="text-xs font-bold text-slate-700 block">Câu {idx + 1}: {q}</label>
-            <textarea
-              rows={2}
-              placeholder="Nhập câu trả lời bằng tiếng Anh..."
-              value={answers[`sp1_${idx}`] || ""}
-              onChange={e => handleAnswerChange(`sp1_${idx}`, e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500"
+            <VoiceRecorder
+              onTranscription={(txt) => handleAnswerChange(`sp1_${idx}`, txt)}
+              initialValue={answers[`sp1_${idx}`] || ""}
             />
           </div>
         ))}
