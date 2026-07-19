@@ -18,12 +18,26 @@ export async function fetchDiagnosticQuestions() {
       let localTestData: any = null;
       if (randomExam.cambridge_no && randomExam.test_no) {
         try {
-          const fs = require("fs");
-          const path = require("path");
           const resolvedTestId = `cam${randomExam.cambridge_no}-test-${randomExam.test_no}`;
-          const filePath = path.join(process.cwd(), "public", "data", "cam-tests", `${resolvedTestId}.json`);
-          if (fs.existsSync(filePath)) {
-            localTestData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+          const isBrowser = typeof window !== "undefined";
+          
+          if (isBrowser) {
+            const res = await fetch(`/data/cam-tests/${resolvedTestId}.json`);
+            if (res.ok) {
+              localTestData = await res.json();
+            }
+          } else {
+            try {
+              const req = eval('require');
+              const fs = req("fs");
+              const path = req("path");
+              const filePath = path.join(process.cwd(), "public", "data", "cam-tests", `${resolvedTestId}.json`);
+              if (fs.existsSync(filePath)) {
+                localTestData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+              }
+            } catch (err) {
+              console.error("Server-side JSON read failed:", err);
+            }
           }
         } catch (e) {
           console.error("Failed to load local listening test JSON:", e);
