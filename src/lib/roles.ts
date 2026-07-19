@@ -51,14 +51,23 @@ export async function requireRole(request: NextRequest, allowedRoles: UserRole[]
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) return null;
 
-    // Check profiles.role as single source of truth
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    let role = (user.user_metadata?.role as UserRole);
 
-    const role = (profile?.role as UserRole) || "STUDENT"; // fallback to STUDENT
+    try {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.role) {
+        role = profile.role as UserRole;
+      }
+    } catch {
+      // Ignore DB table fetch error if profiles table is missing
+    }
+
+    if (!role) role = "STUDENT";
 
     if (allowedRoles.includes(role)) {
       return { user, role };

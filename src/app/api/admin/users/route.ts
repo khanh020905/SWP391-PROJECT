@@ -26,16 +26,20 @@ export async function GET(request: NextRequest) {
       throw new Error(error.message);
     }
 
-    // Fetch subscription details
-    const { data: subs } = await supabaseAdmin
-      .from("subscriptions")
-      .select("user_id, status, plan, expires_at");
-
+    // Fetch subscription details if table exists
     const subsMap = new Map();
-    if (subs) {
-      subs.forEach((s: any) => {
-        subsMap.set(s.user_id, s);
-      });
+    try {
+      const { data: subs, error: subErr } = await supabaseAdmin
+        .from("subscriptions")
+        .select("user_id, status, plan, expires_at");
+
+      if (!subErr && subs) {
+        subs.forEach((s: any) => {
+          subsMap.set(s.user_id, s);
+        });
+      }
+    } catch {
+      // Ignore if table doesn't exist
     }
 
     // Format danh sách người dùng từ Supabase Auth thành định dạng mong muốn
