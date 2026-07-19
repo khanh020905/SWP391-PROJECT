@@ -1818,9 +1818,16 @@ export default function ScoutTemplate(props: any) {
                           {/* Status badges */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {isCompleted ? (
-                              <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#10B981', background: 'rgba(16,185,129,0.08)', padding: '4px 10px', borderRadius: '20px' }}>
-                                Hoàn thành
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {task.score !== null && task.score !== undefined && (
+                                  <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#B38F4D', background: 'rgba(179,143,77,0.08)', padding: '4px 10px', borderRadius: '20px' }}>
+                                    Band {parseFloat(String(task.score)).toFixed(1)}
+                                  </span>
+                                )}
+                                <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#10B981', background: 'rgba(16,185,129,0.08)', padding: '4px 10px', borderRadius: '20px' }}>
+                                  Hoàn thành
+                                </span>
+                              </div>
                             ) : isUnlocked ? (
                               <span style={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', color: '#5D6B2D', background: 'rgba(93,107,45,0.08)', padding: '4px 10px', borderRadius: '20px', animation: 'tidHalo 2s infinite' }}>
                                 Đang mở
