@@ -721,8 +721,9 @@ function SpeakingTestRoomContent() {
             err instanceof Error ? err.message : "Không thể nhận diện giọng nói.";
           setExamError(message);
           setTimeout(() => setExamError(""), 8000);
-          liveTranscriptRef.current = "";
-          setLiveTranscript("");
+          liveTranscriptRef.current = `[Lỗi nhận diện: ${message}]`;
+          setLiveTranscript(`[Lỗi nhận diện: ${message}]`);
+          transcript = `[Lỗi nhận diện: ${message}]`;
         } finally {
           setIsTranscribing(false);
           saveAnswerFromRecording(audioUrl, transcript);
