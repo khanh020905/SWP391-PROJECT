@@ -32,7 +32,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Answers must be a valid array." }, { status: 400 });
     }
 
-    const fullTranscriptText = answers.map((ans: any) => `[${ans.part} - ${ans.questionText}]: ${ans.transcript}`).join("\n\n");
+    const NO_SPEECH_MESSAGE = "(Không phát hiện lời nói. Bạn hãy kiểm tra lại micro và nói rõ hơn nhé.)";
+    const validAnswers = answers.filter((ans: any) => {
+      const text = (ans.transcript || "").trim();
+      return text && text !== NO_SPEECH_MESSAGE && text.split(/\s+/).length >= 3;
+    });
+
+    if (validAnswers.length === 0) {
+      return NextResponse.json({
+        error: "Không tìm thấy câu trả lời bằng giọng nói hợp lệ nào để chấm điểm. Vui lòng kiểm tra lại thiết bị thu âm (micro)."
+      }, { status: 400 });
+    }
+
+    const fullTranscriptText = validAnswers.map((ans: any) => `[${ans.part} - ${ans.questionText}]: ${ans.transcript}`).join("\n\n");
 
     const prompt = `
       You are an expert IELTS Speaking Examiner. Grade the following student speaking response transcripts for an IELTS speaking test (Mode: ${mode || "mock"}, Topic: ${topic || "general"}).

@@ -882,11 +882,23 @@ function SpeakingTestRoomContent() {
       }
     }
   };
-
   const finishAndSubmitExam = async () => {
+    const submittedAnswers = answersRef.current;
+
+    const validAnswers = submittedAnswers.filter((ans) => {
+      const text = (ans.transcript || "").trim();
+      return text && text !== NO_SPEECH_MESSAGE && text.split(/\s+/).length >= 3;
+    });
+
+    if (validAnswers.length === 0) {
+      setExamError("Không phát hiện câu trả lời bằng giọng nói hợp lệ nào để chấm điểm. Vui lòng kiểm tra lại thiết bị thu âm (micro) và thực hiện lại bài thi.");
+      setCurrentStep("part1");
+      setQuestionIdx(0);
+      return;
+    }
+
     setCurrentStep("submitting");
     if (timerRef.current) clearInterval(timerRef.current);
-    const submittedAnswers = answersRef.current;
 
     try {
       const res = await fetch("/api/speaking/grade", {
