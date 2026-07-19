@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface PaymentPackage {
   id: string;
@@ -309,4 +310,90 @@ export async function matchTransactionAndInvoice(txId: string, invoiceId: string
   await saveInvoices(invoices);
   await saveSepayTransactions(transactions);
   return true;
+}
+
+export async function fulfillPaidInvoice(
+  invoice: PaymentInvoice,
+  paymentMethod: "SEPAY" | "MANUAL_BANK" = "SEPAY",
+  sepayTransactionId?: string
+): Promise<PaymentInvoice> {
+  const invoices = await getInvoices();
+  const idx = invoices.findIndex(i => i.id === invoice.id);
+  const paidAt = new Date().toISOString();
+
+  const updatedInvoice: PaymentInvoice = {
+    ...invoice,
+    status: "PAID",
+    paidAt: invoice.paidAt || paidAt,
+    paymentMethod: paymentMethod || invoice.paymentMethod || "SEPAY",
+    sepayTransactionId: sepayTransactionId || invoice.sepayTransactionId || null
+  };
+
+  if (idx !== -1) {
+    invoices[idx] = updatedInvoice;
+  } else {
+    invoices.unshift(updatedInvoice);
+  }
+  await saveInvoices(invoices);
+
+  // Sync Supabase Auth user_metadata, profiles table, and subscriptions table
+  try {
+    const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (!listErr && users) {
+      const matchUser = users.find(u =>
+        (invoice.userId && u.id === invoice.userId) ||
+        (u.email?.toLowerCase() === invoice.userEmail?.toLowerCase())
+      );
+
+      if (matchUser) {
+        const currentMetadata = matchUser.user_metadata || {};
+        const newRole = currentMetadata.role === "ADMIN" ? "ADMIN" : "STUDENT";
+
+        await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
+          user_metadata: {
+            ...currentMetadata,
+            role: newRole,
+            packageId: invoice.packageId,
+            packageName: invoice.packageName,
+            pendingInvoice: null,
+            paidInvoice: updatedInvoice,
+            invoices: [
+              updatedInvoice,
+              ...(currentMetadata.invoices || []).filter((i: any) => i.id !== invoice.id)
+            ]
+          }
+        });
+
+        // Sync profiles table
+        try {
+          await supabaseAdmin.from("profiles").upsert({
+            id: matchUser.id,
+            role: newRole
+          }, { onConflict: "id" });
+        } catch (pErr: any) {
+          console.warn("⚠️ Could not sync profiles table:", pErr?.message);
+        }
+
+        // Sync subscriptions table
+        try {
+          const durationDays = invoice.packageId === "pkg_1" ? 90 : invoice.packageId === "pkg_2" ? 180 : 365;
+          const expiresAt = new Date(Date.now() + durationDays * 24 * 3600 * 1000).toISOString();
+          const planName = invoice.packageId === "pkg_1" ? "premium" : invoice.packageId === "pkg_2" ? "vip" : "master";
+
+          await supabaseAdmin.from("subscriptions").upsert({
+            user_id: matchUser.id,
+            plan: planName,
+            status: "active",
+            expires_at: expiresAt
+          }, { onConflict: "user_id" });
+        } catch (subErr: any) {
+          console.warn("⚠️ Could not sync subscriptions table:", subErr?.message);
+        }
+      }
+    }
+  } catch (err: any) {
+    console.error("⚠️ Error in fulfillPaidInvoice Supabase sync:", err?.message);
+  }
+
+  return updatedInvoice;
 }

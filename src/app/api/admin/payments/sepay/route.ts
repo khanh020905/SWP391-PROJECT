@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, ADMIN_ONLY } from "@/lib/roles";
-import { getSepayTransactions, saveSepayTransactions, getInvoices, saveInvoices } from "@/lib/paymentDb";
+import { getInvoices, saveInvoices, getSepayTransactions, saveSepayTransactions, createSepayTransaction, matchTransactionAndInvoice, fulfillPaidInvoice } from "@/lib/paymentDb";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLogger";
 import { sendPaymentSuccessEmail } from "@/lib/emailService";
@@ -143,60 +143,16 @@ export async function POST(request: NextRequest) {
         // Điều kiện khớp: Hóa đơn chưa thanh toán và Số tiền giao dịch >= Số tiền hóa đơn
         if (invoice.status === "PENDING" && newTx.amount >= invoice.amount) {
           console.log(`🎯 [Sepay Webhook] Đối khớp thành công hóa đơn ${invoice.id}!`);
-          
-          // Cập nhật hóa đơn sang PAID
-          invoices[invoiceIndex].status = "PAID";
-          invoices[invoiceIndex].paidAt = new Date().toISOString();
-          invoices[invoiceIndex].paymentMethod = "SEPAY";
-          invoices[invoiceIndex].sepayTransactionId = txId;
-          await saveInvoices(invoices);
+
+          // Cập nhật hóa đơn và đồng bộ tức thì vai trò + gói cước + hóa đơn Supabase Auth & DB
+          const updatedInv = await fulfillPaidInvoice(invoice, "SEPAY", txId);
 
           // Cập nhật giao dịch thành MATCHED
           newTx.status = "MATCHED";
           newTx.matchedInvoiceId = invoice.id;
-          matchedInvoice = invoices[invoiceIndex];
+          matchedInvoice = updatedInv;
           autoMatchSuccess = true;
-
-          // Thực hiện tự động nâng cấp vai trò người dùng trong Supabase Auth
-          try {
-            const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-            if (listError) throw new Error(listError.message);
-
-            const matchUser = users.find(u => u.email?.toLowerCase() === invoice.userEmail.toLowerCase());
-            if (matchUser) {
-              const currentMetadata = matchUser.user_metadata || {};
-              if (currentMetadata.role === "ADMIN") {
-                console.log(`🛡️ [Sepay Webhook] Giữ nguyên vai trò ADMIN cho người dùng ${invoice.userEmail} (Bỏ qua hạ cấp xuống STUDENT).`);
-                upgradeMessage = `Giữ nguyên vai trò ADMIN cho người dùng '${invoice.userName}'.`;
-              } else {
-                const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
-                  user_metadata: {
-                    ...currentMetadata,
-                    role: "STUDENT",
-                    packageId: invoice.packageId,
-                    packageName: invoice.packageName
-                  }
-                });
-
-                if (updateError) throw new Error(updateError.message);
-                upgradeMessage = `Đã tự động nâng cấp vai trò của '${invoice.userName}' thành STUDENT trên Supabase.`;
-              }
-
-              // Log activity log cho nâng cấp học viên tự động
-              await logActivity(
-                "UPGRADE",
-                invoice.userName,
-                invoice.userEmail,
-                `Tự động nâng cấp STUDENT qua đối khớp Sepay: Hóa đơn ${invoice.id}`,
-                request
-              );
-            } else {
-              upgradeMessage = `Không tìm thấy tài khoản '${invoice.userEmail}' trên hệ thống Supabase Auth để tự động nâng cấp.`;
-            }
-          } catch (err: any) {
-            console.warn(`⚠️ Lỗi tự động nâng cấp role: ${err.message}`);
-            upgradeMessage = `Không thể nâng cấp role do lỗi: ${err.message}`;
-          }
+          upgradeMessage = `Đã tự động chuyển trạng thái hóa đơn '${invoice.id}' sang PAID và nâng cấp vai trò học viên thành STUDENT thành công.`;
 
           // Ghi nhận log thanh toán tự động thành công
           await logActivity(

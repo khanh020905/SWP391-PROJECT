@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, ADMIN_ONLY } from "@/lib/roles";
-import { getInvoices, saveInvoices } from "@/lib/paymentDb";
+import { getInvoices, saveInvoices, fulfillPaidInvoice } from "@/lib/paymentDb";
 import { supabaseAdmin } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLogger";
 import { sendPaymentSuccessEmail } from "@/lib/emailService";
@@ -34,75 +34,14 @@ export async function PUT(
     const oldStatus = invoices[index].status;
     invoices[index].status = status;
 
-    if (status === "PAID") {
-      invoices[index].paidAt = new Date().toISOString();
-      invoices[index].paymentMethod = paymentMethod || "MANUAL_BANK";
-      if (sepayTransactionId) {
-        invoices[index].sepayTransactionId = sepayTransactionId;
-      }
-    } else {
-      invoices[index].paidAt = null;
-      invoices[index].paymentMethod = null;
-      invoices[index].sepayTransactionId = null;
-    }
-
-    await saveInvoices(invoices);
-    const invoice = invoices[index];
-
     let userUpgraded = false;
     let upgradeMessage = "";
+    let invoice = invoices[index];
 
-    // If marked as PAID, try to upgrade the user's role in Supabase Auth from GUEST to STUDENT
     if (status === "PAID") {
-      try {
-        console.log(`⚡ [Supabase Auth] Đang tìm kiếm người dùng có email: ${invoice.userEmail} để nâng cấp...`);
-        const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-
-        if (listError) {
-          throw new Error("Lỗi lấy danh sách user từ Supabase: " + listError.message);
-        }
-
-        const matchUser = users.find(u => u.email?.toLowerCase() === invoice.userEmail.toLowerCase());
-
-        if (matchUser) {
-          const currentMetadata = matchUser.user_metadata || {};
-          const currentRole = currentMetadata.role || "GUEST";
-
-          if (currentRole === "GUEST" || currentRole === "STUDENT") {
-            const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(matchUser.id, {
-              user_metadata: {
-                ...currentMetadata,
-                role: "STUDENT",
-                packageId: invoice.packageId,
-                packageName: invoice.packageName
-              }
-            });
-
-            if (updateError) {
-              throw new Error("Lỗi cập nhật role trên Supabase: " + updateError.message);
-            }
-
-            userUpgraded = true;
-            upgradeMessage = `Đã tự động nâng cấp vai trò của người dùng trên Supabase Auth từ ${currentRole} thành STUDENT.`;
-
-            // Ghi nhận lịch sử hoạt động nâng cấp học viên
-            await logActivity(
-              "UPGRADE",
-              invoice.userName,
-              invoice.userEmail,
-              `Nâng cấp học viên thành STUDENT qua thanh toán hóa đơn ${invoice.id} (${invoice.packageName})`,
-              request
-            );
-          } else {
-            upgradeMessage = `Người dùng đã có vai trò ${currentRole}, không cần nâng cấp vai trò học viên.`;
-          }
-        } else {
-          upgradeMessage = `Không tìm thấy tài khoản học viên có email '${invoice.userEmail}' trên hệ thống Supabase Auth để nâng cấp vai trò. Tuy nhiên hóa đơn vẫn được duyệt thành công.`;
-        }
-      } catch (err: any) {
-        console.warn("⚠️ Không thể cập nhật vai trò người dùng trên Supabase Auth:", err.message);
-        upgradeMessage = `Lưu ý: Hóa đơn đã duyệt nhưng gặp lỗi khi nâng cấp quyền trên Supabase: ${err.message}`;
-      }
+      invoice = await fulfillPaidInvoice(invoice, paymentMethod || "MANUAL_BANK", sepayTransactionId);
+      userUpgraded = true;
+      upgradeMessage = `Đã cập nhật trạng thái hóa đơn sang PAID và tự động chuyển vai trò học viên thành STUDENT trên Supabase Auth & DB.`;
 
       // Log invoice payment activity
       await logActivity(
