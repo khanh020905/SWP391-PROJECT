@@ -6,13 +6,29 @@ export async function fetchDiagnosticQuestions() {
     // 1. Fetch listening exams from exams table that contain an audio_url
     const { data: exams, error: examErr } = await supabase
       .from("exams")
-      .select("id, title, audio_url")
+      .select("id, title, audio_url, cambridge_no, test_no")
       .eq("category", "listening")
       .not("audio_url", "is", null);
 
     if (exams && exams.length > 0) {
       // Pick a random listening exam
       const randomExam = exams[Math.floor(Math.random() * exams.length)];
+      
+      // Load static JSON file to extract rich question text
+      let localTestData: any = null;
+      if (randomExam.cambridge_no && randomExam.test_no) {
+        try {
+          const fs = require("fs");
+          const path = require("path");
+          const resolvedTestId = `cam${randomExam.cambridge_no}-test-${randomExam.test_no}`;
+          const filePath = path.join(process.cwd(), "public", "data", "cam-tests", `${resolvedTestId}.json`);
+          if (fs.existsSync(filePath)) {
+            localTestData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+          }
+        } catch (e) {
+          console.error("Failed to load local listening test JSON:", e);
+        }
+      }
       
       // 2. Fetch sections for this exam
       const { data: dbSections } = await supabase
@@ -30,8 +46,70 @@ export async function fetchDiagnosticQuestions() {
         // Take the first 3 questions from Section 1
         const targetKeys = keys.slice(0, 3);
         
+        const localSection1 = localTestData?.sections?.[0];
+        const block = localSection1?.blocks?.[0];
+        
         listening = targetKeys.map((key, idx) => {
           const correctAns = answersObj[key];
+          const qNum = parseInt(key);
+          
+          let extractedText = `Fill in the blank for Question ${key}.`;
+          let options: any[] = [];
+          let qType = "fill_in_blank";
+
+          if (block) {
+            const type = block.type;
+            const targetBrace = `{${qNum}}`;
+            
+            if (type === 'note_completion' || type === 'form_completion' || type === 'sentence_completion') {
+              const template = block.content?.template || '';
+              const lines = template.split('\n');
+              const targetLine = lines.find((l: string) => l.includes(targetBrace));
+              if (targetLine) {
+                let cleaned = targetLine.replace(/^[-*•\s]+/g, '').replace(/\*\*/g, '').trim();
+                cleaned = cleaned.replace(targetBrace, '_______');
+                cleaned = cleaned.replace(/\{\d+\}/g, '_______');
+                extractedText = cleaned;
+              }
+            } else if (type === 'table_completion') {
+              const tableRows = block.content?.tableRows || [];
+              let foundCell = '';
+              for (const row of tableRows) {
+                if (Array.isArray(row)) {
+                  const cell = row.find((c: any) => c && typeof c === 'string' && c.includes(targetBrace));
+                  if (cell) {
+                    foundCell = cell;
+                    break;
+                  }
+                }
+              }
+              if (foundCell) {
+                let cleaned = foundCell.replace(/^[-*•\s]+/g, '').replace(/\*\*/g, '').trim();
+                cleaned = cleaned.replace(targetBrace, '_______');
+                cleaned = cleaned.replace(/\{\d+\}/g, '_______');
+                extractedText = cleaned;
+              }
+            } else if (type === 'multiple_choice') {
+              const questions = block.content?.questions || [];
+              const matchedQ = questions.find((q: any) => q.qNum === qNum || q.number === qNum);
+              if (matchedQ) {
+                extractedText = matchedQ.text || "";
+                options = matchedQ.options || [];
+                qType = "multiple_choice";
+              }
+            } else if (type === 'multiple_choice_multi') {
+              extractedText = block.content?.text || "";
+              options = block.content?.options || [];
+              qType = "multiple_choice";
+            } else if (type === 'matching') {
+              const items = block.content?.items || [];
+              const matchedItem = items.find((item: any) => item.qNum === qNum || item.number === qNum);
+              if (matchedItem) {
+                extractedText = matchedItem.text || "";
+              }
+            }
+          }
+
           return {
             id: `l${idx + 1}`,
             skill: "listening",
@@ -40,9 +118,9 @@ export async function fetchDiagnosticQuestions() {
               transcript: section1.content || ""
             },
             extra_data: {
-              type: "fill_in_blank",
-              questionText: `Fill in the blank for Question ${key}.`,
-              options: [],
+              type: qType,
+              questionText: extractedText,
+              options: options,
               correctAnswer: correctAns,
               answers: [correctAns],
               audioSrc: randomExam.audio_url
