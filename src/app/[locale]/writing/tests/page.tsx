@@ -33,7 +33,7 @@ export default function CategoryPage() {
           .from('writing_tasks')
           .select('id, youpass_id, title, task_type, thumbnail_url, band_level, tags, is_visible, description, cloudinary_url')
           .eq('is_visible', true)
-          .order('youpass_id', { ascending: true });
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 

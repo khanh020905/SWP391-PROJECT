@@ -282,6 +282,11 @@ export const cambridgeTests: CambridgeTest[] = [
     { title: "Adapting to the effects of climate change", topic: "Environment" },
     { title: "A new role for livestock guard dogs", topic: "Natural Science" },
   ]},
+  { id: "cam-20-5", book: 20, test: 5, title: "Cambridge 20 - Test 5", level: "Band 6.0-9.0", status: "free", passages: [
+    { title: "The MAGIC of KEFIR", topic: "Health" },
+    { title: "FOOD FOR THOUGHT", topic: "Environment" },
+    { title: "Love stories", topic: "Psychology" },
+  ]},
 ];
 
 // ============================================================

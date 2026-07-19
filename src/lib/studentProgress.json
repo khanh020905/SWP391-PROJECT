@@ -111,6 +111,17 @@
       "history": {
         "2026-07-12": 10
       }
+    },
+    "f01a64cd-1f91-4e43-ab89-a1bec75836b2": {
+      "userId": "f01a64cd-1f91-4e43-ab89-a1bec75836b2",
+      "currentStreak": 0,
+      "longestStreak": 0,
+      "lastStudyDate": null,
+      "lastStudyTimestamp": null,
+      "dailyGoalMinutes": 30,
+      "todayMinutes": 0,
+      "lastGoalMetDate": null,
+      "history": {}
     }
   },
   "studyLogs": [

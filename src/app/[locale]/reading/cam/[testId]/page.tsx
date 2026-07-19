@@ -397,7 +397,11 @@ function normalizeReadingPayload(data: any) {
     passageNumber,
     title: data?.title,
     topic: data?.topic || "",
-    content_html: repairPassageHtml(data?.content_html || (data?.content ? data.content.replace(/\n/g, "<br/>") : "")),
+    content_html: repairPassageHtml(
+      (data?.content_html && (data.content_html.includes("<p>") || data.content_html.includes("<br/>") || data.content_html.includes("<h1>") || data.content_html.includes("<h3>")))
+        ? data.content_html 
+        : (data?.content_html || data?.content || "").replace(/\n/g, "<br/>")
+    ),
     questions: stripStaleBlockHtml(normalizeMc2Groups(normalizedQuestions)),
     vocabulary: data?.vocabulary || []
   };

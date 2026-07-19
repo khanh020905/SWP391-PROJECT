@@ -141,6 +141,7 @@ export default function SentenceBuildExercise({ words, onBack, storageKeyId, ini
     saved?: boolean;
     saveError?: string;
     selectedFolderId?: string;
+    audioUrl?: string;
   } | null>(null);
 
   const handleWordClick = async (wordText: string) => {

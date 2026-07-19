@@ -33,12 +33,12 @@ export default function ReadingListPage() {
   const [isFilterExpanded, setIsFilterExpanded] = useState(true);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [showCamLockModal, setShowCamLockModal] = useState(false);
+  const [allTestsList, setAllTestsList] = useState<CambridgeTest[]>(cambridgeTests);
   const isAdmin = isVip;
   const daysLeft = Math.max(0, Math.ceil((new Date('2026-06-12').getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-  const cambridgeByBook = getCambridgeByBook();
 
   const getAvailablePassageIds = (testId: string) => {
-    // testId is like "cam10-1" or "ew-1"
+    // testId is like "cam10-1", "ew-1", or UUID
     const [type, num, testNum] = testId.split('-');
     if (type === "cam") {
       return [`cam-${num}-${testNum}-1`, `cam-${num}-${testNum}-2`, `cam-${num}-${testNum}-3`].filter(id => availableReadingIds.has(id));
@@ -46,12 +46,23 @@ export default function ReadingListPage() {
     if (type === "ew") {
       return [`ew-${num}-1`, `ew-${num}-2`, `ew-${num}-3`].filter(id => availableReadingIds.has(id));
     }
-    return [];
+    return [`${testId}-1`, `${testId}-2`, `${testId}-3`, testId].filter(id => availableReadingIds.has(id));
   };
 
   const getFirstAvailablePassageId = (testId: string) => getAvailablePassageIds(testId)[0] ?? null;
-  const workingCambridgeTests = cambridgeTests.filter((test) => getAvailablePassageIds(test.id).length > 0);
+  const workingCambridgeTests = allTestsList.filter((test) => getAvailablePassageIds(test.id).length > 0);
   const bookNumbers = Array.from(new Set(workingCambridgeTests.map((test) => test.book))).sort((a, b) => b - a);
+
+  const getCambridgeByBook = () => {
+    const byBook: Record<number, CambridgeTest[]> = {};
+    workingCambridgeTests.forEach(test => {
+      if (!byBook[test.book]) byBook[test.book] = [];
+      byBook[test.book].push(test);
+    });
+    return byBook;
+  };
+
+  const cambridgeByBook = getCambridgeByBook();
 
   useEffect(() => {
     setCurrentPage(1);
@@ -62,7 +73,7 @@ export default function ReadingListPage() {
       try {
         const { data, error } = await supabase
           .from('exam_sections')
-          .select('id, exam_id, section_no, title, exams(title, category, status, cambridge_no, test_no)')
+          .select('id, exam_id, section_no, title, exams(id, title, category, status, cambridge_no, test_no)')
           .eq('exams.category', 'reading')
           .eq('exams.status', 'published');
 
@@ -88,6 +99,67 @@ export default function ReadingListPage() {
           };
         });
 
+        // Dynamic construction of published exams
+        const examMap = new Map<string, { exam: any; sections: any[] }>();
+        (data || []).forEach((row: any) => {
+          if (!row.exams) return;
+          const ex = row.exams;
+          const key = ex.id;
+          if (!examMap.has(key)) {
+            examMap.set(key, { exam: ex, sections: [] });
+          }
+          examMap.get(key)!.sections.push(row);
+        });
+
+        const dynamicTests: CambridgeTest[] = [];
+        examMap.forEach(({ exam, sections }) => {
+          sections.sort((a, b) => a.section_no - b.section_no);
+          const camNo = exam.cambridge_no;
+          const testNo = exam.test_no;
+
+          let testId = exam.id;
+          let bookNo = 20;
+          let tNo = 1;
+          let title = exam.title || "Reading Practice Test";
+
+          if (camNo && testNo) {
+            testId = `cam-${camNo}-${testNo}`;
+            bookNo = camNo;
+            tNo = testNo;
+            title = exam.title || `Cambridge ${camNo} - Test ${testNo}`;
+          }
+
+          dynamicTests.push({
+            id: testId,
+            book: bookNo,
+            test: tNo,
+            title,
+            level: "Band 5.5-8.0",
+            status: "free",
+            passages: sections.map((sec, idx) => ({
+              title: sec.title || `Passage ${idx + 1}`,
+              topic: "Reading"
+            }))
+          });
+        });
+
+        const combinedMap = new Map<string, CambridgeTest>();
+        cambridgeTests.forEach(t => combinedMap.set(t.id, t));
+
+        dynamicTests.forEach(dt => {
+          if (combinedMap.has(dt.id)) {
+            const existing = combinedMap.get(dt.id)!;
+            combinedMap.set(dt.id, {
+              ...existing,
+              title: dt.title || existing.title,
+              passages: dt.passages.length > 0 ? dt.passages : existing.passages,
+            });
+          } else {
+            combinedMap.set(dt.id, dt);
+          }
+        });
+
+        setAllTestsList(Array.from(combinedMap.values()));
         setAvailableReadingIds(new Set((formatted || []).map((row) => row.youpass_id).filter(Boolean)));
         setTaggedPassages(formatted || []);
       } catch (error) {
@@ -632,7 +704,7 @@ export default function ReadingListPage() {
                       {/* Book Cover Image & Title Clickable */}
                       {firstAvailablePassageId ? (
                         <Link
-                          href={`/reading/cam/${test.id}?mode=practice`}
+                          href={test.id.startsWith("cam-") ? `/reading/cam/${test.id}?mode=practice` : `/reading/${test.id}?mode=practice`}
                           className="group/cover block shrink-0 relative"
                         >
                           <div className="w-28 md:w-36 aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border border-slate-100 bg-slate-900 relative group-hover/cover:shadow-2xl group-hover/cover:scale-[1.02] transition-all duration-500">
@@ -662,7 +734,7 @@ export default function ReadingListPage() {
 
                       <div className="flex-1 min-w-0 flex flex-col justify-center pt-2">
                         {firstAvailablePassageId ? (
-                          <Link href={`/reading/cam/${test.id}?mode=practice`}>
+                          <Link href={test.id.startsWith("cam-") ? `/reading/cam/${test.id}?mode=practice` : `/reading/${test.id}?mode=practice`}>
                             <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mb-3 leading-[1.1] hover:text-herb-600 transition-colors">
                               {test.title}
                             </h3>
@@ -684,7 +756,7 @@ export default function ReadingListPage() {
                         </div>
                         {!hasAnyPassage && (
                           <p className="mt-3 text-sm font-semibold text-slate-400">
-                            ChÆ°a cÃ³ passage nÃ o sáºµn sÃ ng cho test nÃ y.
+                            Chưa có passage nào sẵn sàng cho test này.
                           </p>
                         )}
                       </div>
@@ -702,7 +774,7 @@ export default function ReadingListPage() {
                         return (
                           <Link
                             key={idx}
-                            href={`/reading/cam/${test.id}?mode=practice&passage=${idx + 1}`}
+                            href={test.id.startsWith("cam-") ? `/reading/cam/${test.id}?mode=practice&passage=${idx + 1}` : `/reading/${test.id}?mode=practice&passage=${idx + 1}`}
                             className="flex items-center gap-4 px-5 py-4 bg-[#f8fafc]/50 rounded-2xl hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-md transition-all group/p"
                           >
                             <span className="w-9 h-9 bg-[#e8f5e9] text-[#2e7d32] rounded-full flex items-center justify-center text-sm font-black shrink-0 border border-[#d4edda] group-hover/p:bg-[#4a5d23] group-hover/p:text-white transition-all duration-300">
@@ -722,14 +794,14 @@ export default function ReadingListPage() {
                     {/* Actions */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto">
                       <Link
-                        href={`/reading/cam/${test.id}?mode=practice`}
+                        href={test.id.startsWith("cam-") ? `/reading/cam/${test.id}?mode=practice` : `/reading/${test.id}?mode=practice`}
                         className="flex items-center justify-center gap-3 bg-[#f0f9f7] text-[#007e64] border border-[#007e64]/10 py-4.5 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] hover:bg-[#e6f4f1] transition-all active:scale-95 group/btn shadow-sm"
                       >
                         <Book size={18} strokeWidth={3} className="group-hover/btn:rotate-12 transition-transform" />
                         LUYỆN TẬP
                       </Link>
                       <Link
-                        href={`/reading/cam/${test.id}?mode=exam`}
+                        href={test.id.startsWith("cam-") ? `/reading/cam/${test.id}?mode=exam` : `/reading/${test.id}?mode=exam`}
                         className="flex items-center justify-center gap-3 bg-[#007e64] text-white py-4.5 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] hover:bg-[#006651] shadow-xl shadow-[#007e64]/20 transition-all active:scale-95 group/btn"
                       >
                         <Clock size={18} strokeWidth={3} className="group-hover/btn:rotate-12 transition-transform" />

@@ -2,7 +2,7 @@ import { supabaseAdmin } from "./supabase";
 
 function getQuestionsBlock(content: string): string {
   if (!content) return "";
-  const regex = /\bQuestions\b/i;
+  const regex = /(?:^|\n)(?:#+\s*|\s*<[a-zA-Z0-9]+>[#\s\*_]*)?Questions\s+\d+\s*(?:–|-|—|to)\s*\d+[#\s\*_<>\/\w]*$/im;
   const match = content.match(regex);
   if (match && match.index !== undefined) {
     return content.substring(match.index);
@@ -13,21 +13,22 @@ function getQuestionsBlock(content: string): string {
 function parseQuestionText(content: string, qNo: number): string {
   const qBlock = getQuestionsBlock(content);
   const nextQNo = qNo + 1;
-  // Match qNo but not when it is part of a range like "1-6" or "1 to 6"
-  const regexStr = `\\b${qNo}\\b(?!\\s*(?:-|–|—|to)\\s*\\d+)[.\\s\\)\\-–—]*([\\s\\S]*?)(?=\\b${nextQNo}\\b(?!\\s*(?:-|–|—|to)\\s*\\d+)[.\\s\\)\\-–—]|\\bQuestions\\b|\\bReading Passage\\b|$)`;
-  const regex = new RegExp(regexStr);
+  // Match qNo at the start of a paragraph/line, avoiding range matching and matching inline references
+  const regexStr = `(?:^|\\n|<p>)\\s*\\b${qNo}\\b(?!\\s*(?:-|–|—|to)\\s*\\d+)[.\\)]?\\s+([\\s\\S]*?)(?=(?:\\n|<p>)\\s*\\b${nextQNo}\\b(?!\\s*(?:-|–|—|to)\\s*\\d+)[.\\)]?\\s+|\\bQuestions\\b|\\bReading\\s*Passage\\b|$)`;
+  const regex = new RegExp(regexStr, "i");
   const match = qBlock.match(regex);
   if (match) {
     let text = match[1].trim();
-    // Clean trailing dots, spaces, line breaks
-    text = text.replace(/^[.\s\)\-–—\s]+/, "").replace(/[.\s\)\-–—\s]+$/, "");
+    // Clean HTML tags and trailing dots, spaces, line breaks
+    text = text.replace(/<[^>]*>/g, "").trim();
+    text = text.replace(/^[#\s\*_.\)\-–—]+/, "").replace(/[#\s\*_.\)\-–—\s\n\r]+$/, "");
     return text;
   }
   return "";
 }
 
 function parseOptions(text: string): string[] | null {
-  const regex = /\b([A-E])\b[.\s\)\-–—]+([\s\S]*?)(?=\b[A-E]\b[.\s\)\-–—]|$)/g;
+  const regex = /(?:^|\s|\n)(?:\*\*|__)?([A-E])(?:\*\*|__)?[\s.\)\-–—\*_]+([\s\S]*?)(?=(?:^|\s|\n)(?:\*\*|__)?(?:[A-E])(?:\*\*|__)?[\s.\)\-–—\*_]+|$)/gi;
   const options: string[] = [];
   let match;
   while ((match = regex.exec(text)) !== null) {
@@ -40,8 +41,8 @@ function parseOptions(text: string): string[] | null {
 
 export function cleanSectionContent(content: string | null): string | null {
   if (!content) return content;
-  // Match "Questions" or "QUESTIONS" at a word boundary case-insensitively
-  const regex = /\bQuestions\b/i;
+  // Match a line that is a markdown heading for Questions or a standalone line starting with Questions
+  const regex = /(?:^|\n)(?:#+\s*|\s*<[a-zA-Z0-9]+>[#\s\*_]*)?Questions\s+\d+\s*(?:–|-|—|to)\s*\d+[#\s\*_<>\/\w]*$/im;
   const match = content.match(regex);
   if (match) {
     let index = match.index;
@@ -184,7 +185,7 @@ export async function autoGenerateQuestions(
           if (parsedOpts && parsedOpts.length >= 2) {
             question_type = "multiple_choice";
             options = parsedOpts;
-            const firstOptIndex = qText.search(/\b[A-E]\b[.\s\)\-–—]+/);
+            const firstOptIndex = qText.search(/(?:^|\s|\n)(?:\*\*|__)?([A-E])(?:\*\*|__)?[\s.\)\-–—\*_]+/);
             if (firstOptIndex !== -1) {
               qText = qText.substring(0, firstOptIndex).trim();
             }

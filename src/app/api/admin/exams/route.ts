@@ -147,33 +147,39 @@ export async function POST(request: NextRequest) {
           const task1Section = sections.find((s: any) => s.section_no === 1);
           const task2Section = sections.find((s: any) => s.section_no === 2);
 
-          const task1Answers = task1Section?.answers || {};
-          const imageUrl = task1Answers.image_url || null;
+          const tasksToInsert = [];
 
-          const tasksToInsert = [
-            {
+          if (task1Section) {
+            const task1Answers = task1Section?.answers || {};
+            const imageUrl = task1Answers.image_url || null;
+            tasksToInsert.push({
               youpass_id: `exam_task1_${exam.id}`,
               task_type: "task1",
-              title: title + " - Task 1",
+              title: sections.length > 1 ? `${title} - Task 1` : title,
               description: task1Section?.content || "",
               thumbnail_url: imageUrl,
               cloudinary_url: imageUrl,
               is_visible: (status || "draft") === "published",
               band_level: "6.5",
-            },
-            {
+            });
+          }
+
+          if (task2Section) {
+            tasksToInsert.push({
               youpass_id: `exam_task2_${exam.id}`,
               task_type: "task2",
-              title: title + " - Task 2",
+              title: sections.length > 1 ? `${title} - Task 2` : title,
               description: task2Section?.content || "",
               thumbnail_url: null,
               cloudinary_url: null,
               is_visible: (status || "draft") === "published",
               band_level: "6.5",
-            },
-          ];
+            });
+          }
 
-          await supabaseAdmin.from("writing_tasks").insert(tasksToInsert);
+          if (tasksToInsert.length > 0) {
+            await supabaseAdmin.from("writing_tasks").insert(tasksToInsert);
+          }
         } catch (err) {
           console.error("Error syncing writing tasks on create:", err);
         }

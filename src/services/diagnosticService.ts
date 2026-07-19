@@ -181,7 +181,7 @@ export async function fetchDiagnosticQuestions() {
         }
       }
 
-      if (dbSections && dbSections.length >= 2) {
+      if (dbSections && dbSections.length >= 2 && randomExam) {
         const s1 = dbSections[0];
         const s2 = dbSections[1];
 

@@ -156,7 +156,7 @@ const initialPackages: PaymentPackage[] = [
       "Thời hạn học tập trọn vẹn 12 tháng không giới hạn lượt truy cập",
       "Báo cáo phân tích điểm yếu kèm lộ trình khắc phục cá nhân hóa",
       "Cam kết đầu ra chuẩn IELTS Cambridge",
-      "Hỗ trợ giải đáp bài tập 1-1 trực tuyến cùng giảng viên"
+      "Hỗ trợ phân tích chuyên sâu và lộ trình tối ưu bằng AI"
     ],
     isActive: true,
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
@@ -168,11 +168,25 @@ const initialSepayTransactions: SepayTransaction[] = [];
 
 // Packages APIs
 export async function getPackages(): Promise<PaymentPackage[]> {
+  let packages: PaymentPackage[];
   if (globalThis.__paymentPackagesCache) {
-    return globalThis.__paymentPackagesCache;
+    packages = globalThis.__paymentPackagesCache;
+  } else {
+    packages = safeReadFile(PACKAGES_FILE, initialPackages);
+    globalThis.__paymentPackagesCache = packages;
   }
-  const packages = safeReadFile(PACKAGES_FILE, initialPackages);
-  globalThis.__paymentPackagesCache = packages;
+
+  // Ensure no stale 1-1 tutoring text exists in features
+  packages.forEach(pkg => {
+    if (Array.isArray(pkg.features)) {
+      pkg.features = pkg.features.map(f =>
+        typeof f === "string" && (f.includes("1-1") || f.includes("giảng viên"))
+          ? "Hỗ trợ phân tích chuyên sâu và lộ trình tối ưu bằng AI"
+          : f
+      );
+    }
+  });
+
   return packages;
 }
 
