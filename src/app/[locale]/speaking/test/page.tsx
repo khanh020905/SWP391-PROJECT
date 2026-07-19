@@ -1016,8 +1016,11 @@ function SpeakingTestRoomContent() {
       });
 
       // Redirection to the feedback dashboard
-      router.push(`/speaking/feedback?id=${attemptId}`);
-
+      const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const source = sp?.get("source");
+      const taskId = sp?.get("task_id");
+      const queryAppend = source && taskId ? `&source=${source}&task_id=${taskId}` : "";
+      router.push(`/speaking/feedback?id=${attemptId}${queryAppend}`);
     }, 2500);
   };
 

@@ -426,7 +426,11 @@ export function ReadingTestProvider({ children }: { children: React.ReactNode })
 
     saveReadingAttempt(attempt);
     localStorage.removeItem(STORAGE_KEY);
-    router.push(`/reading/result?id=${attemptId}`);
+    const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const source = sp?.get("source");
+    const taskId = sp?.get("task_id");
+    const queryAppend = source && taskId ? `&source=${source}&task_id=${taskId}` : "";
+    router.push(`/reading/result?id=${attemptId}${queryAppend}`);
   }, [answers, flagged, timeRemaining, allQuestionIds, userName, isSubmitting, router]);
 
   const answeredCount = useMemo(

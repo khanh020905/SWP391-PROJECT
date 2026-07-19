@@ -75,6 +75,21 @@ function ResultContent() {
   const [copied, setCopied] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
 
+  useEffect(() => {
+    if (source === "daily_task" && taskId) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`
+            }
+          }).catch(err => console.error("Auto complete daily task failed:", err));
+        }
+      });
+    }
+  }, [source, taskId]);
+
   // Fetch or trigger DeepSeek grading
   useEffect(() => {
     if (!attemptId) {
@@ -203,11 +218,11 @@ function ResultContent() {
       <header className="sticky top-0 z-50 border-b border-[#dfe6d8] bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1000px] items-center justify-between px-4 py-4 md:px-6">
           <Link
-            href="/writing"
+            href={source === "daily_task" ? "/learning/daily" : "/writing"}
             className="flex items-center gap-2 text-xs font-black text-[#3B5C37] hover:text-[#2f4a2b] transition"
           >
             <ArrowLeft className="h-4 w-4" />
-            Lịch sử thi
+            {source === "daily_task" ? "Quay lại lộ trình" : "Lịch sử thi"}
           </Link>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 rounded-full bg-[#f0f4ed] px-3 py-1.5 text-[10px] font-black text-[#3B5C37] border border-[#d2dfcb]">
@@ -500,10 +515,10 @@ function ResultContent() {
             Luyện tập lại đề này
           </Link>
           <Link
-            href="/writing"
+            href={source === "daily_task" ? "/learning/daily" : "/writing"}
             className="inline-flex items-center gap-2 rounded-xl bg-[#3B5C37] px-6 py-3 text-xs font-black text-white shadow-md hover:bg-[#2f4a2b] transition active:scale-[0.99]"
           >
-            Về sảnh IELTS Writing
+            {source === "daily_task" ? "Quay lại Lộ trình" : "Về sảnh IELTS Writing"}
           </Link>
         </div>
       </main>

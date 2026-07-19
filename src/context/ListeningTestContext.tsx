@@ -587,6 +587,23 @@ export function ListeningTestProvider({ children }: { children: React.ReactNode 
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || "Không thể lưu kết quả bài làm vào hệ thống.");
         }
+
+        const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        const source = sp?.get("source");
+        const taskId = sp?.get("task_id");
+
+        if (source === "daily_task" && taskId) {
+          try {
+            await fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${session?.access_token || ""}`
+              }
+            });
+          } catch (completeErr) {
+            console.error("Failed to complete daily task from context:", completeErr);
+          }
+        }
       } catch (dbErr) {
         console.error("Error saving listening progress to database:", dbErr);
       }

@@ -33,6 +33,24 @@ function ResultContent() {
   const [gradeSource, setGradeSource] = useState<"gemini" | "fallback" | "">("");
   const [questionsById, setQuestionsById] = useState<Record<string, any>>({});
 
+  const source = searchParams.get("source");
+  const taskId = searchParams.get("task_id");
+
+  useEffect(() => {
+    if (source === "daily_task" && taskId) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`
+            }
+          }).catch(err => console.error("Auto complete daily task failed:", err));
+        }
+      });
+    }
+  }, [source, taskId]);
+
   useEffect(() => {
     if (!attemptId) {
       setError("Không tìm thấy mã bài làm.");
@@ -183,8 +201,6 @@ function ResultContent() {
       </div>
     );
   }
-
-
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-slate-50 to-blue-50/30">
@@ -345,10 +361,10 @@ function ResultContent() {
             Làm lại bài
           </Link>
           <Link
-            href="/reading"
+            href={source === "daily_task" ? "/learning/daily" : "/reading"}
             className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-blue-700"
           >
-            Về phòng Reading
+            {source === "daily_task" ? "Quay lại Lộ trình" : "Về phòng Reading"}
           </Link>
         </div>
       </main>

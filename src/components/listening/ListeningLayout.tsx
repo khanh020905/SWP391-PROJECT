@@ -49,7 +49,12 @@ export default function ListeningLayout() {
             type="button"
             onClick={() => {
               if (confirm("Bạn có chắc chắn muốn rời đi? Tiến trình làm bài sẽ mất.")) {
-                router.push(`/${locale}/listening`);
+                const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+                if (sp?.get("source") === "daily_task") {
+                  router.push(`/${locale}/learning/daily`);
+                } else {
+                  router.push(`/${locale}/listening`);
+                }
               }
             }}
             className="flex items-center justify-center p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-50 border border-slate-200/60 cursor-pointer select-none transition-colors border-none outline-none"

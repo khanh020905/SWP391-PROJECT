@@ -320,7 +320,11 @@ export default function WritingTestPage() {
       feedback,
     });
     localStorage.removeItem(storageKey);
-    router.push(`/writing/result?id=${attemptId}`);
+    const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const source = sp?.get("source");
+    const taskId = sp?.get("task_id");
+    const queryAppend = source && taskId ? `&source=${source}&task_id=${taskId}` : "";
+    router.push(`/writing/result?id=${attemptId}${queryAppend}`);
   }, [answers, isSubmitting, router, timeRemaining, wordCounts, tasks, examMeta, examId]);
 
   useEffect(() => {

@@ -39,6 +39,24 @@ function SpeakingFeedbackContent() {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const source = searchParams.get("source");
+  const taskId = searchParams.get("task_id");
+
+  useEffect(() => {
+    if (source === "daily_task" && taskId) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`
+            }
+          }).catch(err => console.error("Auto complete daily task failed:", err));
+        }
+      });
+    }
+  }, [source, taskId]);
+
   // Tab State
   const [activeTab, setActiveTab] = useState<"transcript" | "grammar" | "vocabulary">("transcript");
 
@@ -205,8 +223,8 @@ function SpeakingFeedbackContent() {
         <p className="text-xs text-slate-500 max-w-sm mb-6 leading-relaxed">
           Có vẻ đường dẫn kết quả không chính xác hoặc bài thi này đã bị xóa khỏi thiết bị của bạn.
         </p>
-        <Link href="/speaking" className="px-6 py-3 rounded-2xl bg-[#3B5C37] hover:bg-[#2f4a2b] text-xs font-bold text-white transition-colors">
-          Quay lại phòng luyện Speaking
+        <Link href={source === "daily_task" ? "/learning/daily" : "/speaking"} className="px-6 py-3 rounded-2xl bg-[#3B5C37] hover:bg-[#2f4a2b] text-xs font-bold text-white transition-colors">
+          {source === "daily_task" ? "Quay lại Lộ trình" : "Quay lại phòng luyện Speaking"}
         </Link>
       </div>
     );
@@ -321,9 +339,9 @@ function SpeakingFeedbackContent() {
         
         {/* Back Link */}
         <div className="mb-6">
-          <Link href="/speaking" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#3B5C37] transition-colors select-none">
+          <Link href={source === "daily_task" ? "/learning/daily" : "/speaking"} className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#3B5C37] transition-colors select-none">
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại phòng luyện Speaking</span>
+            <span>{source === "daily_task" ? "Quay lại Lộ trình" : "Quay lại phòng luyện Speaking"}</span>
           </Link>
         </div>
 

@@ -1757,10 +1757,10 @@ export default function ScoutTemplate(props: any) {
                   const match = typeof window !== 'undefined' ? window.location.pathname.match(/^\/(en|vi)\b/) : null;
                   const locale = match ? match[1] : 'vi';
                   const examRoute = exam ? (
-                    exam.category?.toLowerCase() === 'listening' ? `/${locale}/listening/${exam.id}` :
-                    exam.category?.toLowerCase() === 'reading' ? `/${locale}/reading/${exam.id}` :
-                    exam.category?.toLowerCase() === 'writing' ? `/${locale}/writing/${exam.id}` :
-                    exam.category?.toLowerCase() === 'speaking' ? `/${locale}/speaking/test?examId=${exam.id}&mode=mock` : '#'
+                    exam.category?.toLowerCase() === 'listening' ? `/${locale}/listening/${exam.id}?source=daily_task&task_id=${task.id}` :
+                    exam.category?.toLowerCase() === 'reading' ? `/${locale}/reading/${exam.id}?source=daily_task&task_id=${task.id}` :
+                    exam.category?.toLowerCase() === 'writing' ? `/${locale}/writing/${exam.id}?source=daily_task&task_id=${task.id}` :
+                    exam.category?.toLowerCase() === 'speaking' ? `/${locale}/speaking/test?examId=${exam.id}&mode=mock&source=daily_task&task_id=${task.id}` : '#'
                   ) : '#';
 
                   return (

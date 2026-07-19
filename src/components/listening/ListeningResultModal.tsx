@@ -131,10 +131,17 @@ export default function ListeningResultModal({ onClose, locale }: ListeningResul
           
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/listening`)}
+            onClick={() => {
+              const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+              if (sp?.get("source") === "daily_task") {
+                router.push(`/${locale}/learning/daily`);
+              } else {
+                router.push(`/${locale}/listening`);
+              }
+            }}
             className="w-full py-3 rounded-2xl bg-[#3B5C37] hover:bg-[#2c4728] text-white text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none border-none outline-none shadow-md shadow-[#3B5C37]/10"
           >
-            <LayoutGrid className="w-4 h-4 text-white" /> Chọn đề thi khác
+            <LayoutGrid className="w-4 h-4 text-white" /> {typeof window !== "undefined" && new URLSearchParams(window.location.search).get("source") === "daily_task" ? "Quay lại Lộ trình" : "Chọn đề thi khác"}
           </button>
         </div>
       </div>
