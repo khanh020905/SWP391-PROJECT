@@ -638,8 +638,8 @@ function SpeakingTestRoomContent() {
       currentStep === "part2_speak"
         ? "part2"
         : currentStep === "part1"
-          ? currentExam.part1[questionIdx].id
-          : currentExam.part3[questionIdx].id;
+          ? (currentExam.part1?.[questionIdx]?.id || `q1_${questionIdx}`)
+          : (currentExam.part3?.[questionIdx]?.id || `q3_${questionIdx}`);
 
     const qText = getActiveQuestionText();
     const activePart =
