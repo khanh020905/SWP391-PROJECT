@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireRole, ADMIN_OR_INSTRUCTOR } from "@/lib/roles";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import zlib from "zlib";
 import { v2 as cloudinary } from "cloudinary";
@@ -581,8 +582,13 @@ function fallbackParseExamContent(rawContent: string, targetCategory: string = "
   return result;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const auth = await requireRole(req, ADMIN_OR_INSTRUCTOR);
+    if (!auth) {
+      return NextResponse.json({ error: "Chưa đăng nhập hoặc không có quyền Admin" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const category = (formData.get("category") as string) || "reading";
