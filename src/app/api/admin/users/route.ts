@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
     let list = users.filter((user) => !!user.email_confirmed_at).map((user) => {
       const metadata = user.user_metadata || {};
       const isLocked = metadata.isLocked === true || !!user.banned_until;
+      const sub = subsMap.get(user.id);
+
       let planTier = null;
       let subStatus = "inactive";
       let expiresAt = null;
