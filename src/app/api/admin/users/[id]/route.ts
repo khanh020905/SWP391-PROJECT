@@ -43,12 +43,21 @@ export async function PUT(
       );
     }
 
+    const targetPackageId = (packageId === "none" || role === "GUEST") ? null : (packageId || currentUser.user_metadata?.packageId || null);
+    const targetPackageName = targetPackageId ? (
+      targetPackageId === "pkg_1" ? "IELTS Premium 3 Tháng" :
+      targetPackageId === "pkg_2" ? "IELTS VIP 6 Tháng" :
+      targetPackageId === "pkg_3" ? "IELTS Master 12 Tháng" : currentUser.user_metadata?.packageName || null
+    ) : null;
+
     const newMetadata = {
       ...(currentUser.user_metadata || {}),
       name,
       role,
       isLocked: typeof isLocked === "boolean" ? isLocked : (currentUser.user_metadata?.isLocked === true),
-      packageId: packageId === "none" ? null : (packageId || currentUser.user_metadata?.packageId || null)
+      packageId: targetPackageId,
+      packageName: targetPackageName,
+      paidInvoice: targetPackageId ? currentUser.user_metadata?.paidInvoice : null,
     };
 
     // Update email and metadata

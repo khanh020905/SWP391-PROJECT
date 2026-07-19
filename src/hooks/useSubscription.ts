@@ -46,7 +46,7 @@ export function useSubscription(): SubscriptionInfo {
         if (active) {
           const metaRole = user.user_metadata?.role;
           const metaPkg = user.user_metadata?.packageId;
-          const isMetadataVip = metaRole === "ADMIN" || metaRole === "INSTRUCTOR" || metaRole === "STUDENT" || ["pkg_1", "pkg_2", "pkg_3", "premium", "vip", "master"].includes(metaPkg);
+          const isMetadataVip = metaRole === "ADMIN" || metaRole === "INSTRUCTOR" || (!!metaPkg && metaPkg !== "none" && ["pkg_1", "pkg_2", "pkg_3", "premium", "vip", "master"].includes(metaPkg));
 
           if (sub) {
             setInfo({

@@ -60,14 +60,12 @@ export async function GET(request: NextRequest) {
         else planTier = sub.plan;
         subStatus = sub.status || "active";
         expiresAt = sub.expires_at;
-      } else if (metadata.packageId || metadata.role === "STUDENT" || metadata.role === "ADMIN") {
-        if (metadata.packageId) {
-          planTier = metadata.packageId;
-        } else if (metadata.role === "ADMIN") {
-          planTier = "pkg_3";
-        } else if (metadata.role === "STUDENT") {
-          planTier = "pkg_1";
-        }
+      } else if (metadata.packageId && metadata.packageId !== "none") {
+        planTier = metadata.packageId;
+        subStatus = "active";
+        expiresAt = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
+      } else if (metadata.role === "ADMIN") {
+        planTier = "pkg_3";
         subStatus = "active";
         expiresAt = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
       }
