@@ -43,13 +43,27 @@ export async function GET(request: NextRequest) {
     let list = users.filter((user) => !!user.email_confirmed_at).map((user) => {
       const metadata = user.user_metadata || {};
       const isLocked = metadata.isLocked === true || !!user.banned_until;
-      const sub = subsMap.get(user.id);
-      
       let planTier = null;
+      let subStatus = "inactive";
+      let expiresAt = null;
+
       if (sub && sub.plan) {
         if (sub.plan === "premium" || sub.plan === "pkg_1") planTier = "pkg_1";
         else if (sub.plan === "vip" || sub.plan === "pkg_2") planTier = "pkg_2";
         else if (sub.plan === "master" || sub.plan === "pkg_3") planTier = "pkg_3";
+        else planTier = sub.plan;
+        subStatus = sub.status || "active";
+        expiresAt = sub.expires_at;
+      } else if (metadata.packageId || metadata.role === "STUDENT" || metadata.role === "ADMIN") {
+        if (metadata.packageId) {
+          planTier = metadata.packageId;
+        } else if (metadata.role === "ADMIN") {
+          planTier = "pkg_3";
+        } else if (metadata.role === "STUDENT") {
+          planTier = "pkg_1";
+        }
+        subStatus = "active";
+        expiresAt = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
       }
 
       return {
@@ -60,10 +74,10 @@ export async function GET(request: NextRequest) {
         isLocked: isLocked,
         createdAt: user.created_at,
         updatedAt: user.updated_at || user.created_at,
-        subscription: sub ? {
-          status: sub.status,
+        subscription: planTier ? {
+          status: subStatus,
           plan_tier: planTier,
-          expires_at: sub.expires_at
+          expires_at: expiresAt
         } : null
       };
     });
