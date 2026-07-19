@@ -78,14 +78,14 @@ function ResultContent() {
   useEffect(() => {
     if (source === "daily_task" && taskId) {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          fetch(`/api/student/daily-tasks/${taskId}/complete`, {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${session.access_token}`
-            }
-          }).catch(err => console.error("Auto complete daily task failed:", err));
+        const headers: Record<string, string> = {};
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
         }
+        fetch(`/api/student/daily-tasks/${taskId}/complete`, {
+          method: "POST",
+          headers
+        }).catch(err => console.error("Auto complete daily task failed:", err));
       });
     }
   }, [source, taskId]);
