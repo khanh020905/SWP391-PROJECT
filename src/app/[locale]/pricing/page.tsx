@@ -684,18 +684,7 @@ export default function PricingPage() {
                 </p>
               </div>
 
-              {/* Simulation Testing Action */}
-              <div className="pt-2 w-full max-w-[240px] border-t border-[#DCE2C8]">
-                <button
-                  type="button"
-                  onClick={handleSimulatePayment}
-                  disabled={simulationLoading || paymentStatus === "PAID"}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#C5CEAB] bg-[#EEF1E2] hover:bg-[#E2E8CE] text-[#3B5C37] text-[10.5px] font-black cursor-pointer disabled:opacity-50 transition-all shadow-sm"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${simulationLoading ? "animate-spin" : ""}`} />
-                  <span>{isEn ? "Simulate Payment (Test)" : "Giả lập chuyển khoản (Test)"}</span>
-                </button>
-              </div>
+
             </div>
 
             {/* Right Column: Transfer Details */}
