@@ -923,7 +923,8 @@ function SpeakingTestRoomContent() {
       });
 
       if (!res.ok) {
-        throw new Error("Không thể chấm điểm qua Gemini API");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Không thể chấm điểm qua Gemini API");
       }
 
       const data = await res.json();
