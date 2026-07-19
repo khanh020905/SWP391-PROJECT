@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPackages, createInvoice } from "@/lib/paymentDb";
-import { supabaseAdmin } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 
 async function getAuthenticatedUser(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace("Bearer ", "");
@@ -13,8 +13,13 @@ async function getAuthenticatedUser(request: NextRequest) {
 
   try {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) return null;
-    return user;
+    if (!error && user) return user;
+
+    // Fallback using public client
+    const { data: { user: fallbackUser }, error: fallbackError } = await supabase.auth.getUser(token);
+    if (!fallbackError && fallbackUser) return fallbackUser;
+
+    return null;
   } catch {
     return null;
   }

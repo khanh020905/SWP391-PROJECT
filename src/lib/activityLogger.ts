@@ -18,12 +18,16 @@ const LOG_FILE_PATH = path.join(process.cwd(), "src", "lib", "activityLogs.json"
 
 // Helper to ensure the log file and directory exist
 function ensureLogFileExists(): void {
-  const dir = path.dirname(LOG_FILE_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(LOG_FILE_PATH)) {
-    fs.writeFileSync(LOG_FILE_PATH, JSON.stringify([], null, 2), "utf-8");
+  try {
+    const dir = path.dirname(LOG_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(LOG_FILE_PATH)) {
+      fs.writeFileSync(LOG_FILE_PATH, JSON.stringify([], null, 2), "utf-8");
+    }
+  } catch {
+    // Ignore read-only filesystem error on serverless environments
   }
 }
 

@@ -43,13 +43,71 @@ const PACKAGES_FILE = path.join(process.cwd(), "src", "lib", "paymentPackages.js
 const INVOICES_FILE = path.join(process.cwd(), "src", "lib", "paymentInvoices.json");
 const SEPAY_FILE = path.join(process.cwd(), "src", "lib", "sepayTransactions.json");
 
-function ensureFileExists(filePath: string, defaultData: any): void {
-  const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+declare global {
+  var __paymentPackagesCache: PaymentPackage[] | undefined;
+  var __paymentInvoicesCache: PaymentInvoice[] | undefined;
+  var __sepayTransactionsCache: SepayTransaction[] | undefined;
+}
+
+function getTmpPath(filePath: string): string {
+  const filename = path.basename(filePath);
+  return path.join("/tmp", filename);
+}
+
+function safeReadFile<T>(filePath: string, defaultData: T): T {
+  // 1. Try reading from primary path (process.cwd/src/lib/...)
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf-8");
+      if (data && data.trim().length > 0) {
+        return JSON.parse(data);
+      }
+    }
+  } catch {
+    // Ignore error and fallback
   }
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
+
+  // 2. Try reading from /tmp path
+  try {
+    const tmpPath = getTmpPath(filePath);
+    if (fs.existsSync(tmpPath)) {
+      const data = fs.readFileSync(tmpPath, "utf-8");
+      if (data && data.trim().length > 0) {
+        return JSON.parse(data);
+      }
+    }
+  } catch {
+    // Ignore error and fallback
+  }
+
+  return defaultData;
+}
+
+function safeWriteFile(filePath: string, data: any): void {
+  const jsonStr = JSON.stringify(data, null, 2);
+
+  // 1. Try writing to primary path (process.cwd/src/lib/...)
+  try {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, jsonStr, "utf-8");
+    return;
+  } catch {
+    // Primary path failed (e.g. read-only file system on Vercel)
+  }
+
+  // 2. Try writing to /tmp directory
+  try {
+    const tmpPath = getTmpPath(filePath);
+    const dir = path.dirname(tmpPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(tmpPath, jsonStr, "utf-8");
+  } catch (err) {
+    console.warn(`[paymentDb] Unable to write file to /tmp:`, err);
   }
 }
 
@@ -105,20 +163,21 @@ const initialPackages: PaymentPackage[] = [
 ];
 
 const initialInvoices: PaymentInvoice[] = [];
-
 const initialSepayTransactions: SepayTransaction[] = [];
 
 // Packages APIs
 export async function getPackages(): Promise<PaymentPackage[]> {
-  ensureFileExists(PACKAGES_FILE, initialPackages);
-  const data = await fs.promises.readFile(PACKAGES_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__paymentPackagesCache) {
+    return globalThis.__paymentPackagesCache;
+  }
+  const packages = safeReadFile(PACKAGES_FILE, initialPackages);
+  globalThis.__paymentPackagesCache = packages;
+  return packages;
 }
 
 export async function savePackages(packages: PaymentPackage[]): Promise<void> {
-  const dir = path.dirname(PACKAGES_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(PACKAGES_FILE, JSON.stringify(packages, null, 2), "utf-8");
+  globalThis.__paymentPackagesCache = packages;
+  safeWriteFile(PACKAGES_FILE, packages);
 }
 
 export async function createPackage(pkgData: Omit<PaymentPackage, "id" | "createdAt">): Promise<PaymentPackage> {
@@ -156,15 +215,17 @@ export async function deletePackage(id: string): Promise<boolean> {
 
 // Invoices APIs
 export async function getInvoices(): Promise<PaymentInvoice[]> {
-  ensureFileExists(INVOICES_FILE, initialInvoices);
-  const data = await fs.promises.readFile(INVOICES_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__paymentInvoicesCache) {
+    return globalThis.__paymentInvoicesCache;
+  }
+  const invoices = safeReadFile(INVOICES_FILE, initialInvoices);
+  globalThis.__paymentInvoicesCache = invoices;
+  return invoices;
 }
 
 export async function saveInvoices(invoices: PaymentInvoice[]): Promise<void> {
-  const dir = path.dirname(INVOICES_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(INVOICES_FILE, JSON.stringify(invoices, null, 2), "utf-8");
+  globalThis.__paymentInvoicesCache = invoices;
+  safeWriteFile(INVOICES_FILE, invoices);
 }
 
 export async function createInvoice(invoiceData: Omit<PaymentInvoice, "id" | "status" | "createdAt" | "paidAt" | "paymentMethod" | "sepayTransactionId">): Promise<PaymentInvoice> {
@@ -201,15 +262,17 @@ export async function updateInvoiceStatus(id: string, status: PaymentInvoice["st
 
 // Sepay Transactions APIs
 export async function getSepayTransactions(): Promise<SepayTransaction[]> {
-  ensureFileExists(SEPAY_FILE, initialSepayTransactions);
-  const data = await fs.promises.readFile(SEPAY_FILE, "utf-8");
-  return JSON.parse(data || "[]");
+  if (globalThis.__sepayTransactionsCache) {
+    return globalThis.__sepayTransactionsCache;
+  }
+  const transactions = safeReadFile(SEPAY_FILE, initialSepayTransactions);
+  globalThis.__sepayTransactionsCache = transactions;
+  return transactions;
 }
 
 export async function saveSepayTransactions(transactions: SepayTransaction[]): Promise<void> {
-  const dir = path.dirname(SEPAY_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  await fs.promises.writeFile(SEPAY_FILE, JSON.stringify(transactions, null, 2), "utf-8");
+  globalThis.__sepayTransactionsCache = transactions;
+  safeWriteFile(SEPAY_FILE, transactions);
 }
 
 export async function createSepayTransaction(txData: Omit<SepayTransaction, "status" | "matchedInvoiceId">): Promise<SepayTransaction> {
