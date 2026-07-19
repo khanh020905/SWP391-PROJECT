@@ -147,7 +147,6 @@ export default function PricingPage() {
   const [statusPolling, setStatusPolling] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [simulationLoading, setSimulationLoading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Localization resources
@@ -318,40 +317,7 @@ export default function PricingPage() {
     return () => clearInterval(timer);
   }, [statusPolling, invoice, isEn, locale, router, selectedPackage?.id]);
 
-  // Handle Simulated payment for demo and test presentation
-  const handleSimulatePayment = async () => {
-    if (!invoice) return;
-    setSimulationLoading(true);
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const res = await fetch("/api/admin/payments/sepay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          amount: invoice.amount,
-          transferContent: `QLC ${invoice.id}`,
-          senderAccount: "0987654321",
-          senderBank: "Vietcombank"
-        })
-      });
-
-      if (res.ok) {
-        showToast(isEn ? "Matched payment successfully (Simulation)" : "Giả lập chuyển khoản thành công!");
-      } else {
-        showToast("Lỗi giả lập thanh toán.", "error");
-      }
-    } catch (err) {
-      showToast("Lỗi kết nối.", "error");
-    } finally {
-      setSimulationLoading(false);
-    }
-  };
 
   // Generate dynamic VietQR image URL
   const vietQrUrl = invoice
