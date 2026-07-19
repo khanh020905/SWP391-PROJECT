@@ -255,8 +255,14 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
         body: fd,
       });
 
-      const data = await res.json();
-      if (res.ok && data.parsed) {
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned status ${res.status} (${res.statusText || "Invalid Response"})`);
+      }
+
+      if (res.ok && data?.parsed) {
         const parsed = data.parsed;
         setParseResult(parsed);
 
@@ -323,10 +329,11 @@ export default function ExamForm({ initialData, mode }: ExamFormProps) {
             : "Đã đọc xong file và tự động trích xuất đầy đủ nội dung & đáp án đề thi!"
         );
       } else {
-        showToast("error", data.error || (isEn ? "Failed to read file" : "Không thể đọc file"));
+        showToast("error", data?.error || (isEn ? "Failed to read file" : "Không thể đọc file"));
       }
-    } catch {
-      showToast("error", isEn ? "Error parsing file" : "Lỗi khi đọc file");
+    } catch (err: any) {
+      console.error("handleFileImport error:", err);
+      showToast("error", err?.message || (isEn ? "Error parsing file" : "Lỗi khi đọc file"));
     } finally {
       setIsParsingFile(false);
     }

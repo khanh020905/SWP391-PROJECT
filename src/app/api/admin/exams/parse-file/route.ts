@@ -374,10 +374,27 @@ function extractPassageTitle(content: string, secNo: number): string {
   const lines = content.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // Check markdown header line
+    if (line.startsWith("#") && !/questions|passage|section|part|instructions|candidate/i.test(line)) {
+      const cleanHeader = line.replace(/^#+\s*/, "").replace(/[\*\_]/g, "").trim();
+      if (cleanHeader.length > 3 && cleanHeader.length < 90) {
+        return cleanHeader;
+      }
+    }
+  }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (/READING\s*PASSAGE\s*\d+/i.test(line) || /PASSAGE\s*\d+/i.test(line) || /SECTION\s*\d+/i.test(line)) {
-      for (let j = i + 1; j < Math.min(lines.length, i + 6); j++) {
+      for (let j = i + 1; j < Math.min(lines.length, i + 8); j++) {
         const nextLine = lines[j];
-        if (nextLine.toLowerCase().includes("questions") || nextLine.toLowerCase().includes("minutes") || nextLine.toLowerCase().includes("based on")) {
+        if (
+          nextLine.toLowerCase().includes("questions") ||
+          nextLine.toLowerCase().includes("minutes") ||
+          nextLine.toLowerCase().includes("based on") ||
+          nextLine.toLowerCase().includes("paragraphs") ||
+          nextLine.toLowerCase().includes("box") ||
+          nextLine.toLowerCase().includes("list of headings")
+        ) {
           continue;
         }
         const cleaned = nextLine.replace(/[#\*_]/g, "").trim();
@@ -482,8 +499,12 @@ function fallbackParseExamContent(rawContent: string, targetCategory: string = "
     return result;
   }
 
-  const sectionSplitter = /(?:^|\n)[#\s\*_]*(?:READING\s*PASSAGE|PASSAGE|WRITING\s+TASK|TASK|SPEAKING\s+PART|PART|SECTION)\s*(\d+)\b[#\s\*_]*(?=\r?\n|$)/gi;
-  const matches = Array.from(text.matchAll(sectionSplitter));
+  const sectionSplitter = /(?:^|\r?\n)[#\t \*_]*(?:READING\s*PASSAGE|PASSAGE|WRITING\s+TASK|TASK|SPEAKING\s+PART|PART|SECTION)\s*(\d+)\b[^\r\n]*/gi;
+  const rawMatches = Array.from(text.matchAll(sectionSplitter));
+  const matches = rawMatches.filter(m => {
+    const lineText = m[0].trim().toLowerCase();
+    return !/based on|questions|minutes|paragraphs|which are|following pages/i.test(lineText);
+  });
   const prefix = targetCategory === "speaking" ? "Part" : targetCategory === "reading" ? "Passage" : "Section";
 
   if (matches.length > 0) {
@@ -603,9 +624,9 @@ export async function POST(req: Request) {
     let answersText = "";
     let cleanExtractedText = rawExtractedText;
 
-    const answersBlockMatch = rawExtractedText.match(/(?:^|\n)(?:#+\s*)?\**\s*(?:ANSWERS?|ANSWER KEY|DÁP ÁN)\b\s*\**\s*[\r\n]+[\s\S]*$/i);
+    const answersBlockMatch = rawExtractedText.match(/(?:^|\r?\n)[#\t \*_]*(?:ANSWERS|ANSWER\s+KEY|DÁP\s+ÁN)\b[^\n\r]*(?=[\r\n]+|$)/i);
     if (answersBlockMatch) {
-      answersText = answersBlockMatch[0];
+      answersText = rawExtractedText.substring(answersBlockMatch.index);
       cleanExtractedText = rawExtractedText.substring(0, answersBlockMatch.index).trim();
     }
 
@@ -637,7 +658,7 @@ export async function POST(req: Request) {
       try {
         const genAIInst = new GoogleGenerativeAI(apiKey);
         const genModel = genAIInst.getGenerativeModel({
-          model: "gemini-flash-latest",
+          model: "gemini-1.5-flash",
           generationConfig: { responseMimeType: "application/json" }
         });
 
@@ -749,7 +770,12 @@ ${cleanExtractedText.slice(0, 50000)}
 ---`;
         }
 
-        const result = await genModel.generateContent(prompt);
+        const geminiPromise = genModel.generateContent(prompt);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Gemini API Timeout (8s limit reached)")), 8000)
+        );
+
+        const result = (await Promise.race([geminiPromise, timeoutPromise])) as any;
         const text = result.response.text();
         const parsed = cleanAndParseJSON(text);
 
