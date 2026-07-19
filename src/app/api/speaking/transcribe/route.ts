@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("Server received file:", file instanceof File ? file.name : "Blob", "Size:", file.size, "Type:", file.type);
+
     const mimeType = file.type || "audio/webm";
     const ext = extensionFromMime(mimeType);
     const groqForm = new FormData();
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     if (!groqResponse.ok) {
       const errBody = await groqResponse.text();
-      console.error("[Groq STT]", groqResponse.status, errBody);
+      console.error("[Groq STT] Error response from Groq:", groqResponse.status, errBody);
       return NextResponse.json(
         { error: "Groq không thể nhận diện giọng nói. Vui lòng thử lại." },
         { status: groqResponse.status }
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
 
     const result = (await groqResponse.json()) as { text?: string };
     const text = (result.text || "").trim();
+    console.log("[Groq STT Success] Transcribed text:", text);
 
     return NextResponse.json({ text });
   } catch (error) {

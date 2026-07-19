@@ -691,9 +691,11 @@ function SpeakingTestRoomContent() {
       };
 
       mediaRecorder.onstop = async () => {
+        console.log("MediaRecorder stopped. Chunks count:", audioChunksRef.current.length);
         const audioBlob = new Blob(audioChunksRef.current, {
           type: recorderMimeTypeRef.current || "audio/webm",
         });
+        console.log("Audio Blob generated. Size (bytes):", audioBlob.size, "Type:", audioBlob.type);
         const audioUrl = URL.createObjectURL(audioBlob);
 
         stream.getTracks().forEach((track) => track.stop());
