@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Nếu hóa đơn đang chờ thanh toán (PENDING) và có cấu hình SEPAY_API_TOKEN / SEPAY_API_KEY
     // Hệ thống sẽ chủ động kéo giao dịch mới nhất từ Sepay về để đối soát (Hỗ trợ chạy test trực tiếp ở localhost)
-    const sepayToken = (process.env.SEPAY_API_TOKEN || process.env.SEPAY_API_KEY || "").replace(/['"]/g, "").trim();
+    const sepayToken = (process.env.SEPAY_API_TOKEN || process.env.SEPAY_API_KEY || "LLSLCXM1QYHSI9AP8IKH10JGPBJGJCHQSWBFEZH2GPUFDXFQQTOINLWOARAT3BNV").replace(/['"]/g, "").trim();
     if (invoice.status === "PENDING" && sepayToken) {
       try {
         console.log(`📥 [API Status] Khởi chạy kéo giao dịch tự động từ Sepay API để kiểm tra hóa đơn ${invoiceId}...`);
