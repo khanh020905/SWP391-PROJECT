@@ -39,10 +39,14 @@ export async function POST(request: NextRequest) {
 
     console.log("Server received file:", file instanceof File ? file.name : "Blob", "Size:", file.size, "Type:", file.type);
 
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    console.log("Converted audio stream to buffer. Buffer size (bytes):", buffer.length);
+
     const mimeType = file.type || "audio/webm";
     const ext = extensionFromMime(mimeType);
     const groqForm = new FormData();
-    groqForm.append("file", file, `recording.${ext}`);
+    groqForm.append("file", new Blob([buffer], { type: mimeType }), `recording.${ext}`);
     groqForm.append("model", "whisper-large-v3-turbo");
     groqForm.append("language", language);
     groqForm.append("response_format", "json");

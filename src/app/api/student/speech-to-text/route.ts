@@ -64,10 +64,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     const mimeType = file.type || "audio/webm";
     const ext = extensionFromMime(mimeType);
     const groqForm = new FormData();
-    groqForm.append("file", file, `recording.${ext}`);
+    groqForm.append("file", new Blob([buffer], { type: mimeType }), `recording.${ext}`);
     groqForm.append("model", "whisper-large-v3-turbo");
     groqForm.append("language", language);
     groqForm.append("response_format", "json");
