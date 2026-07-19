@@ -123,10 +123,22 @@ export async function POST(request: NextRequest) {
       console.log(`🔍 [Sepay Webhook] Tìm thấy mã hóa đơn nghi vấn: ${invoiceCode}`);
 
       const invoices = await getInvoices();
-      const invoiceIndex = invoices.findIndex(i => i.id.toUpperCase() === invoiceCode.toUpperCase());
+      let invoiceIndex = invoices.findIndex(i => i.id.toUpperCase() === invoiceCode.toUpperCase());
+      let invoice = invoiceIndex !== -1 ? invoices[invoiceIndex] : null;
 
-      if (invoiceIndex !== -1) {
-        const invoice = invoices[invoiceIndex];
+      if (!invoice) {
+        try {
+          const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+          const foundUser = users?.find(u => u.user_metadata?.pendingInvoice?.id?.toUpperCase() === invoiceCode.toUpperCase());
+          if (foundUser?.user_metadata?.pendingInvoice) {
+            invoice = foundUser.user_metadata.pendingInvoice;
+          }
+        } catch (err: any) {
+          console.warn("⚠️ Error searching Supabase user_metadata in Sepay webhook:", err?.message);
+        }
+      }
+
+      if (invoice) {
         
         // Điều kiện khớp: Hóa đơn chưa thanh toán và Số tiền giao dịch >= Số tiền hóa đơn
         if (invoice.status === "PENDING" && newTx.amount >= invoice.amount) {

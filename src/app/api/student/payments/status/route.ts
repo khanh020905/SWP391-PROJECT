@@ -14,7 +14,22 @@ export async function GET(request: NextRequest) {
 
   try {
     const invoices = await getInvoices();
-    const invoice = invoices.find(i => i.id === invoiceId);
+    let invoice = invoices.find(i => i.id === invoiceId);
+
+    // Fallback: Search Supabase Auth user_metadata if not found in local memory array (cross-lambda serverless compatibility)
+    if (!invoice) {
+      try {
+        const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
+        if (!error && users) {
+          const matchedUser = users.find(u => u.user_metadata?.pendingInvoice?.id === invoiceId);
+          if (matchedUser?.user_metadata?.pendingInvoice) {
+            invoice = matchedUser.user_metadata.pendingInvoice;
+          }
+        }
+      } catch (err: any) {
+        console.warn("⚠️ Error searching Supabase user_metadata for invoice:", err?.message);
+      }
+    }
 
     if (!invoice) {
       return NextResponse.json({ message: "Không tìm thấy hóa đơn." }, { status: 404 });

@@ -62,6 +62,23 @@ export async function POST(request: NextRequest) {
       amount: pkg.price
     });
 
+    // 3. Persist invoice in Supabase user_metadata for cross-lambda serverless compatibility
+    if (user.id && !user.id.startsWith("mock_")) {
+      try {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+        if (userData?.user) {
+          await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+              ...(userData.user.user_metadata || {}),
+              pendingInvoice: newInvoice
+            }
+          });
+        }
+      } catch (e: any) {
+        console.warn("⚠️ Could not persist pendingInvoice in Supabase user_metadata:", e?.message);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Tạo hóa đơn thanh toán thành công!",
