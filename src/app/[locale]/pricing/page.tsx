@@ -298,6 +298,16 @@ export default function PricingPage() {
             setStatusPolling(false);
             showToast(isEn ? "Upgrade complete! Redirecting to homepage..." : "Nâng cấp tài khoản thành công! Đang chuyển hướng về trang chủ...", "success");
 
+            // 1. Refresh Supabase session
+            try {
+              await supabase.auth.refreshSession();
+            } catch (refErr) {
+              console.warn("Could not refresh session:", refErr);
+            }
+
+            // 2. Dispatch custom event for Navbar to update badge to PREMIUM instantly
+            window.dispatchEvent(new CustomEvent("user_premium_updated", { detail: { packageId: selectedPackage?.id } }));
+
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
               setSessionUser(prev => prev ? { ...prev, role: "STUDENT", packageId: selectedPackage?.id } : null);

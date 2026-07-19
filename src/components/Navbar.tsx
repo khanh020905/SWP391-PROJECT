@@ -23,6 +23,8 @@ export default function Navbar() {
   const isPremium = !!user && (
     user.user_metadata?.role === "ADMIN" ||
     user.user_metadata?.role === "INSTRUCTOR" ||
+    Boolean(user.user_metadata?.packageId) ||
+    Boolean(user.user_metadata?.paidInvoice) ||
     ["pkg_1", "pkg_2", "pkg_3", "premium", "vip", "master"].includes(user.user_metadata?.packageId)
   );
 
@@ -75,7 +77,34 @@ export default function Navbar() {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    const handleCustomUpdate = async (e?: any) => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const updatedUser = {
+            ...session.user,
+            user_metadata: {
+              ...session.user.user_metadata,
+              packageId: e?.detail?.packageId || session.user.user_metadata?.packageId || "pkg_1"
+            }
+          };
+          setUser(updatedUser as any);
+        }
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser) {
+          setUser(freshUser);
+        }
+      } catch (err) {
+        console.error("Error refreshing user in Navbar:", err);
+      }
+    };
+
+    window.addEventListener("user_premium_updated", handleCustomUpdate);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("user_premium_updated", handleCustomUpdate);
+    };
   }, []);
 
   // Poll for notifications
