@@ -50,15 +50,32 @@ const getPackageLevel = (id: string | null | undefined): number => {
 
 // Full bilingual localization mapping for Plus, Pro, Ultra tiers
 const getLocalizedTierInfo = (pkg: PaymentPackage, index: number, isEn: boolean) => {
+  const hasCustomFeatures = Array.isArray(pkg.features) && pkg.features.length > 0;
+  const hasCustomDesc = Boolean(pkg.description && pkg.description.trim());
+
+  let defaultName = pkg.name;
+  let subLabel = isEn
+    ? `Study Package (${pkg.durationMonths || 3} ${pkg.durationMonths === 1 ? "Month" : "Months"})`
+    : `Luyện thi (${pkg.durationMonths || 3} tháng)`;
+  let durationText = isEn
+    ? `${pkg.durationMonths || 3} ${pkg.durationMonths === 1 ? "Month" : "Months"}`
+    : `${pkg.durationMonths || 3} Tháng`;
+  let defaultDesc = pkg.description || "";
+  let defaultFeatures: string[] = hasCustomFeatures ? pkg.features : [];
+
   if (index === 0 || pkg.id === "pkg_1") {
-    return {
-      name: isEn ? "Plus Plan" : "Gói Plus",
-      subLabel: isEn ? "Basic Test Prep (3 Months)" : "Luyện thi cơ bản (3 tháng)",
-      durationText: isEn ? "3 Months" : "3 Tháng",
-      description: isEn
+    if (!defaultName || pkg.id === "pkg_1" || pkg.name === "IELTS Premium 3 Tháng") {
+      defaultName = isEn ? "Plus Plan" : (pkg.name || "Gói Plus");
+    }
+    subLabel = isEn ? "Basic Test Prep (3 Months)" : "Luyện thi cơ bản (3 tháng)";
+    durationText = isEn ? "3 Months" : "3 Tháng";
+    if (!hasCustomDesc) {
+      defaultDesc = isEn
         ? "Essential IELTS preparation package for students looking for fast 3-month score improvement."
-        : "Gói học IELTS cơ bản cho học viên muốn cải thiện cấp tốc trong 3 tháng.",
-      features: isEn
+        : "Gói học IELTS cơ bản cho học viên muốn cải thiện cấp tốc trong 3 tháng.";
+    }
+    if (!hasCustomFeatures) {
+      defaultFeatures = isEn
         ? [
             "Full access to Speaking question bank",
             "Automated AI pronunciation evaluation",
@@ -70,19 +87,21 @@ const getLocalizedTierInfo = (pkg: PaymentPackage, index: number, isEn: boolean)
             "Đánh giá AI tự động phản hồi phát âm",
             "Xem đáp án chi tiết các phần thi",
             "Luyện tập 30 bài thi thử IELTS thực tế"
-          ]
-    };
-  }
-
-  if (index === 1 || pkg.id === "pkg_2") {
-    return {
-      name: isEn ? "Pro Plan" : "Gói Pro",
-      subLabel: isEn ? "Intensive Band Booster (6 Months)" : "Nâng band chuyên sâu (6 tháng)",
-      durationText: isEn ? "6 Months" : "6 Tháng",
-      description: isEn
+          ];
+    }
+  } else if (index === 1 || pkg.id === "pkg_2") {
+    if (!defaultName || pkg.id === "pkg_2" || pkg.name === "IELTS VIP 6 Tháng") {
+      defaultName = isEn ? "Pro Plan" : (pkg.name || "Gói Pro");
+    }
+    subLabel = isEn ? "Intensive Band Booster (6 Months)" : "Nâng band chuyên sâu (6 tháng)";
+    durationText = isEn ? "6 Months" : "6 Tháng";
+    if (!hasCustomDesc) {
+      defaultDesc = isEn
         ? "Advanced learning package with in-depth evaluation, ideal for boosting 1.0 - 1.5 bands."
-        : "Gói học tập nâng cao, chấm chữa chi tiết, thích hợp cho mục tiêu tăng 1.0 - 1.5 band.",
-      features: isEn
+        : "Gói học tập nâng cao, chấm chữa chi tiết, thích hợp cho mục tiêu tăng 1.0 - 1.5 band.";
+    }
+    if (!hasCustomFeatures) {
+      defaultFeatures = isEn
         ? [
             "All features included in Plus Plan",
             "In-depth AI assessment (grammar, lexical resource, fluency)",
@@ -96,33 +115,44 @@ const getLocalizedTierInfo = (pkg: PaymentPackage, index: number, isEn: boolean)
             "Ưu tiên phản hồi hỗ trợ trong 2 giờ",
             "Thống kê tiến độ học tập thông minh",
             "Tặng thêm tài liệu Speaking dự đoán quý mới nhất"
+          ];
+    }
+  } else if (index === 2 || pkg.id === "pkg_3") {
+    if (!defaultName || pkg.id === "pkg_3" || pkg.name === "IELTS Master 12 Tháng") {
+      defaultName = isEn ? "Ultra Plan" : (pkg.name || "Gói Ultra");
+    }
+    subLabel = isEn ? "Comprehensive Cambridge & AI (12 Months)" : "Toàn diện Cambridge & AI (12 tháng)";
+    durationText = isEn ? "12 Months" : "12 Tháng";
+    if (!hasCustomDesc) {
+      defaultDesc = isEn
+        ? "Comprehensive 1-year test prep solution for learners aiming for target band 7.5+."
+        : "Giải pháp luyện thi toàn diện trong 1 năm cho người mất gốc hoặc mục tiêu band điểm cao 7.5+.";
+    }
+    if (!hasCustomFeatures) {
+      defaultFeatures = isEn
+        ? [
+            "All features included in Pro Plan",
+            "Full 12-month unlimited access",
+            "Weakness analysis report & personalized improvement roadmap",
+            "Cambridge standard output guarantee",
+            "Deep-dive AI analytics & optimized personalized learning path"
           ]
-    };
+        : [
+            "Tất cả tính năng của gói Pro",
+            "Thời hạn học tập trọn vẹn 12 tháng không giới hạn lượt truy cập",
+            "Báo cáo phân tích điểm yếu kèm lộ trình khắc phục cá nhân hóa",
+            "Cam kết đầu ra chuẩn IELTS Cambridge",
+            "Hỗ trợ phân tích chuyên sâu và lộ trình tối ưu bằng AI"
+          ];
+    }
   }
 
-  // Ultra Plan (pkg_3)
   return {
-    name: isEn ? "Ultra Plan" : "Gói Ultra",
-    subLabel: isEn ? "Comprehensive Cambridge & AI (12 Months)" : "Toàn diện Cambridge & AI (12 tháng)",
-    durationText: isEn ? "12 Months" : "12 Tháng",
-    description: isEn
-      ? "Comprehensive 1-year test prep solution for learners aiming for target band 7.5+."
-      : "Giải pháp luyện thi toàn diện trong 1 năm cho người mất gốc hoặc mục tiêu band điểm cao 7.5+.",
-    features: isEn
-      ? [
-          "All features included in Pro Plan",
-          "Full 12-month unlimited access",
-          "Weakness analysis report & personalized improvement roadmap",
-          "Cambridge standard output guarantee",
-          "Deep-dive AI analytics & optimized personalized learning path"
-        ]
-      : [
-          "Tất cả tính năng của gói Pro",
-          "Thời hạn học tập trọn vẹn 12 tháng không giới hạn lượt truy cập",
-          "Báo cáo phân tích điểm yếu kèm lộ trình khắc phục cá nhân hóa",
-          "Cam kết đầu ra chuẩn IELTS Cambridge",
-          "Hỗ trợ phân tích chuyên sâu và lộ trình tối ưu bằng AI"
-        ]
+    name: pkg.name || defaultName,
+    subLabel,
+    durationText,
+    description: hasCustomDesc ? pkg.description : defaultDesc,
+    features: hasCustomFeatures ? pkg.features : defaultFeatures
   };
 };
 
