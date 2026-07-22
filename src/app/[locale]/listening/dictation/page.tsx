@@ -35,13 +35,13 @@ export default function ListeningDictationDirectory() {
       try {
         const { data, error } = await supabase
           .from('listening_tasks')
-          .select('lesson_id, lesson_name, challenges');
+          .select('lesson_id, lesson_name');
         if (error) throw error;
 
         const entries: DictationIndexEntry[] = (data || []).map((row: any) => ({
           lesson_id: String(row.lesson_id),
           lesson_name: row.lesson_name,
-          totalSentences: Array.isArray(row.challenges) ? row.challenges.length : 0
+          totalSentences: 0
         }));
 
         setVolumes(parseListeningGroups(entries));

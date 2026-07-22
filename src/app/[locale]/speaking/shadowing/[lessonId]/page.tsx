@@ -441,30 +441,10 @@ export default function ShadowingPlayerPage() {
     }
   }, [currentIdx, subtitles, isSaved, isCommunity, isCustom, lessonId]);
 
-  // History Debounce
-  const historyTimeoutRef = useRef<any>(null);
-  const hasPostedHistoryRef = useRef(false);
-  useEffect(() => {
-    if (loading || subtitles.length === 0) return;
-    
-    if (historyTimeoutRef.current) clearTimeout(historyTimeoutRef.current);
-    
-    historyTimeoutRef.current = setTimeout(() => {
-      const method = hasPostedHistoryRef.current ? "PATCH" : "POST";
-      fetch("/api/history", {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lessonId,
-          type: "shadowing",
-          progress: Math.round(((currentIdx + 1) / subtitles.length) * 100)
-        })
-      })
-      .then(() => { hasPostedHistoryRef.current = true; })
-      .catch(e => console.warn("Failed to save history", e));
-    }, 3000);
-  }, [currentIdx, subtitles, isSaved, isCommunity, isCustom, lessonId]);
-    
+  // Shadowing progress is persisted client-side via localStorage in
+  // evaluatePronunciation(). The server-side /api/history route was retired
+  // (it produced duplicate practice_history rows), so there is no POST here.
+
   const nextSentence = () => {
     if (currentIdx < subtitles.length - 1) {
       setCurrentIdx(c => c + 1);
@@ -506,10 +486,10 @@ export default function ShadowingPlayerPage() {
           const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
           const audioUrl = URL.createObjectURL(blob);
           const formData = new FormData();
-          formData.append('audio', blob, 'audio.webm');
-          
+          formData.append('file', blob, 'audio.webm');
+
           try {
-            const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+            const res = await fetch('/api/speaking/transcribe', { method: 'POST', body: formData });
             const data = await res.json();
             const finalTranscript = data.text || interimTranscriptRef.current;
             evaluatePronunciation(finalTranscript, subtitles[currentIdx]?.text || "", audioUrl);

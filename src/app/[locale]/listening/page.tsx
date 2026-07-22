@@ -49,13 +49,13 @@ export default function ListeningDirectory() {
       const [dictResult, camResult] = await Promise.all([
         supabase
           .from('listening_tasks')
-          .select('lesson_id, lesson_name, challenges')
+          .select('lesson_id, lesson_name')
           .then(({ data, error }) => {
             if (error) throw error;
             return (data || []).map((row: any) => ({
               lesson_id: String(row.lesson_id),
               lesson_name: row.lesson_name,
-              totalSentences: Array.isArray(row.challenges) ? row.challenges.length : 0
+              totalSentences: 0
             }));
           })
           .catch((err) => {
